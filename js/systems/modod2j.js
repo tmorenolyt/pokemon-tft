@@ -439,7 +439,3 @@ window.tunePos = function (o) {
     console.log('✏️ tunePos({ clave: "NXpx" })  → claves: bankLeft, bankRight, bankLeftInner, bankRightInner, baulLeft, baulRight, baulTopLeft, baulTopRight');
     return out;
 };
-
-console.log('👥 modod2j.js v2 cargado (modo 2 jugadores hotseat)');
-console.log('🌱 v2: swap de semillasNuevaVerde ↔ semillasEnemigoNuevaVerde');
-console.log('🎛️ tunePos() disponible: ajusta posiciones de bancos y baúles desde la consola');

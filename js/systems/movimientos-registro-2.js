@@ -2168,5 +2168,3 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
         }
     }
 });
-
-console.log("✅ movimientos-registro-2.js cargado (con aplicarEscudoConFade aplicado)");

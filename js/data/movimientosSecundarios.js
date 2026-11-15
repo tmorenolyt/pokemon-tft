@@ -161,5 +161,3 @@ const MOVIMIENTOS_SECUNDARIOS = {
 // ============================================================
 
 window.MOVIMIENTOS_SECUNDARIOS = MOVIMIENTOS_SECUNDARIOS;
-
-console.log("✅ movimientosSecundarios.js cargado -", Object.keys(MOVIMIENTOS_SECUNDARIOS).length, "Pokémon con secundario");

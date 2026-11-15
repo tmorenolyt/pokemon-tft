@@ -336,5 +336,3 @@ const MOVIMIENTOS_POKEMON = {
 // ============================================================
 
 window.MOVIMIENTOS_POKEMON = MOVIMIENTOS_POKEMON;
-
-console.log("✅ movimientosPokemon.js cargado -", Object.keys(MOVIMIENTOS_POKEMON).length, "Pokémon con movimientos");

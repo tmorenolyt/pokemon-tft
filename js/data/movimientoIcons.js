@@ -255,5 +255,3 @@ function getIconoMovimientoHtml(nombreMovimiento, size = 20, idExplicito = null)
 window.MOVIMIENTO_ICONS = MOVIMIENTO_ICONS;
 window.getIconoMovimiento = getIconoMovimiento;
 window.getIconoMovimientoHtml = getIconoMovimientoHtml;
-
-console.log("✅ movimientoIcons.js cargado (SIMPLIFICADO + FALLBACK ⚔️) -", Object.keys(MOVIMIENTO_ICONS).length, "iconos");

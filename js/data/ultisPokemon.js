@@ -486,8 +486,3 @@ for (let clave in ULTIS_FAMILIAS) {
 
 window.ULTIS_FAMILIAS = ULTIS_FAMILIAS;
 window.ULTIS_POKEMON = ULTIS_POKEMON;
-
-console.log("✅ ultisPokemon.js cargado (v3)");
-console.log(`   → ${Object.keys(ULTIS_FAMILIAS).length} familia(s) de ultis definidas`);
-console.log(`   → ${Object.keys(ULTIS_POKEMON).length} Pokémon con ulti asignada`);
-console.log("🎀 Zacian: Tajo Supremo como ulti (no equipa Disco, usa `behemothBlade` como virtual)");

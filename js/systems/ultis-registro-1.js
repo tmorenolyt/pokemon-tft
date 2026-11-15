@@ -2572,5 +2572,3 @@ if (escudo > 0) {
 // ============================================================
 
 window.ULTIS_REGISTRO = ULTIS_REGISTRO;
-
-console.log("✅ ultis-registro-1.js cargado -", Object.keys(ULTIS_REGISTRO).length, "ulti(s) registrada(s)");

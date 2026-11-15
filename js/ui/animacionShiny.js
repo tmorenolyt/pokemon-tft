@@ -343,5 +343,3 @@ function animarShinyTienda(pokemon) {
 })();
 
 window.animarShinyTienda = animarShinyTienda;
-
-console.log('✅ animacionShiny.js v7 cargado - sin emoji ✨ flotante');

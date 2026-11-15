@@ -4290,32 +4290,7 @@ function enemyComprarObjetoGarantizado() {
 
 window.enemyComprarObjetoGarantizado = enemyComprarObjetoGarantizado;
 
-console.log("✅ enemigo.js v23 HORIZONTAL 4×5 cargado");
 
 window.enemyIntentarRerolls = enemyIntentarRerolls;
 window.enemyEvaluarSiMereceReroll = enemyEvaluarSiMereceReroll;
 window.enemyCalcularReservaMinimaReroll = enemyCalcularReservaMinimaReroll;
-
-console.log("✅ enemigo.js v23 HORIZONTAL 4×5 cargado");
-console.log("🎯 Colocación inicial desde el CENTRO:");
-console.log("   Melee enemigo  → E3 → E2 → E4 → F3 → E1 → E5 → F2 → F4");
-console.log("   Backline enemigo → H3 → H2 → H4 → G3 → H1 → H5 → G2 → G4");
-console.log("🎭 Cada rival tiene su estrategia predefinida");
-console.log("💰 Sube de nivel para desbloquear su coste objetivo");
-console.log("🔥 Vende activamente lo que no encaja desde ronda 3");
-console.log("🧠 La IA 'piensa' con bocadillo antes de sustituir unidades");
-console.log("📦 Objetos devueltos al baúl enemigo al vender / mover al banco / fusionar");
-console.log("🆕 v23 FIXES:");
-console.log("   #29: intentarSustituir ya NO descarta a los que encajan con la estrategia");
-console.log("   #30: umbral de swap en enemyMoverMejoresAlTablero +20 → +5");
-console.log("   #31: evaluarPokemon -100 si NO aporta tipo de la estrategia");
-console.log("   #32: enemyComprarObjetoExperto solo compra Chips de tipos de la ESTRATEGIA");
-console.log("   #33: eliminado log redundante en intentarSustituir");
-console.log("🆕 v22 FIXES:");
-console.log("   #26: swap por diferencia de utilidad >= 150 aunque roles no coincidan");
-console.log("   #27: -150 en enemyDecidirQueVender si no aporta tipo");
-console.log("   #28: no vender Pokémon que encajan si utilidad > 0");
-console.log("🆕 v21 FIXES:");
-console.log("   #22: swap si aporta sinergia NUEVA aunque roles no coincidan");
-console.log("   #23: Phantump deja de ser intocable si tiene Chip pero no es clave");
-console.log("   #24: evaluarPokemon +50 si encaja, -150 si no encaja");

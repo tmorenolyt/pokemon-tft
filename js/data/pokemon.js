@@ -178,21 +178,15 @@ function getPokemonPorCoste(coste) {
 // ===== DEBUG =====
 // ============================================================
 
-console.log("✅ pokemon.js cargado correctamente (v3 con rangoAtaque)");
-console.log(`📊 ${TODOS_POKEMONS.length} Pokémon totales cargados`);
-console.log(`📊 ${POKEMONS.filter(p => p.base !== false).length} Pokémon BASE (aparecen en tienda)`);
-console.log(`📊 ${POKEMONS_EVOLUCIONES.length} Pokémon EVOLUCIONES (NO aparecen en tienda)`);
 
 const conteoClases = {};
 POKEMONS.forEach(p => {
     const clase = p.clase || 'SIN_CLASE';
     conteoClases[clase] = (conteoClases[clase] || 0) + 1;
 });
-console.log('📋 Pokémon por clase:', conteoClases);
 
 const conteoRangos = {};
 TODOS_POKEMONS.forEach(p => {
     const r = p.rangoAtaque || 'sin_definir';
     conteoRangos[r] = (conteoRangos[r] || 0) + 1;
 });
-console.log('🎯 Pokémon por rangoAtaque:', conteoRangos);

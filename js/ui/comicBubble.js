@@ -370,7 +370,3 @@ window.mostrarReaccionJugador = mostrarReaccionJugador;
 window.mostrarReaccionInicioCombate = mostrarReaccionInicioCombate;
 window.mostrarReaccionPensando = mostrarReaccionPensando;
 window.obtenerFraseComic = obtenerFraseComic;
-
-console.log("✅ comicBubble.js cargado (v4) - Efecto typing + cursor parpadeante");
-console.log(`📌 Velocidad: ${COMIC_TYPING_VELOCIDAD}ms/letra · Cursor: "${COMIC_TYPING_CURSOR}"`);
-console.log(`📌 Pausa final: ${COMIC_TYPING_PAUSA_FINAL}ms tras terminar de escribir`);

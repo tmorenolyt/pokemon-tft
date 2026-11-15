@@ -669,21 +669,3 @@ window._PATRONES_COLOCACION = _PATRONES_COLOCACION;
 // ============================================================
 // LOGS
 // ============================================================
-
-console.log("✅ config.js cargado correctamente");
-console.log("📐 MODELO HORIZONTAL 4×5 LINEAL (20 casillas por lado)");
-console.log("   Tablero jugador:  A(0) B(1) C(2) D(3)");
-console.log("   Tablero enemigo:  E(4) F(5) G(6) H(7)");
-console.log("   D(3) y E(4) son ADYACENTES (distancia 1) ✅");
-console.log("🖼️ getSpriteUrlOriginal() disponible");
-console.log("🎀 contarHadasEnTablero() cuenta CHIPS HADA");
-console.log("📍 Coordenadas legibles: A1..D5 (jugador) · E1..H5 (enemigo)");
-console.log("🧭 Helpers: coordsDesdeIndice / indiceDesdeCoords / indiceLocalDesdeCoords");
-console.log("🧭 Helpers: distanciaManhattanGlobal / distanciaChebyshevGlobal");
-console.log("🧭 Helpers: casillaValidaGlobal / ladoDesdeColGlobal");
-console.log("🧭 Helpers: inicializarCoordsGlobales / setCoordsGlobales");
-console.log("🎯 Colocación inicial: MELEE llena la columna frontal primero (D/E)");
-console.log("🎯 Colocación inicial: BACKLINE llena la columna trasera primero (A/H)");
-console.log("🎬 SPRITES: todos intentan .gif primero, .png como fallback");
-console.log(`✨ SHINY: ${(SHINY_CHANCE * 100).toFixed(2)}% de probabilidad por slot de tienda`);
-console.log("🆕 POOL_LIMITS: { 1: 20, 2: 16, 3: 13, 4: 11, 5: 10 } → Mewtwo 3★ posible");

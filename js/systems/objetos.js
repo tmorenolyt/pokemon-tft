@@ -620,11 +620,3 @@ function manejarObjetosAlVenderUnidad(unidad) {
 
 window.recalcularEfectosObjetos = recalcularEfectosObjetos;
 window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
-
-console.log("✅ objetos.js (systems) v3.5 cargado - FIX maxHp NO se infla");
-console.log("🔧 aplicarObjeto() ya NO toca maxHp/hp. Solo suma a bonusHpFijo.");
-console.log("🔧 recalcularEfectosObjetos() resetea bonusHpFijo = 0 y lo reconstruye.");
-console.log("🔧 actualizarStats() (Unidad.js) recalcula maxHp desde bonusHpFijo.");
-console.log("   → Equipar Chaleco Asalto: 600 → 1400");
-console.log("   → Desequipar: 1400 → 600");
-console.log("   → Volver a equipar: 600 → 1400 (NO 2200)");

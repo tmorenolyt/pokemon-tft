@@ -449,7 +449,3 @@ window.construirPanelNuevaVerdeHTML = construirPanelNuevaVerdeHTML;
 window.refrescarPanelNuevaVerde = refrescarPanelNuevaVerde;
 window.resetNuevaVerde = resetNuevaVerde;
 window.TRAMOS_NUEVA_VERDE = TRAMOS_NUEVA_VERDE;
-
-console.log("✅ nuevaVerde.js v5 cargado - CONTADORES SEPARADOS (J1 / J2)");
-console.log("🌱 window.semillasNuevaVerde        → Jugador activo (o J1 en 1P)");
-console.log("🌱 window.semillasEnemigoNuevaVerde → Rival (solo en 2P)");

@@ -970,5 +970,3 @@ if (escudo > 0) {
     },
 
 });
-
-console.log("✅ ultis-registro-3.js cargado (v3 - con Tajo Supremo de Zacian) -", Object.keys(ULTIS_REGISTRO).length, "ulti(s) totales");

@@ -404,6 +404,3 @@ const OBJETOS = {
 
 // ===== EXPONER OBJETOS GLOBALMENTE =====
 window.OBJETOS = OBJETOS;
-
-console.log("✅ objetos.js cargado correctamente -", Object.keys(OBJETOS).length, "objetos disponibles");
-console.log("✅ OBJETOS expuesto globalmente en window");

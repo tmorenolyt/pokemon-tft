@@ -255,6 +255,3 @@ const MONSTRUOS_PVE = {
 
 window.POKEMON_MONSTRUOS = POKEMON_MONSTRUOS;
 window.MONSTRUOS_PVE = MONSTRUOS_PVE;
-
-console.log('✅ monstruosPvE.js cargado -', Object.keys(MONSTRUOS_PVE).length, 'rondas PvE configuradas');
-console.log('   Rondas PvE:', Object.keys(MONSTRUOS_PVE).map(Number).sort((a,b) => a-b).join(', '));

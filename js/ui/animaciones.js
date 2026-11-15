@@ -1796,8 +1796,3 @@ window.animarKnockbackGolpe = animarKnockbackGolpe;
 window.screenShake = screenShake;
 window.efectoFaintDesaparicion = efectoFaintDesaparicion;
 window.efectoRecogidaPokeball = efectoRecogidaPokeball;
-
-console.log('✅ animaciones.js cargado (v17.6) - FIX números FUERA de la carta + crítico más grave');
-console.log('🎬 mostrarNumeroDaño() SIEMPRE en document.body con position:fixed');
-console.log('🎬 mostrarNumeroCuracion() SIEMPRE en document.body con position:fixed');
-console.log('🎬 playSonidoCritico() reemplazado por versión más grave (180→90 Hz)');

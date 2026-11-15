@@ -772,20 +772,6 @@ function calcularValorVenta(unidad) {
 // en la ronda 2 (y que compren su 2º Pokémon).
 window.getRandomPokemonPorNivelEnemigo = getRandomPokemonPorNivelEnemigo;
 
-console.log("✅ tienda.js (systems) v10.2 cargado correctamente");
-console.log("🔴 FIX v2: Disco Definitivo EXCLUIDO de la tienda de objetos");
-console.log("🔴 FIX v3: unidadesPendientes con fuente única de verdad");
-console.log("🛡️ v4: blindaje contra auto-referencias");
-console.log("🎬 v5: animación de evolución con setTimeout(50) tras renderizar()");
-console.log("🆕 v7: colocarEnPrimerEspacioLibre coloca primero en BANCO, luego en TABLERO");
-console.log("🆕 v7: procesarUnidadesPendientes coloca primero en BANCO, luego en TABLERO");
-console.log("✨ v8: SHINY — getRandomPokemonPorNivel tira dado por slot");
-console.log("✨ v8: SHINY — la fusión conserva el shiny si alguna copia era shiny");
-console.log("✨ v9: SHINY — comprar() fuerza esShiny al crear la Unidad");
-console.log("🔊 v10.1: el sonido shiny se reproduce en tiendaOverlay.js al ABRIR la tienda");
-console.log("🆕 v10.2: FIX OBJETOS EN FUSIÓN — se separan objetos normales de discos");
-console.log("         Se equipan primero los 2 normales y luego el disco.");
-console.log("         Antes el disco contaba como objeto normal y se perdía la Cuchara Peculiar.");
 
 window.procesarUnidadesPendientes = procesarUnidadesPendientes;
 window.resetCambioMovimientoRonda = resetCambioMovimientoRonda;

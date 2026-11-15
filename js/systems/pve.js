@@ -256,8 +256,3 @@ window.esRondaPvE = esRondaPvE;  // ← La función (para usarla desde otros scr
 window.spawnearMonstruoPvE = spawnearMonstruoPvE;
 window.limpiarMonstruoPvE = limpiarMonstruoPvE;
 window.aplicarRecompensasPvE = aplicarRecompensasPvE;
-
-console.log('✅ pve.js v2 cargado - sistema PvE listo');
-console.log('   Función: esRondaPvE(ronda) → true/false');
-console.log('   Estado:  window.enRondaPvE → true/false');
-console.log('   Datos:   window.monstruoActual → config del monstruo');

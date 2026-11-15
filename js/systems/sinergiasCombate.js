@@ -1685,9 +1685,3 @@ window.refrescarPanelAuraMiedo = refrescarPanelAuraMiedo;
 // ============================================================
 // LOGS DE CARGA
 // ============================================================
-console.log("🟡🟡🟡 sinergiasCombate.js v14 CARGADO (systems) 🟡🟡🟡");
-console.log("😨 Aura de Miedo: sincronización real con el panel");
-console.log("   → window.fearAuraStacks (jugador) y window.enemyFearAuraStacks (enemigo)");
-console.log("   → Si NO hay Siniestro ≥ 2 activo, se resetean AMBOS a 0");
-console.log("   → Se sincroniza al inicio/final de aplicarSinergias y aplicarSinergiasEnemigo");
-console.log("   → Panel v14: sección de DEBUFF al enemigo + sección de BONUS a tus Siniestro");

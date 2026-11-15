@@ -1344,9 +1344,3 @@ function renderizarTiendaIndependiente(forzarRender = false) {
     if (!tiendaAbierta && !forzarRender) return;
     abrirTienda(modoTiendaObjetos);
 }
-
-console.log('✅ tiendaOverlay.js v7.2 cargado - FIX CANDADO');
-console.log('🔒 El botón de candado ahora se clona para evitar listeners duplicados');
-console.log('🔒 Log de diagnóstico: "🔒 Click en candado. fase=X, tiendaBloqueada=Y"');
-console.log('🔧 FIX fusión sin hueco (v7.1) incluido');
-console.log('✨ Shiny con animación previa (v7.0) incluido');

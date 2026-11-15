@@ -494,6 +494,3 @@ const DESCRIPCIONES_SINERGIA = {
 // ============================================================
 // LOG DE CARGA
 // ============================================================
-console.log("🟢🟢🟢 sinergias.js (data) v12 CARGADO 🟢🟢🟢");
-console.log("📋 Tipos:", Object.keys(TYPE_SYNERGIES).length, "| Clases:", Object.keys(CLASS_SYNERGIES).length);
-console.log("🎀 Hada: nueva descripción con mecánica de HP escalable de Zacian");

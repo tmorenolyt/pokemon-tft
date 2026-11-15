@@ -133,5 +133,3 @@ function _sintetizarShiny(volumen = 0.35) {
 }
 
 window.playSonidoShinyAparece = playSonidoShinyAparece;
-
-console.log('✅ sonidosShiny.js cargado - playSonidoShinyAparece() disponible');

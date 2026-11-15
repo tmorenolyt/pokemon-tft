@@ -687,5 +687,3 @@ const movimientosInfo = {
 // ============================================================
 
 window.movimientosInfo = movimientosInfo;
-
-console.log("✅ movimientosInfo.js cargado -", Object.keys(movimientosInfo).length, "movimientos disponibles");

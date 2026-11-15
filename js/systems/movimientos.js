@@ -1363,21 +1363,3 @@ window.aplicarEscudoConFade = aplicarEscudoConFade;
 // ============================================================
 // DEBUG
 // ============================================================
-
-console.log("✅ movimientos.js (core) v5.9 - ICONO ESCUDO ROTO vía render.js");
-console.log("🆕 aplicarEscudoConFade() disponible - escudos con fade de 3s");
-console.log("🛡️ mostrarIconoEscudoRoto() solo marca el estado en la unidad");
-console.log("🛡️ render.js repinta el icono en cada render si sigue activo");
-console.log("🎯 _filaGlobal: 0..4 | _colGlobal: 0..7");
-console.log("   A(0) B(1) C(2) D(3) ‖ E(4) F(5) G(6) H(7)");
-console.log("🎯 Melee jugador: D → E → F → G → H (INVADE)");
-console.log("🎯 Melee enemigo: E → D → C → B → A (INVADE)");
-console.log("🆕 FIX #27: movAplicarDaño aplica defensa (física o especial)");
-console.log("   → dañoReal = dañoRaw * (1 - def / (def + 100))");
-console.log("   → Antes los movimientos especiales hacían daño RAW (desbalance 6-8x)");
-console.log("🆕 FIX #28: movAplicarDaño actualiza copia de stats (damageDealt)");
-console.log("   → El panel de datos ya cuenta el daño de movimientos especiales");
-console.log("🆕 FIX #29: log de daño bajo window.DEBUG_COMBATE");
-console.log("   → Actívalo en consola para ver '💥 MOV X → Y: raw → real (def N)'");
-console.log("🆕 v5.7: mostrarIconoEscudoRoto() SIN shake y SIN glow");
-console.log("🆕 v5.7: usa PNG escudo-roto.png con fallback a 🛡️");

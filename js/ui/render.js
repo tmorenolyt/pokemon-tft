@@ -1349,5 +1349,3 @@ window.renderIconoLlamarada = renderIconoLlamarada;
     `;
     document.head.appendChild(style);
 })();
-
-console.log("✅ render.js v8.7 cargado - DOBLE CLICK para abrir carta");

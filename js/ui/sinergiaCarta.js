@@ -659,9 +659,6 @@ window.cartaSinergiaAbierta = cartaSinergiaAbierta;
 window.cartaSinergiaData = cartaSinergiaData;
 window.initCartaSinergia = initCartaSinergia;
 
-console.log('✅ sinergiaCarta.js v3.4 cargado - MODAL CENTRADO + PANEL AURA MIEDO');
-console.log('🪟 Click fuera cierra y reenvía el click al Pokémon debajo');
-console.log('😨 Aura de Miedo: refresco forzado + sincronización con window.fearAuraStacks');
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initCartaSinergia();

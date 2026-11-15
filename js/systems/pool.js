@@ -110,8 +110,3 @@ window.consumirDelPool = consumirDelPool;
 window.devolverAlPool = devolverAlPool;
 window.getCopiasDisponibles = getCopiasDisponibles;
 window.contarCopiasEnJuego = contarCopiasEnJuego;
-
-console.log("✅ pool.js v3 cargado - CONTADOR DE COMPRAS");
-console.log("   → consumirDelPool() resta 1 al comprar");
-console.log("   → devolverAlPool() suma al vender");
-console.log("   → fusionar NO toca el pool (ya se gastó al comprar)");

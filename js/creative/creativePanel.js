@@ -910,5 +910,3 @@ window.cerrarPanelCreativo = cerrarPanelCreativo;
 window.togglePanelCreativo = togglePanelCreativo;
 window.initModoCreativo = initModoCreativo;
 window.creativeAñadirObjeto = creativeAñadirObjeto;
-
-console.log('✅ creativePanel.js cargado - CON SELECTOR DE LADO PARA OBJETOS');

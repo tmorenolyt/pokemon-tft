@@ -887,11 +887,3 @@ class Unidad {
 // EXPONER GLOBALMENTE
 // ============================================================
 window.Unidad = Unidad;
-
-console.log("✅ Unidad.js cargado - Con método clonarParaCombate() + BLINDAJE CONTRA NaN");
-console.log("🔧 FIX: regenPerSecond (sinergia Planta) separado de regenPorSegundo (objetos)");
-console.log("🔧 FIX CRÍTICO: actualizarStats() NUNCA pone hp = maxHp por accidente");
-console.log("🔧 FIX v3: primera inicialización usa hp = maxHp (evita barras negras)");
-console.log("🎯 FASE 2: sistema de movimiento activo (principal/secundario)");
-console.log("🎯 FASE 4: sistema de ulti (ultiCarga, ultiLista, tieneDiscoUlti)");
-console.log("✨ SHINY: +10% a HP, Ataque y Ataque Especial (solo stats base)");

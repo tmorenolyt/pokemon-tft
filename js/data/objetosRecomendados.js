@@ -238,5 +238,3 @@ function getObjetosRecomendados(pokemon) {
 
 window.OBJETOS_RECOMENDADOS = OBJETOS_RECOMENDADOS;
 window.getObjetosRecomendados = getObjetosRecomendados;
-
-console.log("✅ objetosRecomendados.js v2 cargado -", Object.keys(OBJETOS_RECOMENDADOS).length, "Pokémon con recomendaciones");

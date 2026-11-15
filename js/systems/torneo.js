@@ -1508,7 +1508,6 @@ function desactivarParejasRanking() {
 window.prepararParejasRanking = prepararParejasRanking;
 window.desactivarParejasRanking = desactivarParejasRanking;
 
-console.log('✅ torneo.js v7 cargado - FIX: relleno post-fusión + banco sube + familia única');
 
 // ============================================================
 // MODO ESPÍA

@@ -1955,4 +1955,3 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
     }
 });
 
-console.log("✅ movimientos-registro-*.js cargados -", Object.keys(MOVIMIENTOS_REGISTRO).length, "movimientos registrados");

@@ -663,21 +663,3 @@ function resetHitosYaAnimados() {
 window.verificarTodasLasFusiones = verificarTodasLasFusiones;
 window.mostrarFlash3EstrellasJugador = mostrarFlash3EstrellasJugador;
 window.resetHitosYaAnimados = resetHitosYaAnimados;
-
-console.log("✅ fusiones.js cargado - v13 (FIX objetos en fusión)");
-console.log("⭐ Flash 3★ para el jugador");
-console.log("🎯 FASE 2: desbloqueo de secundario al subir a 2★");
-console.log("🛡️ v2: blindaje contra auto-referencias");
-console.log("🎬 v5: animarEvolucionPokemon({ pokemon, nivel, spriteId, nombreOriginal, spriteIdOriginal })");
-console.log("🎬 v5.1: window._animacionEvolucionActiva guarda la promesa");
-console.log("🎬 v5.2: FIX — animación SIEMPRE (tablero o banquillo)");
-console.log("🆕 v9: 1 ANIMACIÓN POR FAMILIA Y NIVEL (Set hitosYaAnimados)");
-console.log("✨ v10: SHINY se conserva al evolucionar (si alguna copia era shiny)");
-console.log("✨ v11: SHINY en animación — se pasa esShiny a animarEvolucionPokemon");
-console.log("🆕 v12: FIX DOBLE GRITO — el grito del Pokémon nuevo lo reproduce");
-console.log("         animarEvolucionPokemon(). Aquí solo el grito de fallback");
-console.log("         si NO va a haber animación.");
-console.log("🆕 v13: FIX OBJETOS — al fusionar, se separan objetos normales");
-console.log("         de Discos Definitivos. Se equipan primero los 2 normales");
-console.log("         y luego el disco. Antes el disco contaba como objeto normal");
-console.log("         y se perdía la Cuchara Peculiar.");

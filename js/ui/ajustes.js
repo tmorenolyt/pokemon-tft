@@ -293,5 +293,3 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
         setTimeout(initAjustes, 100);
     });
 }
-
-console.log('✅ ajustes.js cargado - ⚙️ menú de ajustes disponible');
