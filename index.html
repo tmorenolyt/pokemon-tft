@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f0c29" />
+    <title>Pokémon TFT - Sinergias Rework</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/base.css?v=10" />
+    <link rel="stylesheet" href="css/menu.css?v=10" />
+    <link rel="stylesheet" href="css/pokedex.css?v=4" />
+    <link rel="stylesheet" href="css/arena.css?v=2" />
+    <link rel="stylesheet" href="css/tienda.css?v=2" />
+    <link rel="stylesheet" href="css/carta.css?v=2" />
+    <link rel="stylesheet" href="css/combate.css?v=3" />
+    <link rel="stylesheet" href="css/panel-datos.css?v=2" />
+    <link rel="stylesheet" href="css/creative.css?v=2" />
+    <link rel="stylesheet" href="css/comic.css?v=2" />
+    <link rel="stylesheet" href="css/tienda-overlay.css?v=7" />
+    <link rel="stylesheet" href="css/efectos-movimientos.css?v=2" />
+    <link rel="stylesheet" href="css/nueva-verde.css?v=2" />
+    <link rel="stylesheet" href="css/drag-drop.css?v=5" />
+    <link rel="stylesheet" href="css/arena-horizontal.css?v=45" />
+    <link rel="stylesheet" href="css/ajustes.css?v=1" />
+    <link rel="stylesheet" href="css/torneo.css?v=1" />
+    <link rel="stylesheet" href="css/tutorial.css?v=1" />
+    <link rel="icon" href="assets/icons/favicon.ico" />
+
+    <style>
+        /* HP bar en banco (más pequeña) */
+        .bank-cell .unit-hp-bar {
+            height: 5px !important;
+            min-height: 5px !important;
+            max-height: 5px !important;
+            border-radius: 4px !important;
+            overflow: hidden !important;
+        }
+        .bank-cell .unit-hp-bar .hp-fill { height: 100% !important; }
+
+        .bank-cell .energy-bar {
+            height: 5px !important;
+            min-height: 5px !important;
+            max-height: 5px !important;
+            border-radius: 4px !important;
+            overflow: hidden !important;
+        }
+        .bank-cell .energy-bar .energy-fill { height: 100% !important; }
+
+        .board-cell .unit-hp-container {
+            margin-top: 2px;
+            margin-bottom: 0;
+        }
+
+        .board-cell .energy-bar {
+            margin-top: 2px !important;
+            height: 8px !important;
+            min-height: 8px !important;
+            max-height: 8px !important;
+        }
+
+        .board-cell .ulti-bar {
+            position: relative;
+            width: calc(100% - 8px);
+            height: 9px !important;
+            background: rgba(0, 0, 0, 0.85) !important;
+            border-radius: 5px !important;
+            overflow: hidden !important;
+            border: 1.5px solid rgba(251, 191, 36, 0.55) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6),
+                        0 0 6px rgba(251, 191, 36, 0.25) !important;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .board-cell .ulti-bar .ulti-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100% !important;
+            border-radius: 4px !important;
+            transition: width 0.3s ease !important;
+        }
+        .board-cell .ulti-bar .ulti-text {
+            position: relative;
+            z-index: 2;
+            font-size: 0.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            line-height: 1;
+            pointer-events: none;
+        }
+        @keyframes pulseUlti {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.5); }
+        }
+
+        #btnLockShopTienda {
+            transition: all 0.3s ease;
+            border: 2px solid #2a3a5a;
+            background: rgba(255, 255, 255, 0.05);
+            color: #6b8aaa;
+            border-radius: 30px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            height: 40px;
+            width: 48px;
+        }
+        #btnLockShopTienda.locked {
+            border-color: #f97316 !important;
+            background: rgba(249, 115, 22, 0.15) !important;
+            color: #f97316 !important;
+            box-shadow: 0 0 25px rgba(249, 115, 22, 0.25) !important;
+            animation: pulseLock 2s ease-in-out infinite;
+        }
+        @keyframes pulseLock {
+            0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
+            50% { box-shadow: 0 0 35px rgba(249, 115, 22, 0.4); }
+        }
+
+        .coin-icon-img { width: 28px; height: 28px; object-fit: contain; display: inline-block; vertical-align: middle; }
+        .coin-icon-img-mini { width: 16px; height: 16px; object-fit: contain; display: inline-block; vertical-align: middle; }
+
+        .carta-movimiento-item .mov-icono img {
+            width: 20px !important;
+            height: 20px !important;
+            object-fit: contain !important;
+        }
+
+        /* ============================================================
+           BOTÓN DATOS - Solo emoji (oculta el texto "DATOS")
+           ============================================================ */
+        #btnPostCombate.btn-datos {
+            padding: 6px 10px;
+            gap: 0;
+            min-width: 38px;
+            height: 34px;
+        }
+
+        #btnPostCombate.btn-datos > span:not(.icon) {
+            display: none !important;
+        }
+
+                #btnPostCombate.btn-datos .icon {
+            font-size: 1.15rem;
+            line-height: 1;
+            margin: 0;
+        }
+
+        /* ============================================================
+           FIX v16: sprite de la celda de origen mira a la DERECHA
+           mientras se arrastra (le gana al !important del CSS base).
+           ============================================================ */
+        html body .board-cell .unit-sprite.sprite-drag-derecha,
+        html body #playerBoard .board-cell .unit-sprite.sprite-drag-derecha,
+        html body #enemigoBoard .board-cell .unit-sprite.sprite-drag-derecha,
+        html body .bank-cell .unit-sprite.sprite-drag-derecha,
+        html body #banquilloGrid .bank-cell .unit-sprite.sprite-drag-derecha,
+        html body #enemyBanquilloGrid .bank-cell .unit-sprite.sprite-drag-derecha {
+            transform: translateX(var(--sprite-offset-x, 0px)) scaleX(1) scale(var(--sprite-scale, 1)) !important;
+            -webkit-transform: translateX(var(--sprite-offset-x, 0px)) scaleX(1) scale(var(--sprite-scale, 1)) !important;
+        }
+    </style>
+</head>
+<body>
+
+        <!-- ============================================================
+         MENÚ PRINCIPAL — REDISEÑO CON PANTALLA DE SELECCIÓN
+         ============================================================ -->
+    <div id="menuPrincipal" class="menu-principal">
+        
+        <!-- VISTA 1: MENÚ PRINCIPAL (Tarjetas) -->
+        <div id="vistaMenu" class="menu-vista activa">
+            <div class="menu-container">
+                                <!-- HEADER -->
+                <header class="menu-header">
+    <div class="logo-area">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+            <h1>POKÉMON TFT</h1>
+            <p>Teamfight Tactics - Edición Pokémon</p>
+        </div>
+    </div>
+    <div class="top-actions">
+        <button class="menu-icon-btn" title="Perfil">👤</button>
+        <button class="menu-icon-btn" title="Pokédex" id="btnCompendio">📖</button>
+        <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenu">⚙️</button>
+    </div>
+</header>
+
+                <!-- CONTENIDO PRINCIPAL -->
+                <main class="main-content">
+                    <div class="section-title">
+                        <div class="line"></div>
+                        <h2>ELIGE TU <span>AVENTURA</span></h2>
+                    </div>
+                    <p class="section-subtitle">¿Cómo quieres jugar hoy?</p>
+
+                    <div class="modes-grid">
+                        <button class="mode-card historia" onclick="alert('¡Has elegido el Modo Historia!')">
+                            <div class="mode-icon">🏆</div>
+                            <h3>MODO HISTORIA</h3>
+                            <p>Avanza por regiones, supera entrenadores y consigue recompensas.</p>
+                            <span class="arrow">›</span>
+                        </button>
+
+                        <button class="mode-card modo-1j" data-modo="1j" id="btnModo1j">
+                            <div class="mode-icon">👤</div>
+                            <h3>1 JUGADOR</h3>
+                            <p>Partida individual contra la IA.</p>
+                            <span class="arrow">›</span>
+                        </button>
+
+                        <button class="mode-card modo-2j" data-modo="2j" id="btnModo2j">
+                            <div class="mode-icon">⚔️</div>
+                            <h3>2 JUGADORES</h3>
+                            <p>Juega localmente con otro jugador.</p>
+                            <span class="arrow">›</span>
+                        </button>
+
+                        <button class="mode-card creativo" id="btnModoCreativo">
+                            <div class="mode-icon">🧪</div>
+                            <h3>MODO CREATIVO</h3>
+                            <p>Prueba equipos y configura combates.</p>
+                            <span class="arrow">›</span>
+                        </button>
+                    </div>
+                </main>
+
+                <!-- FOOTER -->
+                <footer class="footer">
+                    <div class="profile-capsule" id="profileCapsuleBtn">
+                        <div class="profile-avatar" id="footerAvatar">🧢</div>
+                        <div class="profile-details">
+                            <div class="profile-name-row">
+                                <span class="profile-name" id="footerName">Entrenador</span>
+                                <span class="profile-level">Nv. 1</span>
+                            </div>
+                            <div class="xp-bar-bg">
+                                <div class="xp-bar-fill"></div>
+                            </div>
+                            <div class="xp-text">0 / 100 XP</div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+                                                <!-- VISTA 2: SELECCIÓN DE JUGADORES (1J / 2J) -->
+        <div id="vistaSeleccion" class="menu-vista">
+            <div class="menu-container">
+
+                <!-- 🆕 HEADER (mismo logo que en el menú principal) -->
+                <header class="menu-header">
+                    <div class="logo-area">
+                        <div class="logo-icon">⚡</div>
+                        <div class="logo-text">
+                            <h1>POKÉMON TFT</h1>
+                            <p>Teamfight Tactics - Edición Pokémon</p>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <button class="menu-icon-btn" title="Perfil">👤</button>
+                        <button class="menu-icon-btn" title="Pokédex" id="btnCompendioSeleccion">📖</button>
+                        <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuSeleccion">⚙️</button>
+                    </div>
+                </header>
+
+                <div class="seleccion-container">
+
+                    <!-- Título -->
+                    <div class="sel-title-container">
+                        <h1 id="selTituloModo">1 JUGADOR VS 2 JUGADORES</h1>
+                        <p id="selSubtituloModo">Selecciona tu avatar y tu nombre</p>
+                    </div>
+
+                    <!-- Contenedor VS -->
+                    <div class="vs-container" id="vsContainer">
+                        
+                        <!-- JUGADOR 1 -->
+                        <div class="player-panel j1" id="panelJ1" style="max-width: 600px;">
+                            <div class="character-image-container" style="flex: 0 0 200px;">
+                                <img src="assets/avatars/personajes/rojofull.png" alt="Rojo" class="character-image" id="characterImage1" style="max-height: 320px;">
+                            </div>
+
+                            <div class="panel-content">
+                                <div class="panel-header">
+                                    <div class="panel-badge">⚪</div>
+                                    <div class="panel-title">
+                                        <h2>JUGADOR 1</h2>
+                                        <p>TU EQUIPO</p>
+                                    </div>
+                                </div>
+
+                                <div class="avatar-display" id="avatarDisplayWrapper1">
+                                    <img src="assets/avatars/jugador/rojo.png" alt="Avatar" id="avatarDisplay1" onerror="this.style.display='none'">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>NOMBRE DE JUGADOR</label>
+                                    <input type="text" class="menu-nombre-input" id="inputNombreJugador" placeholder="Entrenador" maxlength="16" autocomplete="off" spellcheck="false">
+                                    <span class="edit-icon">✏️</span>
+                                    <span class="char-count" id="charCount1">0 / 16</span>
+                                </div>
+
+                                <div class="avatar-grid-container">
+                                    <div class="menu-avatar-grid" id="menuAvatarGrid"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VS -->
+                        <div class="vs-center" id="vsCenter">VS</div>
+
+                        <!-- JUGADOR 2 -->
+                        <div class="player-panel j2 oculto" id="panelJ2" style="max-width: 600px;">
+                            <div class="character-image-container" style="flex: 0 0 200px;">
+                                <img src="assets/avatars/personajes/azulfull.png" alt="Azul" class="character-image" id="characterImage2" style="max-height: 320px;" onerror="this.src='assets/avatars/personajes/rojofull.png'">
+                            </div>
+
+                            <div class="panel-content">
+                                <div class="panel-header">
+                                    <div class="panel-badge">⚪</div>
+                                    <div class="panel-title">
+                                        <h2>JUGADOR 2</h2>
+                                        <p>SU EQUIPO</p>
+                                    </div>
+                                </div>
+
+                                <div class="avatar-display" id="avatarDisplayWrapper2">
+                                    <img src="assets/avatars/jugador/azul.png" alt="Avatar" id="avatarDisplay2" onerror="this.style.display='none'">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>NOMBRE DE JUGADOR</label>
+                                    <input type="text" class="menu-nombre-input" id="inputNombreJugador2" placeholder="Jugador 2" maxlength="16" autocomplete="off" spellcheck="false">
+                                    <span class="edit-icon">✏️</span>
+                                    <span class="char-count" id="charCount2">0 / 16</span>
+                                </div>
+
+                                <div class="avatar-grid-container">
+                                    <div class="menu-avatar-grid" id="menuAvatarGrid2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- cierre vs-container -->
+
+                    <!-- Botones Inferiores -->
+                    <div class="bottom-actions">
+                        <div class="start-actions">
+                            <button class="btn-start" id="btnJugar">
+                                ⚔️ JUGAR
+                            </button>
+                            <button class="btn-tutorial" id="btnTutorial1j" type="button" style="display:none;">
+                                🎓 TUTORIAL
+                            </button>
+                        </div>
+                        
+                        <div class="footer-info">
+                            <button class="btn-volver-menu" id="btnVolverMenu">
+                                ❮ VOLVER
+                            </button>
+                            <div class="info-text">
+                                <i>ℹ️</i> Puedes cambiar tu avatar y nombre antes de empezar la partida.
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <!-- 🆕 cierre de seleccion-container -->
+            </div> <!-- 🆕 cierre de menu-container -->
+        </div> <!-- cierre de vistaSeleccion -->
+    </div> <!-- cierre de menuPrincipal -->
+
+        <!-- ============================================================
+         POKÉDEX INTEGRADA (VISTA)
+         ============================================================ -->
+    <div id="pokedexOverlay" class="pokedex-overlay">
+        <div class="menu-container">
+
+                        <!-- HEADER (mismo logo que en el menú) -->
+            <header class="menu-header">
+                <div class="logo-area">
+                    <div class="logo-icon">⚡</div>
+                    <div class="logo-text">
+                        <h1>POKÉMON TFT</h1>
+                        <p>Teamfight Tactics - Edición Pokémon</p>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button class="menu-icon-btn" title="Perfil">👤</button>
+                    <button class="menu-icon-btn" title="Pokédex" id="btnCompendioPokedex">📖</button>
+                    <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuPokedex">⚙️</button>
+                </div>
+            </header>
+
+            <!-- CONTENIDO DE LA POKÉDEX -->
+            <div class="pokedex-contenido">
+                                <div class="pokedex-header">
+                    <span class="pokedex-titulo">📖 POKÉDEX</span>
+                </div>
+
+                <div class="pokedex-filtros">
+                    <input
+                        type="text"
+                        id="pokedexFiltroTexto"
+                        class="pokedex-input"
+                        placeholder="🔍 Buscar Pokémon..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <select id="pokedexFiltroTipo" class="pokedex-select">
+                        <option value="todos">⚔️ Todas las sinergias</option>
+                        <optgroup label="Tipos">
+                            <option value="Acero">🔩 Acero</option>
+                            <option value="Agua">💧 Agua</option>
+                            <option value="Dragón">🐉 Dragón</option>
+                            <option value="Eevee">🦊 Eevee</option>
+                            <option value="Eléctrico">⚡ Eléctrico</option>
+                            <option value="Fantasma">👻 Fantasma</option>
+                            <option value="Fuego">🔥 Fuego</option>
+                            <option value="Hada">🎀 Hada</option>
+                            <option value="Hielo">❄️ Hielo</option>
+                            <option value="Lucha">👊 Lucha</option>
+                            <option value="Normal">⚪ Normal</option>
+                            <option value="Planta">🌿 Planta</option>
+                            <option value="Psíquico">🧠 Psíquico</option>
+                            <option value="Roca">🪨 Roca</option>
+                            <option value="Siniestro">🌙 Siniestro</option>
+                            <option value="Veneno">☠️ Veneno</option>
+                            <option value="Volador">🪶 Volador</option>
+                        </optgroup>
+                        <optgroup label="Clases">
+                            <option value="Ágil">💫 Ágil</option>
+                            <option value="At. Especial">🎯 At. Especial</option>
+                            <option value="Atacante">🥊 Atacante</option>
+                            <option value="Auxiliar">💛 Auxiliar</option>
+                            <option value="Defensa">🛡️ Defensa</option>
+                            <option value="Equilibrado">💪 Equilibrado</option>
+                            <option value="Movimiento">💥 Movimiento</option>
+                        </optgroup>
+                    </select>
+                    <select id="pokedexFiltroCoste" class="pokedex-select">
+                        <option value="todos">💰 Todos los costes</option>
+                        <option value="1">⭐ Coste 1</option>
+                        <option value="2">⭐ Coste 2</option>
+                        <option value="3">⭐ Coste 3</option>
+                        <option value="4">⭐ Coste 4</option>
+                        <option value="5">⭐ Coste 5</option>
+                    </select>
+                </div>
+
+                <div class="pokedex-grid" id="pokedexGrid">
+                    <div class="pokedex-vacio">Cargando Pokédex...</div>
+                </div>
+
+                                                                <div class="pokedex-footer">
+                    <span id="pokedexContador">0 Pokémon</span>
+                </div>
+            </div>
+
+            <!-- BOTÓN VOLVER dentro del menu-container (igual que las otras páginas) -->
+            <button class="btn-volver-menu" id="btnCerrarPokedex">
+                ❮ VOLVER
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ============================================================
+         POKÉDEX DETALLE
+         ============================================================ -->
+    <div id="pokedexDetalleOverlay" class="pokedex-detalle-overlay">
+    <div class="pokedex-detalle-modal">
+
+        <!-- 🆕 HEADER con logo + botones (igual que las otras páginas) -->
+        <header class="pokedex-detalle-menu-header">
+            <div class="logo-area">
+                <div class="logo-icon">⚡</div>
+                <div class="logo-text">
+                    <h1>POKÉMON TFT</h1>
+                    <p>Teamfight Tactics - Edición Pokémon</p>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="menu-icon-btn" title="Perfil">👤</button>
+                <button class="menu-icon-btn" title="Pokédex" id="btnCompendioDetalle">📖</button>
+                <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuDetalle">⚙️</button>
+            </div>
+        </header>
+
+        <div class="pokedex-detalle-header">
+            <button class="pokedex-detalle-volver" id="btnPokedexDetalleVolver" title="Volver a la Pokédex">
+                <span>←</span>
+            </button>
+            <span class="pokedex-detalle-titulo">📖 DETALLE POKÉMON</span>
+            <button class="pokedex-detalle-cerrar" id="btnPokedexDetalleCerrar" title="Cerrar">✕</button>
+        </div>
+
+        <div class="pokedex-detalle-body" id="pokedexDetalleBody">
+            <!-- Se rellena por JS -->
+        </div>
+
+    </div>
+</div>
+
+    <div id="juegoContainer" style="display:none;">
+
+        <div id="combatOverlay" class="combat-overlay" style="display:none;">
+            <div class="result-container">
+                <div class="result-icon" id="resultIcon">🎉</div>
+                <div class="result-text" id="resultText">¡VICTORIA!</div>
+                <div class="result-subtext" id="resultSubtext">+5💰 · Racha +1</div>
+                <div class="result-stats" id="resultStats">
+                    <span class="stat">⚔️ <span class="value" id="resultDaño">0</span></span>
+                    <span class="stat">🛡️ <span class="value daño-recibido" id="resultRecibido">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-left">
+                    <h1>⚔️ TFT Arena</h1>
+                    <span class="round-badge round-badge-tienda" id="faseStats">Ronda <span id="faseStatsNum">1</span></span>
+                    <span class="stat-item" title="Tiempo total de partida">
+                        <span class="icon">⏳</span>
+                        <span class="value" id="partidaTimerValue">00:00</span>
+                    </span>
+                </div>
+                <div class="header-center">
+                    <span class="combate-timer" id="combateTimerHeader" style="display:none;">
+                        ⏱️ <span id="combateTimerValor">44</span>
+                    </span>
+                </div>
+                                <div class="header-right">
+                    <span class="enemy-level-display" id="enemyLevelDisplay">
+                        <span class="level-label-enemy">Nivel</span>
+                        <span class="level-enemy" id="enemyLevelNumber">1</span>
+                    </span>
+                    <span class="enemy-gold-display" id="enemyGoldDisplay">
+                        <img src="assets/icons/moneda.png" alt="💰" class="coin-icon-img-mini">
+                        <span class="gold-value-enemy" id="enemyGoldValue">9</span>
+                        <span class="gold-label">oro</span>
+                    </span>
+                    <button class="btn-volver-menu" id="btnAjustes" title="Ajustes">⚙️</button>
+                </div>
+            </div>
+
+            <!-- ARENA -->
+            <div class="vs-section arena-horizontal">
+
+                <div class="arena-row">
+
+                    <div class="objetos-vertical-container" id="objetosVerticalContainer">
+                        <div class="objetos-vertical-label">📦</div>
+                        <div id="objetosVerticalGrid" class="objetos-vertical-grid">
+                            <div class="objeto-slot-vertical" data-index="0">▢</div>
+                            <div class="objeto-slot-vertical" data-index="1">▢</div>
+                            <div class="objeto-slot-vertical" data-index="2">▢</div>
+                            <div class="objeto-slot-vertical" data-index="3">▢</div>
+                            <div class="objeto-slot-vertical" data-index="4">▢</div>
+                            <div class="objeto-slot-vertical" data-index="5">▢</div>
+                            <div class="objeto-slot-vertical" data-index="6">▢</div>
+                            <div class="objeto-slot-vertical" data-index="7">▢</div>
+                        </div>
+                    </div>
+
+                                                            <div class="side-column-player">
+
+                        <div class="player-info-panel player-info-panel-self" id="playerInfoPanel">
+                            <div class="player-info-header">
+                                <div class="player-info-avatar" id="playerAvatar">🧢</div>
+                                <div class="player-info-text">
+                                    <div class="player-info-name" id="playerName">Entrenador</div>
+                                    <div class="player-info-hp">
+                                        <span class="hp-icon">❤️</span>
+                                        <span class="hp-value" id="playerHealthDisplayInfo">100</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="player-info-hp-bar">
+                                <div class="player-info-hp-fill" id="playerHealthBarInfo" style="width: 100%;"></div>
+                            </div>
+                            <div class="player-info-stats">
+                                <div class="player-info-stat stat-nivel">
+                                    <span class="stat-label">Nivel</span>
+                                    <span class="stat-value" id="playerLevelInfo">1</span>
+                                </div>
+                                <div class="player-info-stat stat-racha" id="playerStreakInfo">
+                                    <span class="streak-icon" id="playerStreakIcon">🤝</span>
+                                    <span class="streak-value" id="playerStreakValueInfo">0</span>
+                                </div>
+                                <div class="player-info-stat stat-oro">
+                                    <span class="stat-icon">
+                                        <img src="assets/icons/moneda.png" alt="💰" style="width: 22px; height: 22px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));">
+                                    </span>
+                                    <span class="stat-value gold-value" id="playerGoldInfo">10</span>
+                                    <span class="stat-label">ORO</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="traits-vertical">
+                            <div class="trait-label">⚔️ Sinergias</div>
+                            <div class="traits-grid" id="playerSinergiasTitulo"></div>
+                        </div>
+
+                        <div class="bank-container bank-container-player">
+    <!-- 🆕 NUEVO HEADER: Pokéballs + Contador -->
+    <div class="bank-header" id="bankHeaderPlayer">
+        <!-- Contenedor de las Pokéballs (se llena por JS) -->
+        <div class="bank-capsule" id="bankCapsulePlayer">
+            <!-- Aquí van los .p-ball -->
+        </div>
+        
+        <!-- El contador (Naranja si falta espacio, Blanco si está lleno) -->
+        <div class="big-counter">
+            <span id="playerBoardCount">0</span><span class="max">/<span id="playerBoardMax">6</span></span>
+        </div>
+    </div>
+    
+    <div class="bank-grid" id="banquilloGrid"></div>
+</div>
+
+                    </div>
+
+                    <div class="board-wrapper board-wrapper-player">
+                        <div class="board-label">🛡️ TU TABLERO</div>
+                        <div class="board-grid" id="playerBoard"></div>
+                    </div>
+
+                    <div class="board-wrapper board-wrapper-enemy">
+                        <div class="board-label">🗡️ TABLERO ENEMIGO</div>
+                        <div class="board-grid" id="enemigoBoard"></div>
+                    </div>
+
+                                        <div class="side-column-enemy">
+
+                        <div class="player-info-panel enemy-info-panel" id="enemyInfoPanel">
+                            <div class="player-info-header">
+                                <div class="player-info-avatar" id="enemyAvatar">👤</div>
+                                <div class="player-info-text">
+                                    <div class="player-info-name" id="enemyName">Rival</div>
+                                    <div class="player-info-hp">
+                                        <span class="hp-icon">❤️</span>
+                                        <span class="hp-value" id="enemyHealthDisplayInfo">100</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="player-info-hp-bar">
+                                <div class="player-info-hp-fill" id="enemyHealthBarInfo" style="width: 100%;"></div>
+                            </div>
+                            <div class="player-info-stats">
+                                <div class="player-info-stat stat-nivel">
+                                    <span class="stat-label">Nivel</span>
+                                    <span class="stat-value" id="enemyLevelInfo">1</span>
+                                </div>
+                                <div class="player-info-stat stat-racha enemy-streak" id="enemyStreakInfo">
+                                    <span class="streak-icon" id="enemyStreakIcon">🤝</span>
+                                    <span class="streak-value" id="enemyStreakValueInfo">0</span>
+                                </div>
+                                <div class="player-info-stat stat-oro">
+                                    <span class="stat-icon">
+                                        <img src="assets/icons/moneda.png" alt="💰" style="width: 22px; height: 22px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));">
+                                    </span>
+                                    <span class="stat-value gold-value" id="enemyGoldInfo">10</span>
+                                    <span class="stat-label">ORO</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="traits-vertical">
+                            <div class="trait-label">⚔️ Sinergias</div>
+                            <div class="traits-grid" id="enemySinergiasTitulo"></div>
+                        </div>
+
+                        <div class="bank-container bank-container-enemy">
+    <!-- 🆕 NUEVO HEADER: Pokéballs + Contador -->
+    <div class="bank-header" id="bankHeaderEnemy">
+        <!-- Contenedor de las Pokéballs (se llena por JS) -->
+        <div class="bank-capsule" id="bankCapsuleEnemy">
+            <!-- Aquí van los .p-ball -->
+        </div>
+        
+        <!-- El contador -->
+        <div class="big-counter">
+            <span id="enemyBoardCount">0</span><span class="max">/<span id="enemyBoardMax">6</span></span>
+        </div>
+    </div>
+    
+    <div class="bank-grid" id="enemyBanquilloGrid"></div>
+</div>
+
+                    </div>
+
+                    <div class="objetos-vertical-container" id="objetosVerticalContainerEnemigo">
+                        <div class="objetos-vertical-label">📦</div>
+                        <div id="objetosVerticalGridEnemigo" class="objetos-vertical-grid">
+                            <div class="objeto-slot-vertical" data-index="0">▢</div>
+                            <div class="objeto-slot-vertical" data-index="1">▢</div>
+                            <div class="objeto-slot-vertical" data-index="2">▢</div>
+                            <div class="objeto-slot-vertical" data-index="3">▢</div>
+                            <div class="objeto-slot-vertical" data-index="4">▢</div>
+                            <div class="objeto-slot-vertical" data-index="5">▢</div>
+                            <div class="objeto-slot-vertical" data-index="6">▢</div>
+                            <div class="objeto-slot-vertical" data-index="7">▢</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="zacianContainer"></div>
+                <div id="articunoContainer"></div>
+
+            </div>
+
+                        <!-- 🆕 FIX PUNTO 4: Ranking del torneo -->
+            <div id="rankingTorneo" class="ranking-torneo"></div>
+
+            <!-- BOTÓN VENDER FLOTANTE -->
+            <div id="btnVenderDrag" class="btn-vender-drag-banco" style="display:none;" title="Suelta un Pokémon aquí para venderlo">
+                <span class="vender-drag-icono">🛒</span>
+                <span class="vender-drag-precio" id="venderDragPrecio">0</span>
+            </div>
+            <!-- 🆕 BOTÓN VENDER FLOTANTE (derecha de la barra de acciones) -->
+            <div id="btnVenderDrag2" class="btn-vender-drag-banco" style="display:none;" title="Suelta un Pokémon aquí para venderlo">
+                <span class="vender-drag-icono">🛒</span>
+                <span class="vender-drag-precio" id="venderDragPrecio2">0</span>
+            </div>
+
+            <div class="action-bar">
+                <div class="action-bar-left">
+                    <div class="nivel-exp-wrapper">
+                        <div class="nivel-numero-col">
+                            <span class="nivel-numero" id="levelNumber">1</span>
+                        </div>
+                        <div class="exp-col">
+                            <div class="exp-label">NIVEL</div>
+                            <div class="exp-bar">
+                                <div class="exp-fill" id="expBarFill"></div>
+                            </div>
+                            <div class="exp-text">
+                                <span class="actual" id="expActual">0</span>
+                                <span class="sep">/</span>
+                                <span class="max" id="expMax">4</span>
+                                <span class="xp">XP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                <div class="action-bar-right">
+                    <!-- 🆕 PREVIEW: qué desbloqueas al subir de nivel -->
+                    <button
+    type="button"
+    id="btnPreviewSubirNivel"
+    class="btn-action btn-preview-nivel"
+    title="Vista previa: qué desbloqueas al subir de nivel"
+    aria-label="Vista previa de la siguiente subida de nivel"
+>
+    <span class="preview-iconos" id="previewIconosSubirNivel">
+        <span class="preview-pokeball" title="+1 slot en el tablero"></span>
+    </span>
+</button>
+
+                    <button id="btnAdelantarNivel" class="btn-action btn-exp" title="Subir experiencia (E)">
+                        <span class="icon">+</span>
+                        <span class="value">4</span>
+                        <span class="label">XP</span>
+                        <span class="key-hint" title="Atajo: E">E</span>
+                    </button>
+                    <button id="btnAbrirTiendaAccion" onclick="toggleTienda()" class="btn-action btn-tienda" title="Abrir/cerrar tienda (B)">
+                        <img src="assets/icons/moneda.png" alt="Oro" class="btn-tienda-coin-img" onerror="this.outerHTML='💰'">
+                        <span id="tiendaOroBtn" class="btn-tienda-gold">10</span>
+                        <span class="btn-tienda-cart">🛒</span>
+                        <span class="key-hint" title="Atajo: B">B</span>
+                    </button>
+
+                    <!-- 🆕 DATOS ahora va ANTES de COMBATIR -->
+                    <button id="btnPostCombate" class="btn-action btn-datos" title="Panel de datos (D)">
+                        <span class="icon">📊</span>
+                        <span class="key-hint" title="Atajo: D">D</span>
+                    </button>
+
+                    <!-- 🧪 SANDBOX: solo visible en modo creativo -->
+                    <button id="btnResetSandbox" class="btn-action btn-reset-sandbox" style="display:none;" title="Reiniciar el sandbox (vacía tableros, oro y objetos)">
+                        <span class="icon">🔄</span>
+                        <span>RESET</span>
+                    </button>
+
+                    <button id="btnCombatirFijo" class="btn-action btn-combatir" title="Combatir (C)">
+                        <span class="icon">⚔️</span>
+                        <span>COMBATIR</span>
+                        <span class="key-hint" title="Atajo: C">C</span>
+                    </button>
+
+                    <button id="btnPasarTurno" class="btn-action btn-pasar-turno" style="display:none;">
+                        <span>⏭️ PASAR TURNO</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="shop-wrapper" style="display:none;">
+                <div class="shop-section">
+                    <div class="shop-header">
+                        <h3>🛒 TU TIENDA</h3>
+                    </div>
+                    <div class="shop-grid" id="tiendaGrid"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="panelDatosCombate" class="panel-datos-combate" style="display:none;">
+            <div class="panel-datos-contenido">
+
+                <div class="panel-datos-vs">
+                    <div class="panel-datos-jugador">
+                        <div class="panel-datos-avatar" id="panelDatosAvatarJugador">🧢</div>
+                        <div class="panel-datos-nombre" id="panelDatosNombreJugador">Jugador</div>
+                    </div>
+                    <div class="panel-datos-vs-texto">VS</div>
+                    <div class="panel-datos-jugador">
+                        <div class="panel-datos-avatar enemy" id="panelDatosAvatarEnemigo">👤</div>
+                        <div class="panel-datos-nombre" id="panelDatosNombreEnemigo">Rival</div>
+                    </div>
+                </div>
+
+                <div class="panel-datos-filtros">
+                    <button class="panel-datos-filtro activo" data-filtro="damage" title="Daño infligido">
+                        <span class="filtro-icono">🎯</span>
+                    </button>
+                    <button class="panel-datos-filtro" data-filtro="received" title="Daño recibido">
+                        <span class="filtro-icono">🛡️</span>
+                    </button>
+                    <button class="panel-datos-filtro" data-filtro="heal" title="Curaciones">
+                        <span class="filtro-icono">💚</span>
+                    </button>
+                </div>
+
+                <div class="panel-datos-titulo-filtro" id="panelDatosTituloFiltro">Daño infligido</div>
+
+                <div class="panel-datos-lista">
+                    <div class="panel-datos-columna">
+                        <div id="panelDatosListaJugador"></div>
+                    </div>
+                    <div class="panel-datos-columna">
+                        <div id="panelDatosListaEnemigo"></div>
+                    </div>
+                </div>
+
+                <div class="panel-datos-totales">
+                    <div class="panel-datos-total" id="panelDatosTotalJugador">Total: 0</div>
+                    <div class="panel-datos-total" id="panelDatosTotalEnemigo">Total: 0</div>
+                </div>
+
+                </div>
+
+        <div class="game-over-overlay" id="gameOverOverlay">
+            <div class="game-over-modal">
+                <div class="game-over-header">
+                    <div class="titulo victoria" id="gameOverTitulo">🏆 ¡VICTORIA TOTAL!</div>
+                    <div class="subtitulo" id="gameOverSubtitulo">¡Has derrotado a todos los enemigos!</div>
+                </div>
+                <div class="game-over-stats">
+                    <div class="game-over-stat">
+                        <span class="stat-icon">⚔️</span>
+                        <span class="stat-value" id="statTotalDaño">0</span>
+                        <span class="stat-label">Daño Total</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">🛡️</span>
+                        <span class="stat-value" id="statTotalRecibido">0</span>
+                        <span class="stat-label">Daño Recibido</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">💚</span>
+                        <span class="stat-value" id="statTotalCuracion">0</span>
+                        <span class="stat-label">Curaciones</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">🏆</span>
+                        <span class="stat-value" id="statVictorias">0</span>
+                        <span class="stat-label">Victorias</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">⏱️</span>
+                        <span class="stat-value" id="statRondas">0</span>
+                        <span class="stat-label">Rondas</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">⭐</span>
+                        <span class="stat-value" id="statMVP">-</span>
+                        <span class="stat-label">MVP</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">🔥</span>
+                        <span class="stat-value" id="statTopDaño">0</span>
+                        <span class="stat-label">Top Daño</span>
+                    </div>
+                    <div class="game-over-stat">
+                        <span class="stat-icon">🛡️</span>
+                        <span class="stat-value" id="statTopRecibido">0</span>
+                        <span class="stat-label">Top Recibido</span>
+                    </div>
+                </div>
+                <div class="game-over-tabs">
+                    <button class="game-over-tab-btn active" data-tab="final-todos">🌍 TODOS</button>
+                    <button class="game-over-tab-btn" data-tab="final-jugador">🛡️ MI EQUIPO</button>
+                    <button class="game-over-tab-btn" data-tab="final-enemigo">🗡️ EQUIPO ENEMIGO</button>
+                </div>
+                <div class="game-over-panel active" id="panel-final-todos">
+                    <div class="post-stat-card">
+                        <div class="stat-title total" style="color:#fbbf24;">🏆 MEJORES DEL JUEGO</div>
+                        <div id="finalTodosList"></div>
+                    </div>
+                </div>
+                <div class="game-over-panel" id="panel-final-jugador">
+                    <div class="post-stat-card">
+                        <div class="stat-title total" style="color:#fbbf24;">🛡️ TU EQUIPO</div>
+                        <div id="finalJugadorList"></div>
+                    </div>
+                </div>
+                <div class="game-over-panel" id="panel-final-enemigo">
+                    <div class="post-stat-card">
+                        <div class="stat-title total" style="color:#fbbf24;">🗡️ EQUIPO ENEMIGO</div>
+                        <div id="finalEnemigoList"></div>
+                    </div>
+                </div>
+                                <button class="btn-reiniciar" id="btnReiniciarJuego">🔄 VOLVER A JUGAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         PANTALLA DE RESULTADOS FINALES (ESTILO TFT)
+         ============================================================ -->
+    <div id="pantallaResultadosFinales" class="resultados-overlay" style="display:none;">
+        <div class="resultados-modal">
+            
+            <!-- Cabecera -->
+            <div class="resultados-header">
+                <div class="resultados-titulo" id="resultadosTitulo">¡PARTIDA FINALIZADA!</div>
+                <div class="resultados-tiempo" id="resultadosTiempo">⏱️ 00:00</div>
+            </div>
+
+            <!-- Subtítulos de columnas -->
+            <div class="resultados-columnas">
+                <span style="width: 60px; text-align: center;">Rango</span>
+                <span style="width: 200px;">Entrenador</span>
+                <span style="flex: 1; text-align: center;">Equipo Final</span>
+                <span style="width: 150px; text-align: center;">Sinergias</span>
+            </div>
+
+            <!-- Lista de jugadores (se rellena por JS) -->
+            <div class="resultados-lista" id="resultadosLista"></div>
+
+            <!-- Botón para volver -->
+            <div class="resultados-footer">
+                <button class="btn-reiniciar" id="btnResultadosVolverMenu">🏠 VOLVER AL MENÚ</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="cartaPanel" class="carta-panel" style="display:none;">
+    <div class="carta-contenido"></div>
+</div>
+
+    <div id="tiendaOverlay" class="tienda-overlay" style="display:none;">
+        <div class="tienda-modal">
+            <div class="tienda-info">
+                <div class="tienda-info-left">
+                    <div class="tienda-cost-chances" id="tiendaCostChances">
+                        <span class="tienda-cost-chance-item">
+                            <span class="cost-color cost-1"></span>
+                            <span class="chance-value" id="tiendaChance1">100%</span>
+                        </span>
+                        <span class="tienda-cost-chance-item">
+                            <span class="cost-color cost-2"></span>
+                            <span class="chance-value" id="tiendaChance2">0%</span>
+                        </span>
+                        <span class="tienda-cost-chance-item">
+                            <span class="cost-color cost-3"></span>
+                            <span class="chance-value" id="tiendaChance3">0%</span>
+                        </span>
+                        <span class="tienda-cost-chance-item">
+                            <span class="cost-color cost-4"></span>
+                            <span class="chance-value" id="tiendaChance4">0%</span>
+                        </span>
+                        <span class="tienda-cost-chance-item">
+                            <span class="cost-color cost-5"></span>
+                            <span class="chance-value" id="tiendaChance5">0%</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="tienda-grid" id="tiendaGridTienda"></div>
+            <div class="tienda-acciones" style="display: flex; gap: 14px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap;">
+                <button id="btnRerollObjetos" class="btn btn-reroll-tienda" type="button" title="Reroll de objetos (GRATIS)">🔄 REROLL OBJETOS</button>
+                <button id="btnLockShopTienda" type="button" title="Bloquear/Desbloquear tienda">
+                    <span class="lock-icon">🔓</span>
+                </button>
+                <button class="btn btn-reroll-tienda" id="btnRefrescarTienda" title="Reroll de tienda (R) - 2 oro">
+                    <img src="assets/icons/moneda.png" alt="💰" style="width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.3)); flex-shrink: 0; margin-right: 2px;">
+                    2 REROLL
+                    <span class="key-hint" title="Atajo: R">R</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button id="btnAbrirTienda" class="btn-abrir-tienda" style="display:none;" onclick="toggleTienda()">
+        🛒
+        <span class="badge" id="tiendaBadge">!</span>
+    </button>
+
+    </div>
+
+    <!-- ============================================================
+         MODAL DE AJUSTES (⚙️)
+         ============================================================ -->
+    <div id="ajustesOverlay" class="ajustes-overlay" style="display:none;">
+        <div class="ajustes-modal">
+            <div class="ajustes-header">
+                <span class="ajustes-titulo">⚙️ AJUSTES</span>
+                <button class="ajustes-cerrar" id="btnCerrarAjustes" title="Cerrar">✕</button>
+            </div>
+
+            <div class="ajustes-body">
+                <!-- Volumen música -->
+                <div class="ajustes-grupo">
+                    <label class="ajustes-label" for="sliderVolumenMusica">
+                        <span class="ajustes-icono">🎵</span>
+                        <span>Música</span>
+                        <span class="ajustes-valor" id="valorVolumenMusica">15%</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="sliderVolumenMusica"
+                        class="ajustes-slider"
+                        min="0" max="100" value="15" step="1"
+                    >
+                </div>
+
+                <!-- Volumen efectos -->
+                <div class="ajustes-grupo">
+                    <label class="ajustes-label" for="sliderVolumenEfectos">
+                        <span class="ajustes-icono">🔊</span>
+                        <span>Efectos</span>
+                        <span class="ajustes-valor" id="valorVolumenEfectos">50%</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="sliderVolumenEfectos"
+                        class="ajustes-slider"
+                        min="0" max="100" value="50" step="1"
+                    >
+                </div>
+
+                <div class="ajustes-separador"></div>
+
+                <!-- Botones -->
+                <button class="ajustes-btn ajustes-btn-peligro" id="btnVolverMenuAjustes">
+                    🏠 Volver al menú principal
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <script src="js/config.js"></script>
+    <script src="js/data/sinergias.js"></script>
+    <script src="js/data/objetos.js"></script>
+    <script src="js/data/objetosRecomendados.js"></script>
+    <script src="js/data/pokemon.js"></script>
+    <script src="js/data/movimientosPokemon.js"></script>
+    <script src="js/data/movimientosSecundarios.js"></script>
+    <script src="js/data/ultisPokemon.js"></script>
+    <script src="js/data/movimientosInfo.js"></script>
+    <script src="js/data/movimientoIcons.js"></script>
+    <script src="js/data/spriteScale.js"></script>
+    <script src="js/data/monstruosPvE.js"></script>          <!-- 🆕 PvE -->
+
+    <script src="js/classes/Unidad.js"></script>
+
+    <script src="js/systems/pool.js"></script>
+    <script src="js/systems/tienda.js"></script>
+    <script src="js/systems/fusiones.js"></script>
+    <script src="js/systems/sinergiasCombate.js"></script>
+    <script src="js/systems/objetos.js"></script>
+    <script src="js/systems/movimientos.js"></script>
+    <script src="js/systems/movimientos-registro-1.js"></script>
+    <script src="js/systems/movimientos-registro-2.js"></script>
+    <script src="js/systems/movimientos-registro-3.js"></script>
+    <script src="js/systems/ultis-registro-1.js"></script>
+    <script src="js/systems/ultis-registro-2.js"></script>
+    <script src="js/systems/ultis-registro-3.js"></script>
+    <script src="js/systems/nuevaVerde.js"></script>
+    <script src="js/systems/pve.js"></script>                <!-- 🆕 PvE (antes de combate.js) -->
+    <script src="js/systems/combate.js"></script>
+    <script src="js/systems/enemigo.js"></script>
+    <script src="js/systems/tiendaOverlay.js"></script>
+
+    <script src="js/ui/sinergiaCarta.js"></script>
+    <script src="js/ui/animaciones.js"></script>
+    <script src="js/ui/animacionShiny.js"></script>
+    <script src="js/ui/sonidosShiny.js"></script>
+    <script src="js/ui/comicBubble.js"></script>
+    <script src="js/ui/console.js"></script>
+    <script src="js/ui/menu.js"></script>
+    <script src="js/ui/render.js"></script>
+    <script src="js/ui/panelDatosCombate.js"></script>
+    <script src="js/ui/dragDrop.js"></script>
+    <script src="js/ui/dragObjetos.js"></script>
+    <script src="js/ui/ajustes.js"></script>
+
+    <script src="js/creative/creativePanel.js"></script>
+
+    <script src="js/ui/previewSubirNivel.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/ui/tutorial1j.js"></script>
+     <!-- <script src="js/audioGestor.js"></script> -->
+    <script src="js/systems/modod2j.js"></script>
+    <script src="js/systems/torneo.js"></script>
+</body>
+</html>

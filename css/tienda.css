@@ -1,0 +1,509 @@
+/* ============================================================
+   CARTA DE POKÉMON (panel lateral derecho)
+   ============================================================
+   Se abre al hacer click en un Pokémon del tablero/banco.
+   Muestra stats, movimientos, objetos equipados y evolución.
+   ============================================================ */
+
+.carta-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 360px;
+    max-width: 92vw;
+    height: 100vh;
+    background: linear-gradient(145deg, #0f172a, #1a2236);
+    border-left: 2px solid #2a3a5a;
+    z-index: 9999;
+    padding: 20px 18px;
+    overflow-y: auto;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.carta-panel::-webkit-scrollbar { width: 4px; }
+.carta-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+.carta-panel::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+
+.carta-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.carta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(42, 58, 90, 0.4);
+}
+
+.carta-nombre {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fbbf24;
+}
+
+.carta-coste {
+    font-size: 0.8rem;
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+/* ===== SPRITE CONTAINER ===== */
+.carta-sprite-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 14px;
+    border: 2px solid #2a3a5a;
+    position: relative;
+}
+
+.carta-sprite-container .carta-sprite {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.carta-sprite-container .carta-estrella-nivel {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 0.7rem;
+    color: #fbbf24;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.carta-sprite-container .carta-estrella-nivel .fila-superior {
+    display: flex;
+    gap: 2px;
+}
+
+.carta-sprite-container .carta-estrella-nivel .estrella-inferior {
+    margin-left: 12px;
+}
+
+.carta-sprite-container .carta-tipos-clase {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+.carta-sprite-container .carta-tipos-clase .carta-tipo,
+.carta-sprite-container .carta-tipos-clase .carta-clase-integrada {
+    font-size: 0.55rem;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #2a3a5a;
+    color: #93c5fd;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ===== STATS ===== */
+.carta-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 16px;
+    padding: 10px 0;
+}
+
+.carta-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(42, 58, 90, 0.1);
+}
+
+.carta-stat .stat-label { font-size: 0.6rem; color: #6b8aaa; }
+.carta-stat .stat-value { font-size: 0.65rem; font-weight: 700; color: #ffffff; }
+.carta-stat .stat-value.nivel { color: #fbbf24; }
+
+/* ===== MOVIMIENTOS ===== */
+.carta-movimientos-titulo,
+.carta-objetos-titulo {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #93c5fd;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.carta-movimientos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.carta-movimiento-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 6px 10px;
+    border: 1px solid #2a3a5a;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carta-movimiento-item:hover {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.08);
+}
+
+.carta-movimiento-item.seleccionado {
+    border: 2px solid #ffffff !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
+}
+
+.carta-movimiento-item .mov-icono { font-size: 0.9rem; flex-shrink: 0; }
+.carta-movimiento-item .mov-nombre { font-size: 0.6rem; font-weight: 600; color: #ffffff; }
+.carta-movimiento-item .mov-tipo { font-size: 0.5rem; color: #6b8aaa; }
+
+.carta-movimiento-item.vacio {
+    border: 2px solid rgba(42, 58, 90, 0.3);
+    background: transparent;
+    color: #4a6a8a;
+    font-size: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: default;
+}
+
+/* ===== OBJETOS ===== */
+.carta-objetos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.carta-objeto-item {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    border: 2px solid #2a3a5a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: default;
+    aspect-ratio: 1 / 1;
+}
+
+.carta-objeto-item .objeto-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    display: block;
+}
+
+.carta-objeto-item .objeto-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2236;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 140px;
+    max-width: 220px;
+    display: none;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.carta-objeto-item .objeto-tooltip .tooltip-titulo {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fbbf24;
+}
+
+.carta-objeto-item .objeto-tooltip .tooltip-desc {
+    font-size: 0.5rem;
+    color: #93c5fd;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.carta-objeto-item:hover .objeto-tooltip { display: block; }
+
+.carta-objeto-item:hover {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.06);
+    transform: scale(1.05);
+}
+
+.carta-objeto-item.vacio {
+    border: 2px solid rgba(42, 58, 90, 0.3);
+    color: #4a6a8a;
+    font-size: 0.8rem;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carta-objeto-item.vacio:hover {
+    border-color: rgba(42, 58, 90, 0.3);
+    background: transparent;
+    transform: none;
+}
+
+/* ===== EVOLUCIÓN ===== */
+.carta-evolucion {
+    font-size: 0.65rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-align: center;
+    background: linear-gradient(145deg, rgba(42, 58, 90, 0.4), rgba(42, 58, 90, 0.2));
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    color: #c4b5fd;
+    letter-spacing: 0.5px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.carta-evolucion .evolucion-icono { color: #fbbf24; font-size: 0.7rem; }
+.carta-evolucion .evolucion-texto { color: #e0e0e0; font-weight: 500; }
+.carta-evolucion .evolucion-destacado { color: #fbbf24; font-weight: 600; }
+.carta-evolucion .evolucion-destino { color: #4ade80; font-weight: 600; }
+.carta-evolucion .evolucion-forma {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.6rem;
+    background: rgba(167, 139, 250, 0.15);
+    padding: 2px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+/* ===== ENERGÍA ===== */
+.carta-energia-wrapper {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+    padding: 6px 8px 8px 8px;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.carta-energia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.carta-energia-header .energia-titulo {
+    font-size: 0.55rem;
+    color: #93c5fd;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.carta-energia-header .energia-titulo .icono { font-size: 0.7rem; }
+
+.carta-energia-header .energia-numero {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.carta-energia-header .energia-numero .separador {
+    color: #4a6a8a;
+    font-weight: 300;
+    font-size: 0.6rem;
+}
+
+.carta-energia-header .energia-numero .max-label {
+    font-size: 0.5rem;
+    color: #6b8aaa;
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.carta-energia-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.carta-energia-bar .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transition: width 0.5s ease;
+}
+
+/* ===== DESCRIPCIÓN ===== */
+#cartaDescripcionContainer {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid #2a3a5a;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 70px;
+}
+
+#cartaDescripcionContainer .carta-descripcion-nombre {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(42, 58, 90, 0.3);
+}
+
+#cartaDescripcionContainer .carta-descripcion-nombre .mov-icono { font-size: 1.1rem; }
+
+#cartaDescripcionContainer .carta-descripcion-nombre .tipo-label {
+    font-size: 0.5rem;
+    color: #6b8aaa;
+    font-weight: 400;
+    margin-left: auto;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid #2a3a5a;
+}
+
+#cartaDescripcionContainer .carta-descripcion-texto {
+    font-size: 0.7rem;
+    color: #ffffff;
+    line-height: 1.7;
+    padding: 4px 0;
+    letter-spacing: 0.3px;
+}
+
+#cartaDescripcionContainer .carta-descripcion-vacio {
+    font-size: 0.6rem;
+    color: #4a6a8a;
+    text-align: center;
+    letter-spacing: 1px;
+    font-weight: 400;
+}
+
+#cartaDescripcionContainer .carta-descripcion-vacio .icono {
+    font-size: 1.2rem;
+    display: block;
+    margin-bottom: 4px;
+    opacity: 0.5;
+}
+
+.carta-descripcion-range {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(42, 58, 90, 0.3);
+    margin-top: 4px;
+}
+
+.carta-descripcion-range .range-label {
+    font-size: 0.55rem;
+    color: #6b8aaa;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.carta-descripcion-range .range-text { font-size: 0.65rem; color: #ffffff; font-weight: 700; }
+.carta-descripcion-range .range-icon { font-size: 0.8rem; color: #4a6a8a; }
+
+/* ===== ICONOS DE MOVIMIENTOS ===== */
+#cartaDescripcionContainer .carta-descripcion-nombre .mov-icono img {
+    width: 52px !important;
+    height: 52px !important;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 4px;
+}
+
+#cartaDescripcionContainer .carta-descripcion-nombre .tipo-label img {
+    width: 18px !important;
+    height: 18px !important;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 3px;
+}
+
+/* ===== OBJETOS INLINE (dentro del sprite container) ===== */
+.carta-objetos-inline {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(42, 58, 90, 0.3);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.carta-objetos-inline .carta-objetos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    max-width: 190px !important;
+    margin: 0 auto !important;
+}
+
+/* ===== SLOT ULTI ===== */
+.objeto-equipado-tablero.slot-ulti,
+.objeto-equipado-banquillo.slot-ulti {
+    animation: slotUltiPulse 3s ease-in-out infinite;
+}
+
+@keyframes slotUltiPulse {
+    0%, 100% { border-color: rgba(251, 191, 36, 0.25); box-shadow: none; }
+    50% { border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 0 6px rgba(251, 191, 36, 0.2); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .carta-panel {
+        width: 100%;
+        max-width: 100%;
+        border-left: none;
+        border-top: 2px solid #2a3a5a;
+    }
+}

@@ -1,0 +1,404 @@
+/* ============================================================
+   PANEL DE DATOS DE COMBATE - MODAL CENTRADO
+   ============================================================
+   v3: Sprites y barras más grandes.
+   ============================================================ */
+
+.panel-datos-combate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    z-index: 10000;
+    padding: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.panel-datos-combate[style*="display: block"],
+.panel-datos-combate[style*="display:block"] {
+    display: flex;
+}
+
+.panel-datos-contenido {
+    background: linear-gradient(145deg, #0f172a, #1a2236);
+    border-radius: 16px;
+    border: 2px solid #2a3a5a;
+    max-width: min(760px, 95vw);
+    width: 100%;
+    max-height: 88vh;
+    padding: 16px 18px 18px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        0 0 40px rgba(77, 212, 247, 0.15);
+    animation: panelDatosModalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-sizing: border-box;
+}
+
+@keyframes panelDatosModalIn {
+    0%   { opacity: 0; transform: scale(0.92) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.panel-datos-contenido::-webkit-scrollbar { width: 6px; }
+.panel-datos-contenido::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+.panel-datos-contenido::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+
+/* ===== CABECERA VS ===== */
+.panel-datos-vs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    border: 1px solid rgba(77, 212, 247, 0.2);
+    gap: 10px;
+}
+
+.panel-datos-jugador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.panel-datos-avatar {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(74, 222, 128, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 1.6rem;
+    color: #93c5fd;
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+}
+
+.panel-datos-avatar.enemy {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.panel-datos-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.panel-datos-nombre {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.3px;
+}
+
+.panel-datos-vs-texto {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #fbbf24;
+    text-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    flex-shrink: 0;
+}
+
+/* ===== FILTROS ===== */
+.panel-datos-filtros {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.panel-datos-filtro {
+    flex: 1;
+    max-width: 100px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #2a3a5a;
+    border-radius: 10px;
+    color: #6b8aaa;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-datos-filtro:hover:not(.activo) {
+    border-color: #4a6a8a;
+    color: #93c5fd;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.panel-datos-filtro.activo {
+    border-color: #fbbf24;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
+}
+
+.panel-datos-filtro .filtro-icono {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.panel-datos-titulo-filtro {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(77, 212, 247, 0.15);
+}
+
+/* ===== LISTAS ===== */
+.panel-datos-lista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.panel-datos-columna {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.panel-datos-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(42, 58, 90, 0.3);
+}
+
+/* 🆕 Sprite más grande: 40px (antes 30px) */
+.panel-datos-item .sprite {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 6px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(42, 58, 90, 0.4);
+}
+
+.panel-datos-item .sprite img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.panel-datos-item .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.panel-datos-item .info .fila-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 🆕 Número más grande: 0.8rem (antes 0.7rem) */
+.panel-datos-item .valor {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 🆕 Barra más alta: 9px (antes 5px) */
+.panel-datos-item .barra-container {
+    width: 100%;
+    height: 9px;
+    background: #1a2236;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid rgba(42, 58, 90, 0.5);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.panel-datos-item .barra-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.6s ease;
+}
+
+/* ============================================================
+   COLORES DE BARRAS POR TIPO DE DAÑO
+   ============================================================ */
+
+/* Daño FÍSICO - rojo/naranja */
+.panel-datos-item .barra-fill.damage {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+/* Daño ESPECIAL - azul */
+.panel-datos-item .barra-fill.damage-especial {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+}
+
+/* Daño RECIBIDO - rojo oscuro */
+.panel-datos-item .barra-fill.received {
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+/* CURACIONES - verde */
+.panel-datos-item .barra-fill.heal {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+/* ===== TOTALES ===== */
+.panel-datos-totales {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    border: 1px solid rgba(77, 212, 247, 0.15);
+}
+
+.panel-datos-total {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ===== BOTÓN CERRAR ===== */
+.panel-datos-cerrar {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #2a3a5a;
+    border-radius: 10px;
+    color: #93c5fd;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+}
+
+.panel-datos-cerrar:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .panel-datos-combate {
+        padding: 10px;
+    }
+
+    .panel-datos-contenido {
+        max-width: 96vw;
+        max-height: 92vh;
+        padding: 12px 14px 14px 14px;
+        border-radius: 14px;
+    }
+
+    .panel-datos-lista {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-datos-avatar {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1.3rem;
+    }
+
+    /* Sprites un poco más pequeños en móvil pero aún visibles */
+    .panel-datos-item .sprite {
+        width: 34px;
+        height: 34px;
+    }
+
+    .panel-datos-item .barra-container {
+        height: 7px;
+    }
+
+    .panel-datos-item .valor {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel-datos-contenido {
+        max-width: 98vw;
+        padding: 10px 12px 12px 12px;
+    }
+
+    .panel-datos-avatar {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        font-size: 1.1rem;
+    }
+
+    .panel-datos-nombre {
+        font-size: 0.65rem;
+    }
+
+    .panel-datos-item .sprite {
+        width: 30px;
+        height: 30px;
+    }
+
+    .panel-datos-item .barra-container {
+        height: 6px;
+    }
+
+    .panel-datos-item .valor {
+        font-size: 0.7rem;
+    }
+}

@@ -1,0 +1,221 @@
+/* ============================================================
+   PANEL SEMILLAS REVIVIR - v3
+   Tramos repetibles + botón individual
+   ============================================================ */
+
+.nv-panel {
+    margin-top: 14px;
+    padding: 12px 12px 14px 12px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(15, 40, 25, 0.85), rgba(10, 25, 15, 0.9));
+    border: 1.5px solid rgba(74, 222, 128, 0.35);
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.4),
+        inset 0 0 25px rgba(74, 222, 128, 0.05);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.nv-titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nv-icono {
+    font-size: 1.2rem;
+}
+
+.nv-nombre {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+.nv-contador {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.nv-contador-base {
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: #4ade80;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+}
+
+.nv-contador-sep {
+    color: #4a6a8a;
+    font-size: 0.7rem;
+    margin: 0 1px;
+}
+
+.nv-contador-max {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #6b8aaa;
+}
+
+.nv-descripcion {
+    font-size: 0.6rem;
+    color: #a0c4b0;
+    line-height: 1.4;
+    padding: 0 2px;
+}
+
+.nv-tramos {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nv-tramo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    border-left: 3px solid rgba(74, 106, 138, 0.4);
+    font-size: 0.62rem;
+    transition: all 0.2s ease;
+    opacity: 0.5;
+}
+
+.nv-tramo-alcanzado {
+    border-left-color: #4ade80;
+    background: rgba(74, 222, 128, 0.08);
+    opacity: 1;
+    animation: nvPulse 1.8s ease-in-out infinite;
+}
+
+.nv-tramo-sin-espacio {
+    border-left-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.05);
+    opacity: 0.8;
+}
+
+.nv-tramo-icono {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+}
+
+.nv-tramo-semillas {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #fbbf24;
+    min-width: 38px;
+    text-shadow: 0 0 6px rgba(251, 191, 36, 0.2);
+}
+
+.nv-tramo-alcanzado .nv-tramo-semillas {
+    color: #4ade80;
+}
+
+.nv-tramo-texto {
+    font-size: 0.58rem;
+    color: #c0d4c8;
+    flex: 1;
+    font-weight: 500;
+}
+
+/* ============================================================
+   BOTÓN DE CANJEAR EN CADA TRAMO
+   ============================================================ */
+
+.nv-btn-canjear-tramo {
+    margin-left: auto;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 2px solid #4ade80;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.nv-btn-canjear-tramo:hover:not(:disabled) {
+    transform: scale(1.12);
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.5);
+    filter: brightness(1.1);
+}
+
+.nv-btn-canjear-tramo:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.nv-btn-canjear-tramo:disabled {
+    background: rgba(74, 106, 138, 0.2);
+    border-color: rgba(74, 106, 138, 0.3);
+    color: #4a6a8a;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.5;
+}
+
+@keyframes nvPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(74, 222, 128, 0);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+    }
+}
+
+.nv-progreso-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nv-progreso-barra {
+    flex: 1;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(74, 222, 128, 0.15);
+}
+
+.nv-progreso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #4ade80, #86efac);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+}
+
+.nv-progreso-texto {
+    font-size: 0.55rem;
+    color: #93c5fd;
+    font-weight: 700;
+    min-width: 55px;
+    text-align: right;
+}

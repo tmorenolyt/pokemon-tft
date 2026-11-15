@@ -1,0 +1,14 @@
+# Basura del sistema operativo
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editores / IDE
+.vscode/
+.idea/
+
+# Dependencias (por si algún día metes Node)
+node_modules/
+
+# Logs / temporales
+*.log

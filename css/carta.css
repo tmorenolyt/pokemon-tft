@@ -1,0 +1,350 @@
+/* ============================================================
+   CARTA DE POKÉMON - REDISEÑO v5
+   ============================================================ */
+
+#cartaPanel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: transparent !important;
+    z-index: 99998 !important;
+    padding: 20px !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+#cartaPanel.visible,
+#cartaPanel[style*="display: block"],
+#cartaPanel[style*="display:block"] {
+    display: flex !important;
+}
+
+/* ===== CONTENEDOR INTERNO ===== */
+#cartaPanel .carta-contenido {
+    background: linear-gradient(145deg, #1a2236, #0f172a);
+    border-radius: 20px;
+    border: 2px solid #2a3a5a;
+    max-width: 380px;
+    width: 100%;
+    max-height: 92vh;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(59, 130, 246, 0.1);
+    box-sizing: border-box;
+    transform: translateX(0); /* En el juego original estaba a 80px, aquí lo centramos o lo dejamos a 0 para que el jugador lo vea bien. Si prefieres el offset original, pon 80px */
+}
+
+/* ===== HEADER ===== */
+#cartaPanel .carta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin: -16px -16px 0 -16px;
+    padding: 12px 16px;
+    flex-shrink: 0;
+}
+
+#cartaPanel .carta-nombre {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+}
+
+#cartaPanel .carta-coste {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.4);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+/* ===== TIPOS ===== */
+#cartaPanel .carta-tipos-clase {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#cartaPanel .carta-tipo,
+#cartaPanel .carta-clase-integrada {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #000;
+    background: #e2e8f0; /* Fallback */
+}
+
+#cartaPanel .carta-tipo img,
+#cartaPanel .carta-clase-integrada img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+/* Colores de tipos (Añade más si quieres) */
+#cartaPanel .carta-tipo[data-tipo="Planta"] { background-color: #4ade80; }
+#cartaPanel .carta-tipo[data-tipo="Veneno"] { background-color: #c084fc; color: #fff; }
+#cartaPanel .carta-tipo[data-tipo="Fuego"] { background-color: #fb923c; }
+#cartaPanel .carta-tipo[data-tipo="Agua"] { background-color: #38bdf8; }
+#cartaPanel .carta-tipo[data-tipo="Eléctrico"] { background-color: #facc15; }
+
+/* ===== STATS GRID ===== */
+#cartaPanel .carta-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+#cartaPanel .carta-stat {
+    background: rgba(0,0,0,0.35);
+    border-radius: 8px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+#cartaPanel .carta-stat .stat-label {
+    font-size: 0.5rem;
+    color: #8b9bb4;
+    text-transform: uppercase;
+    margin-top: 2px;
+    font-weight: 600;
+    text-align: center;
+    order: 2; /* Para que el icono quede arriba */
+}
+
+#cartaPanel .carta-stat .stat-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    order: 1;
+}
+
+#cartaPanel .carta-stat .stat-icon {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    order: 0;
+}
+
+/* ===== MOVIMIENTOS ===== */
+#cartaPanel .moves-section {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#cartaPanel .move-tabs {
+    display: flex;
+    gap: 6px;
+    background: rgba(0,0,0,0.4);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+#cartaPanel .move-tab {
+    flex: 1;
+    padding: 6px;
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #8b9bb4;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid transparent;
+    position: relative;
+}
+
+#cartaPanel .move-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
+#cartaPanel .move-tab.viewing { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+#cartaPanel .move-tab.is-active-move { border-color: #22c55e; color: #fff; }
+#cartaPanel .move-tab.locked { opacity: 0.5; cursor: not-allowed; background: rgba(0,0,0,0.2); border-color: transparent; }
+
+#cartaPanel .active-badge {
+    display: none !important;
+}
+
+#cartaPanel .move-tab.is-active-move .active-badge { display: none !important; }
+
+#cartaPanel .move-content {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #2a3a5a;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#cartaPanel .move-content.viewing { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+#cartaPanel .move-header { display: flex; justify-content: space-between; align-items: center; }
+#cartaPanel .move-title { display: flex; align-items: center; gap: 8px; }
+#cartaPanel .move-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+#cartaPanel .move-name { font-size: 0.9rem; font-weight: 800; }
+
+#cartaPanel .move-tags { display: flex; gap: 4px; }
+#cartaPanel .move-tag { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); font-weight: 700; }
+#cartaPanel .move-tag.energy { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+#cartaPanel .move-desc {
+    font-size: 0.7rem;
+    color: #d1d5db;
+    line-height: 1.4;
+    background: rgba(0,0,0,0.2);
+    padding: 8px;
+    border-radius: 6px;
+}
+
+#cartaPanel .btn-activar-move {
+    width: 100%;
+    padding: 8px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 6px;
+    color: #60a5fa;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+#cartaPanel .btn-activar-move:hover:not(:disabled) { background: rgba(59, 130, 246, 0.3); color: #fff; }
+#cartaPanel .btn-activar-move:disabled { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; cursor: default; }
+
+/* ===== DEFINITIVA (ULTI) ===== */
+#cartaPanel .ulti-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+#cartaPanel .ulti-header-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #c4b5fd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#cartaPanel .ulti-box {
+    background: linear-gradient(145deg, rgba(30, 20, 60, 0.8), rgba(10, 10, 20, 0.9));
+    border: 2px solid rgba(168, 85, 247, 0.4);
+    border-radius: 12px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+#cartaPanel .ulti-box.locked { filter: grayscale(1); opacity: 0.6; border-color: rgba(255,255,255,0.1); }
+#cartaPanel .ulti-box.ready { border-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); background: linear-gradient(145deg, rgba(60, 40, 10, 0.8), rgba(20, 10, 5, 0.9)); }
+
+#cartaPanel .ulti-icon-container { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 6px; }
+#cartaPanel .ulti-icon { width: 36px; height: 36px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 2px solid rgba(168, 85, 247, 0.5); }
+#cartaPanel .ulti-box.ready .ulti-icon { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+
+#cartaPanel .disco-badge { background: #fbbf24; color: #000; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; border: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.5); position: relative; z-index: 2; }
+#cartaPanel .disco-badge.locked-disk { background: #4b5563; color: #9ca3af; }
+
+#cartaPanel .ulti-content { padding-right: 70px; display: flex; flex-direction: column; gap: 6px; }
+#cartaPanel .ulti-name-row { display: flex; align-items: center; gap: 8px; }
+#cartaPanel .ulti-name { font-size: 0.95rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+#cartaPanel .ulti-box.ready .ulti-name { color: #fbbf24; }
+
+#cartaPanel .ulti-status-text { font-size: 0.55rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(168, 85, 247, 0.2); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+#cartaPanel .ulti-box.ready .ulti-status-text { background: rgba(251, 191, 36, 0.2); color: #fde68a; border-color: rgba(251, 191, 36, 0.4); }
+
+#cartaPanel .ulti-desc { font-size: 0.65rem; color: #e5e7eb; line-height: 1.4; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+
+#cartaPanel .ulti-bar-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+#cartaPanel .ulti-bar-container { flex: 1; height: 8px; background: rgba(0,0,0,0.8); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+#cartaPanel .ulti-bar-fill { height: 100%; background: linear-gradient(90deg, #a855f7, #d8b4fe); width: 0%; transition: width 0.3s ease; }
+#cartaPanel .ulti-box.ready .ulti-bar-fill { background: linear-gradient(90deg, #fbbf24, #fde68a); width: 100%; }
+#cartaPanel .ulti-bar-text { font-size: 0.55rem; font-weight: 800; color: #8b9bb4; min-width: 30px; text-align: right; }
+
+/* ===== OBJETOS EQUIPADOS ===== */
+#cartaPanel .carta-objetos {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+#cartaPanel .carta-objeto-item {
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border: 2px solid #2a3a5a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#cartaPanel .carta-objeto-item.ocupado {
+    border-color: rgba(251, 191, 36, 0.55);
+    background: rgba(251, 191, 36, 0.08);
+}
+
+#cartaPanel .carta-objeto-item .objeto-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+#cartaPanel .carta-objeto-item.vacio {
+    border-style: dashed;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #cartaPanel .carta-contenido {
+        transform: translateX(0);
+        padding: 12px;
+        max-height: 95vh;
+    }
+}
