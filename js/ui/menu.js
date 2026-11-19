@@ -408,10 +408,63 @@ function conectarBotonesHeaderPokedex(overlay) {
 }
 
 // ============================================================
+// 🏷️ VERSIÓN DESPLEGADA (para saber si se ha actualizado)
+// ============================================================
+function initVersionBadge() {
+    const el = document.getElementById('appVersion');
+    if (!el) return;
+    let yaIniciado = false;
+    if (el.dataset.iniciado === '1') yaIniciado = true;
+    el.dataset.iniciado = '1';
+
+    async function refrescar() {
+        try {
+            const r = await fetch('/api/version', { cache: 'no-store' });
+            const d = await r.json();
+            const clave = (d.commit || '') + '|' + (d.version || '');
+            let prev = null;
+            try { prev = localStorage.getItem('pktft_version'); } catch (e) { }
+            const nueva = !!(prev && prev !== clave);
+            try { localStorage.setItem('pktft_version', clave); } catch (e) { }
+
+            const arranque = d.bootedAt ? new Date(d.bootedAt).toLocaleString('es-ES') : '—';
+            el.textContent = `v${d.version || '?'} · ${d.commit || 'dev'}${nueva ? ' · 🆕 ACTUALIZADO' : ''}`;
+            el.title =
+                `Versión: ${d.version || '?'}\n` +
+                `Commit: ${d.commit || 'dev'}${d.branch ? ' (' + d.branch + ')' : ''}\n` +
+                `Servidor arrancado: ${arranque}\n` +
+                `Entorno: ${d.env || '?'}\n\n` +
+                'Pulsa para comprobar si hay una versión nueva.';
+            el.classList.toggle('nueva', nueva);
+            if (nueva) console.log(`🆕 Nueva versión desplegada: v${d.version} (${d.commit})`);
+        } catch (e) {
+            el.textContent = 'versión no disponible (servidor apagado)';
+            el.title = String(e && e.message || e);
+        }
+    }
+
+    el.addEventListener('click', async () => {
+        const txt = el.textContent;
+        el.textContent = 'comprobando…';
+        await refrescar();
+        setTimeout(() => { if (el.textContent === 'comprobando…') el.textContent = txt; }, 1500);
+    });
+
+    refrescar();
+    // Re-comprobar al volver a la pestaña (útil tras desplegar)
+    if (!yaIniciado) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refrescar();
+        });
+    }
+}
+
+// ============================================================
 // INICIALIZAR MENÚ
 // ============================================================
 function initMenu() {
     console.log("📋 Inicializando menú principal...");
+    try { initVersionBadge(); } catch (e) { console.warn('No se pudo iniciar el badge de versión', e); }
 
     const menu = document.getElementById('menuPrincipal');
     const juego = document.getElementById('juegoContainer');

@@ -69,6 +69,81 @@ Alternativas equivalentes: Railway, Fly.io, Koyeb, Glitch.
 
 ---
 
+## 🔒 Hacer la web privada (solo tus amigos)
+
+La web desplegada en Render es **pública**: cualquiera con la URL puede abrirla.
+Para cerrarla:
+
+1. En Render → tu servicio → **Environment** → **Add Environment Variable**:
+   - `ACCESS_KEY` = una clave larga, p. ej. `tmoreno-amigos-2026`
+   - Save (Render redespliega solo).
+2. Comparte con tus amigos el enlace con la clave **una sola vez**:
+   ```
+   https://tu-app.onrender.com/?clave=tmoreno-amigos-2026
+   ```
+   Al entrar se guarda una cookie 30 días y la clave desaparece de la URL.
+   Sin la clave (o sin cookie) solo se ve una pantalla de "Acceso privado".
+3. Si quieres cambiar la clave, edita `ACCESS_KEY` en Render: las cookies viejas
+   dejan de valer y hay que repartir el enlace nuevo.
+
+👉 Si **no** defines `ACCESS_KEY`, el servidor sigue abierto como antes (útil en local).
+
+### Repositorio privado en GitHub
+- GitHub → repo → **Settings** → **General** → *Danger Zone* →
+  **Change repository visibility** → **Private**.
+- Si Render deja de desplegar, en Render → Settings → **GitHub** hay que dar
+  permiso a la app de Render para ver ese repositorio privado.
+
+⚠️ Importante: el código del **cliente** (HTML/JS/CSS) siempre es visible para
+quien juega (el navegador lo descarga). Lo que queda privado es el repositorio y
+la lógica del servidor. La clave + repo privado es el límite práctico.
+
+---
+
+## 🏷️ Versión desplegada (saber si se ha actualizado)
+
+En el **menú principal**, justo debajo de la ficha de perfil, aparece:
+
+```
+v0.2.0 · 7e5f9d5
+```
+
+- `v0.2.0` = versión de `package.json` (súbela cuando quieras marcar un update).
+- `7e5f9d5` = **commit** desplegado (Render lo da automáticamente).
+- Si el commit cambia respecto a tu última visita, sale en verde con **🆕 ACTUALIZADO**.
+- Pasa el ratón para ver versión, commit, rama, hora de arranque del servidor y entorno.
+- Pulsa encima para volver a comprobarlo (útil tras un deploy).
+- La web consulta `GET /api/version`.
+
+Así sabes de un vistazo si Render está sirviendo la última versión que subiste.
+
+---
+
+## 🕵️ Panel de jugadores (quién juega y cuánto tiempo)
+
+Con la variable de entorno **`ADMIN_KEY`** se activa un panel privado:
+
+```
+https://tu-app.onrender.com/admin?admin=TU_CLAVE_ADMIN
+```
+
+- Se guarda una cookie 30 días y la clave desaparece de la URL.
+- Muestra, actualizándose cada 2,5 s: **sala, nick, ronda, nivel, HP, tiempo
+  jugado** y última señal.
+- Estado **🟢 Jugando** si el cliente ha sincronizado en los últimos 8 s;
+  si no, **Desconectado** (se queda en la lista con su tiempo total).
+- El *tiempo jugado* cuenta desde que el jugador entra en la sala.
+- El nick es el que cada jugador escribe en la pantalla de selección.
+
+👉 Usa una `ADMIN_KEY` **distinta** de `ACCESS_KEY`: los amigos tienen la clave de
+jugador, pero no la de administración. Si no defines `ADMIN_KEY`, `/admin` queda
+protegido solo por `ACCESS_KEY`.
+
+> El juego ya muestra arriba el cronómetro de la partida (⏱️) en cada cliente.
+> El panel `/admin` es para que TÚ veas a todos a la vez.
+
+---
+
 ## Cambios recientes (online 1v1)
 
 - **Tienda de objetos fiable**: si al terminar la ronda quedaba abierta la tienda de
@@ -84,3 +159,9 @@ Alternativas equivalentes: Railway, Fly.io, Koyeb, Glitch.
 - **Sin doble combate**: se ignora un segundo clic en COMBATIR mientras la ronda se
   está resolviendo (evita que un jugador avance dos rondas y se desincronice).
 - `matchEnd` incluye el número de ronda para mostrarlo en el resumen.
+- **Acceso privado opcional**: con la variable de entorno `ACCESS_KEY` la web pide
+  una clave y guarda una cookie de 30 días (`?clave=...`). Sin ella, abierta.
+- **Panel de administración** (`/admin?admin=...`, variable `ADMIN_KEY`): jugadores
+  conectados, nick, ronda, nivel, HP y tiempo jugado, refrescado cada 2,5 s.
+- **Versión visible** en el menú: `v0.2.0 · <commit>` debajo del perfil, con aviso
+  `🆕 ACTUALIZADO` cuando cambia el commit desplegado.
