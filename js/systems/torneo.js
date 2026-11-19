@@ -177,9 +177,11 @@ function restaurarEquipoRival(rival, motivo = '') {
         const bg = rival._equipoGuardado.banquillo || [];
         for (let i = 0; i < Math.min(enemyBoard.length, tg.length); i++) {
             enemyBoard[i] = tg[i] ? tg[i].clonarParaCombate() : null;
+            if (enemyBoard[i]) enemyBoard[i]._nivelEquipoRival = nivelRival; // 💿 nivel del rival dueño
         }
         for (let i = 0; i < Math.min(enemyBanquillo.length, bg.length); i++) {
             enemyBanquillo[i] = bg[i] ? bg[i].clonarParaCombate() : null;
+            if (enemyBanquillo[i]) enemyBanquillo[i]._nivelEquipoRival = nivelRival;
         }
         console.log(`💾 [restaurarEquipoRival] ${rival.nombre}: equipo restaurado (${enemyBoard.filter(Boolean).length} en tablero, ${enemyBanquillo.filter(Boolean).length} en banco) ${motivo}`);
 
@@ -201,6 +203,18 @@ function restaurarEquipoRival(rival, motivo = '') {
         if (typeof enemyEquiparObjetos === 'function') {
             try { enemyEquiparObjetos(); } catch (e) { console.warn('⚠️ enemyEquiparObjetos falló en restaurarEquipoRival:', e); }
         }
+
+        // 🆕 FIX DISCOS DUPLICADOS: el inventario del rival debe reflejar lo que
+        // ha quedado SIN equipar. Antes se volvía a copiar el Disco ya equipado
+        // en cada restauración y el rival acumulaba 2-3 Discos.
+        try {
+            if (Array.isArray(rival.objetosAcumulados) && Array.isArray(enemyBaulObjetos)) {
+                const maxB = (typeof CONFIG !== 'undefined' && CONFIG.MAX_BAUL) ? CONFIG.MAX_BAUL : 8;
+                // Conservar los objetos que no cabían en el baúl (índices >= maxB).
+                const sobrantes = rival.objetosAcumulados.slice(maxB);
+                rival.objetosAcumulados = enemyBaulObjetos.slice().concat(sobrantes);
+            }
+        } catch (e) { }
 
         if (typeof enemyPosicionarUnidadesInteligente === 'function') {
             try { enemyPosicionarUnidadesInteligente(); } catch (e) {}
@@ -647,11 +661,20 @@ function avanzarRivalUnTurno(rival) {
     // ============================================================
     if (rival.objetosAcumulados && rival.objetosAcumulados.length > 0) {
         const unidades = [...tablero.map(u => u).filter(Boolean), ...banco.map(u => u).filter(Boolean)];
+        // 💿 FIX: cada unidad usa el nivel de SU rival (no el `enemyLevel` global).
+        for (const u of unidades) { if (u) u._nivelEquipoRival = rival.nivel; }
+        const maxDiscosRival = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(rival.nivel) : (rival.nivel >= 5 ? 1 : 0);
+        let discosEquipadosRival = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades(unidades) : 0;
         while (rival.objetosAcumulados.length > 0 && unidades.length > 0) {
             const obj = rival.objetosAcumulados.shift();
             const data = OBJETOS[obj];
             if (!data) continue;
             const esDisco = data.efecto && data.efecto.esDiscoUlti;
+            if (esDisco && discosEquipadosRival >= maxDiscosRival) {
+                // Ya tiene el máximo de discos para su nivel: se queda guardado.
+                rival.objetosAcumulados.push(obj);
+                break;
+            }
 
             let target = null;
             for (const u of unidades) {
@@ -682,7 +705,15 @@ function avanzarRivalUnTurno(rival) {
                 rival.objetosAcumulados.push(obj);
                 break;
             }
-            try { aplicarObjeto(target, obj); } catch (e) {}
+            let aplicado = false;
+            try { aplicado = (aplicarObjeto(target, obj) === true); } catch (e) { aplicado = false; }
+            if (aplicado) {
+                if (esDisco) discosEquipadosRival++;
+            } else {
+                // 🆕 FIX: si no se pudo equipar, NO perder el objeto.
+                rival.objetosAcumulados.push(obj);
+                break;
+            }
         }
     }
 
@@ -714,9 +745,14 @@ function avanzarRivalUnTurno(rival) {
     // queda en su baúl hasta que pueda equiparlo.
     if (rival.nivel >= 5) {
         if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
-        if (!rival.objetosAcumulados.includes("Disco Definitivo")) {
+        // 🆕 FIX: máximo 1 Disco a nivel 5-7 y 2 a nivel 8 (igual que el jugador),
+        // contando los equipados + los que ya están en el inventario.
+        const _maxD = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(rival.nivel) : 1;
+        const _eq = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...tablero, ...banco]) : 0;
+        const _inv = rival.objetosAcumulados.filter(o => o === "Disco Definitivo").length;
+        if ((_eq + _inv) < _maxD) {
             rival.objetosAcumulados.push("Disco Definitivo");
-            console.log(`💿 [avanzarRivalUnTurno] ${rival.nombre} tiene DISCO DEFINITIVO en el baúl (Nivel ${rival.nivel})`);
+            console.log(`💿 [avanzarRivalUnTurno] ${rival.nombre} tiene DISCO DEFINITIVO en el baúl (Nivel ${rival.nivel}, ${_eq} equipados)`);
         }
     }
 

@@ -374,12 +374,12 @@ function getRachaBonus() {
 // ============================================================
 // Daño total = BASE_DE_LA_RONDA + nº de unidades vivas del ganador
 //
-// Base por tramos de ronda:
-//   Ronda 1-4   → 1 HP
-//   Ronda 5-9   → 2 HP
-//   Ronda 10-12 → 3 HP
-//   Ronda 13-14 → 4 HP
-//   Ronda 15+   → 5 HP
+// Base por tramos de ronda (tabla acordada):
+//   Ronda 1-9    → +2   (3 vivos = 5 HP)
+//   Ronda 10-12  → +3   (3 vivos = 6 HP)
+//   Ronda 13-19  → +4   (3 vivos = 7 HP)
+//   Ronda 20     → +5   (3 vivos = 8 HP)
+//   Ronda 21+    → +7   (3 vivos = 10 HP)
 //
 // Extra: +1 HP por CADA Pokémon vivo del ganador.
 // Rondas PvE en 1J: nadie pierde HP.
@@ -387,11 +387,33 @@ function getRachaBonus() {
 
 function getDañoBasePorRonda(ronda) {
     const r = (typeof ronda === 'number') ? ronda : fase;
-    if (r >= 15) return 5;
+    if (r >= 21) return 7;
+    if (r >= 20) return 5;
     if (r >= 13) return 4;
     if (r >= 10) return 3;
-    if (r >= 5)  return 2;
-    return 1;
+    return 2;
+}
+
+// ============================================================
+// 💿 DISCOS DEFINITIVOS POR EQUIPO (espejo del jugador: nivel 5 y 8)
+// ============================================================
+function maxDiscosPorNivelEquipo(nivel) {
+    const n = Number(nivel) || 1;
+    if (n >= 8) return 2;   // nivel 8 → 2º disco
+    if (n >= 5) return 1;   // nivel 5 → 1er disco
+    return 0;
+}
+
+function contarDiscosEnUnidades(unidades) {
+    let n = 0;
+    for (const u of (unidades || [])) {
+        if (!u || !Array.isArray(u.objetos)) continue;
+        for (const o of u.objetos) {
+            const od = (typeof OBJETOS !== 'undefined') ? OBJETOS[o] : null;
+            if (od && od.efecto && od.efecto.esDiscoUlti) n++;
+        }
+    }
+    return n;
 }
 
 function getDañoPorDerrota() {
@@ -427,6 +449,8 @@ function getDañoRealPorDerrota(unidadesVivasGanador, ronda) {
 window.getDañoBasePorRonda = getDañoBasePorRonda;
 window.getDañoPorDerrota = getDañoPorDerrota;
 window.getDañoRealPorDerrota = getDañoRealPorDerrota;
+window.maxDiscosPorNivelEquipo = maxDiscosPorNivelEquipo;
+window.contarDiscosEnUnidades = contarDiscosEnUnidades;
 
 function calcularFearAuraBonus(stacks) {
     if (stacks >= 60) return 0.60;

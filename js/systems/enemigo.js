@@ -2317,9 +2317,14 @@ function enemyEquiparObjetos() {
                 for (const o of u.objetos) objetosEquipadosActualmente.add(o);
             }
 
+            // 💿 FIX: no volver a meter un Disco en el baúl si el equipo ya
+            // tiene el máximo que le corresponde por nivel.
+            const _maxDiscosEq = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(enemyLevel) : (enemyLevel >= 8 ? 2 : 1);
+            const _discosEq = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...enemyBoard, ...enemyBanquillo]) : 0;
             for (const obj of rivalEnTorneo.objetosAcumulados) {
                 if (enemyBaulObjetos.length >= MAX_BAUL) break;
                 if (objetosEquipadosActualmente.has(obj)) continue; // Ya equipado, no duplicar
+                if (obj === "Disco Definitivo" && _discosEq >= _maxDiscosEq) continue;
                 enemyBaulObjetos.push(obj);
             }
         }
@@ -2453,7 +2458,16 @@ function enemyEquiparObjetos() {
     // ============================================================
     let equipado = reasignaciones > 0;
     const idxDisco = enemyBaulObjetos.indexOf("Disco Definitivo");
-    if (idxDisco !== -1) {
+    const _maxDiscosEquipo = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(enemyLevel) : (enemyLevel >= 8 ? 2 : 1);
+    const _discosEquipadosEquipo = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...enemyBoard, ...enemyBanquillo]) : 0;
+    // 💿 Si ya tiene el máximo equipado, cualquier Disco sobrante del baúl
+    // se elimina (evita ver 2-3 Discos en el baúl rival).
+    if (idxDisco !== -1 && _discosEquipadosEquipo >= _maxDiscosEquipo) {
+        for (let i = enemyBaulObjetos.length - 1; i >= 0; i--) {
+            if (enemyBaulObjetos[i] === "Disco Definitivo") enemyBaulObjetos.splice(i, 1);
+        }
+    }
+    if (idxDisco !== -1 && _discosEquipadosEquipo < _maxDiscosEquipo) {
         const candidatosDisco = [...enemyBoard, ...enemyBanquillo].filter(u => {
             if (!u || u.esZacian || u.esArticuno || u.nivel < 2) return false;
             const discos = (u.objetos || []).filter(o => {
@@ -3543,6 +3557,15 @@ function mostrarFlash3EstrellasEnemigo(nombresPokemon) {
     if (enemyLevel >= 5) {
         if (!enemyBaulObjetos) enemyBaulObjetos = []; // Asegurar que existe
 
+        // 💿 FIX: máximo de discos según nivel (1 a nivel 5-7, 2 a nivel 8)
+        const _maxD = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(enemyLevel) : (enemyLevel >= 8 ? 2 : 1);
+        const _cntD = ((typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...enemyBoard, ...enemyBanquillo]) : 0)
+            + enemyBaulObjetos.filter(o => o === "Disco Definitivo").length;
+        if (_cntD >= _maxD) {
+            // Ya tiene el máximo: no dar más discos.
+            enemyBaulObjetos = enemyBaulObjetos.filter((o, i, arr) => o !== "Disco Definitivo" || arr.indexOf(o) === i);
+        }
+
         let tieneDiscoEnBaul = enemyBaulObjetos.includes("Disco Definitivo");
         let tieneDiscoEquipado = [...enemyBoard, ...enemyBanquillo].some(u => 
             u && u.objetos && u.objetos.some(o => {
@@ -3551,7 +3574,7 @@ function mostrarFlash3EstrellasEnemigo(nombresPokemon) {
             })
         );
 
-        if (!tieneDiscoEnBaul && !tieneDiscoEquipado) {
+        if (!tieneDiscoEnBaul && !tieneDiscoEquipado && _cntD < _maxD) {
             if (enemyBaulObjetos.length < CONFIG.MAX_BAUL) {
                 enemyBaulObjetos.push("Disco Definitivo");
                 if (typeof addConsoleMessage === 'function') {
@@ -3736,7 +3759,11 @@ const equipoCompleto = vivosEnTableroActivo >= maxUnitsActivo;
                     }
                 }
 
+                const _maxD2 = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(enemyLevel) : (enemyLevel >= 8 ? 2 : 1);
+                const _cntD2 = ((typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...enemyBoard, ...enemyBanquillo]) : 0)
+                    + enemyBaulObjetos.filter(o => o === "Disco Definitivo").length;
                 if (tieneAlguna2Estrellas
+                    && _cntD2 < _maxD2
                     && !enemyBaulObjetos.includes("Disco Definitivo")
                     && enemyBaulObjetos.length < CONFIG.MAX_BAUL) {
                     enemyBaulObjetos.push("Disco Definitivo");
@@ -3834,7 +3861,11 @@ const equipoCompleto = vivosEnTableroActivo >= maxUnitsActivo;
                 const tieneAlguna2Estrellas = [...enemyBoard, ...enemyBanquillo]
                     .some(u => u && !u.esZacian && !u.esArticuno && u.nivel >= 2);
 
+                const _maxD3 = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(enemyLevel) : (enemyLevel >= 8 ? 2 : 1);
+                const _cntD3 = ((typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades([...enemyBoard, ...enemyBanquillo]) : 0)
+                    + enemyBaulObjetos.filter(o => o === "Disco Definitivo").length;
                 if (tieneAlguna2Estrellas
+                    && _cntD3 < _maxD3
                     && enemyBaulObjetos.length < CONFIG.MAX_BAUL
                     && !enemyBaulObjetos.includes("Disco Definitivo")) {
                     enemyBaulObjetos.push("Disco Definitivo");

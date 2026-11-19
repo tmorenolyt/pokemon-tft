@@ -48,8 +48,13 @@ function aplicarObjeto(unidad, objetoNombre) {
         // 🆕 FIX: exigir también que el EQUIPO (lado del jugador/rival)
         // esté al menos en nivel 5. Bloquea Discos en nivel 4.
         const esEnemigo = (unidad.equipo === 'enemy');
+        // 🆕 FIX: cada unidad de un rival usa el nivel de SU rival (guardado en
+        // `_nivelEquipoRival`). Antes se usaba el `enemyLevel` global, que es el
+        // del rival ACTIVO o incluso 1 tras una ronda PvE, así que los rivales
+        // de nivel 5+ no podían equipar el Disco ("actual: 1").
         const nivelEquipo = esEnemigo
-            ? (typeof enemyLevel !== 'undefined' ? enemyLevel : 1)
+            ? ((typeof unidad._nivelEquipoRival === 'number') ? unidad._nivelEquipoRival
+                : (typeof enemyLevel !== 'undefined' ? enemyLevel : 1))
             : (typeof nivelJugador !== 'undefined' ? nivelJugador : 1);
 
         // 🧪 En modo creativo se omite el requisito de nivel de equipo
