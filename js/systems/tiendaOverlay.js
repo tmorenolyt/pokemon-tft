@@ -941,7 +941,18 @@ function mostrarTiendaPostRonda() {
         return;
     }
 
-    if (tiendaAbierta) return;
+    if (tiendaAbierta) {
+        // 🆕 FIX: si la tienda que quedó abierta NO es la que toca en esta
+        // ronda (p. ej. sigue abierta la tienda de Pokémon de la ronda
+        // anterior y ahora toca la de OBJETOS), se cierra para reabrirla
+        // en el modo correcto. Antes se salía aquí y la tienda de objetos
+        // no aparecía nunca si el jugador había dejado la tienda abierta.
+        try {
+            const _tocaObjetos = (typeof debeAparecerTiendaObjetos === 'function' && debeAparecerTiendaObjetos(ronda));
+            if (!(_tocaObjetos && !objetoCompradoEstaRonda && !modoTiendaObjetos)) return;
+            if (typeof cerrarTienda === 'function') cerrarTienda();
+        } catch (e) { return; }
+    }
     if (fase <= 1) return;
     if (fase === 2 && tiendaRonda2Comprada) return;
 

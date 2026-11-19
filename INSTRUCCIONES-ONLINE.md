@@ -66,3 +66,21 @@ Alternativas equivalentes: Railway, Fly.io, Koyeb, Glitch.
 - **Render Free duerme** tras inactividad: la primera visita del día tarda unos segundos en despertar.
 - **Mismo servidor + mismo código de sala + `pid` distinto** por jugador (el `?pid=` en la URL).
 - El juego es por turnos (SSE): la latencia entre países no molesta.
+
+---
+
+## Cambios recientes (online 1v1)
+
+- **Tienda de objetos fiable**: si al terminar la ronda quedaba abierta la tienda de
+  Pokémon, ahora se cambia automáticamente a la tienda de OBJETOS cuando toca
+  (antes se quedaba la de Pokémon y nunca aparecían los objetos). Además, al recibir
+  `nextRound` el cliente fuerza la apertura de la tienda correcta y muestra un aviso
+  "🎁 te falta comprar tu OBJETO gratis" si se cierra sin comprar.
+- **Baúl de objetos**: se refresca automáticamente en ambos jugadores al comprar o
+  equipar (antes podía quedarse desactualizado en el cliente del Jugador 2).
+- **Pantalla de resultados finales**: al acabar la partida se muestra el resumen
+  clásico con posiciones (🥇/🥈), avatar, equipo final, sinergias y HP de los dos
+  jugadores reales (antes no salía o salía con los rivales IA).
+- **Sin doble combate**: se ignora un segundo clic en COMBATIR mientras la ronda se
+  está resolviendo (evita que un jugador avance dos rondas y se desincronice).
+- `matchEnd` incluye el número de ronda para mostrarlo en el resumen.

@@ -160,7 +160,7 @@ const server = http.createServer((req, res) => {
                 if (dead.length >= 1) {
                     room.phase = 'ended';
                     const win = (dead.length === 1) ? pids.find(x => x !== dead[0]) : null;
-                    broadcast(room, { type: 'matchEnd', winner: win, players: pids, hp: hpArr });
+                    broadcast(room, { type: 'matchEnd', winner: win, players: pids, hp: hpArr, round: room.round || 1 });
                 } else {
                     room.round = (room.round || 1) + 1;
                     room.phase = 'prep';

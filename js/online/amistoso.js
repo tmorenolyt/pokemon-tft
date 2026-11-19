@@ -14,6 +14,7 @@
     let estadoOnline = 'prep'; // prep | waiting | combat | ended
     let origCombatir = null;
     let _rondaPveAsegurada = -1;
+    let _combateEnCursoLocal = false; // evita lanzar 2 combates en la misma ronda
 
     function serializarTablero() {
         const out = [];
@@ -74,7 +75,11 @@
         origCombatir = window.combatir;
         window.combatir = function () {
             if (!window._modoOnline) return origCombatir.apply(this, arguments);
-            if (estadoOnline === 'combat') return origCombatir.apply(this, arguments); // resolviendo: combatir de verdad
+            if (estadoOnline === 'combat') {
+                // Ya se está resolviendo la ronda: ignorar clics extra del botón.
+                if (_combateEnCursoLocal) return;
+                return origCombatir.apply(this, arguments); // combatir de verdad
+            }
             if (estadoOnline === 'ended') { setStatus('La partida ha terminado.'); return; }
             // estado prep/waiting -> mandar "Listo", no pelear
             estadoOnline = 'waiting';
@@ -97,6 +102,7 @@
 
     function finalizarRonda() {
         estadoOnline = 'waiting';
+        _combateEnCursoLocal = false;
         const hp = (typeof vidaJugador !== 'undefined') ? vidaJugador : null;
         try { fetch('/api/roundEnd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, hp, won: (window._ultimaVictoriaJugador === true) }) }); } catch (e) { }
         setStatus('⌛ Esperando a que el rival termine la ronda…');
@@ -104,6 +110,8 @@
 
     function resolverRonda(msg) {
         estadoOnline = 'combat';
+        _combateEnCursoLocal = true;
+        try { const b = document.getElementById('btnCombatirFijo'); if (b) b.disabled = true; } catch (e) { }
         window._ultimoAmigoBoardStr = null;
         const pids = msg.players || [];
         const otro = pids.find(x => x !== pid);
@@ -154,6 +162,7 @@
                 resolverRonda(msg);
             } else if (msg.type === 'nextRound') {
                 estadoOnline = 'prep';
+                _combateEnCursoLocal = false;
                 window._ultimoAmigoBoardStr = null;
                 // Sincronizar la ronda del cliente con la del servidor (PvE/PvP bien)
                 try { if (typeof msg.round === 'number') { fase = msg.round; ronda = msg.round; } } catch (e) { }
@@ -166,10 +175,18 @@
                 } catch (e) { }
                 if (typeof msg.round === 'number') setStatus('Ronda ' + msg.round + ': prepara y pulsa COMBATIR (Listo).');
                 else setStatus('Prepara y pulsa COMBATIR (Listo).');
+                // Asegurar que la tienda de la ronda nueva se abra en AMBOS clientes.
+                // (Si el flujo local ya la abrió, esto no hace nada.)
+                setTimeout(() => { asegurarTiendaDeRonda(); }, 700);
+                setTimeout(() => { asegurarTiendaDeRonda(); }, 3000);
+                setTimeout(() => { asegurarTiendaDeRonda(); }, 9000);
             } else if (msg.type === 'matchEnd') {
                 estadoOnline = 'ended';
+                _combateEnCursoLocal = false;
+                const empate = (msg.winner == null);
                 const gane = (msg.winner === pid);
-                setStatus(msg.winner === null ? '🤝 Empate / fin de partida' : (gane ? '🏆 ¡GANASTE la partida!' : '💀 Has perdido la partida.'));
+                setStatus(empate ? '🤝 Empate / fin de partida' : (gane ? '🏆 ¡GANASTE la partida!' : '💀 Has perdido la partida.'));
+                mostrarResultadosFinalesOnline(msg.hp, { empate: empate, ronda: msg.round, gane: gane });
             }
         };
     }
@@ -196,6 +213,210 @@
         setInterval(actualizarPanel, 1200);
     }
     function setStatus(t) { const s = document.getElementById('amistosoStatus'); if (s) s.textContent = t; }
+
+    function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    function mostrarFinPartida(gane, hpArr, opts) {
+        try {
+            opts = opts || {};
+            const empate = (opts.empate === true);
+            let m = document.getElementById('finPartidaOverlay'); if (m) m.remove();
+            m = document.createElement('div'); m.id = 'finPartidaOverlay';
+            m.style.cssText = 'position:fixed;inset:0;z-index:120000;background:rgba(5,10,20,.94);display:flex;align-items:center;justify-content:center;';
+            const mio = (Array.isArray(hpArr) ? hpArr : []).find(h => h && h.pid === pid) || {};
+            const otro = (Array.isArray(hpArr) ? hpArr : []).find(h => h && h.pid !== pid) || {};
+            const miNombre = (window.nombreJugador || 'Tú');
+            const suNombre = (amigo && amigo.name) || 'Tu amigo';
+            const miHp = (mio.hp != null ? mio.hp : '-');
+            const suHp = (otro.hp != null ? otro.hp : '-');
+            const titulo = empate ? '🤝 EMPATE' : (gane ? '🏆 ¡VICTORIA!' : '💀 DERROTA');
+            const color = empate ? '#fbbf24' : (gane ? '#4ade80' : '#f87171');
+            const miPuesto = empate ? '—' : (gane ? '🥇 1º' : '🥈 2º');
+            const suPuesto = empate ? '—' : (gane ? '🥈 2º' : '🥇 1º');
+            const rondaTxt = (typeof opts.ronda === 'number') ? ` · Ronda ${opts.ronda}` : '';
+            m.innerHTML = `
+              <div style="background:#0f172a;border:1px solid #2a4066;border-radius:18px;padding:28px;max-width:520px;width:92%;color:#e6eefc;font-family:Inter,system-ui,sans-serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+                <h2 style="margin:0 0 4px;font-size:1.9rem;color:${color};">${titulo}</h2>
+                <p style="color:#8fb0d6;margin:0 0 18px;">Fin de la partida${rondaTxt}</p>
+                <div style="display:flex;justify-content:space-around;gap:12px;margin-bottom:20px;">
+                  <div style="flex:1;background:#0b1626;border:1px solid #2a4066;border-radius:12px;padding:12px;">
+                    <div style="font-size:.78rem;color:#8fb0d6;">${miPuesto}</div>
+                    <div style="font-weight:800;margin:2px 0;">${_esc(miNombre)}</div>
+                    <div style="color:#4ade80;font-weight:700;">${miHp} HP</div>
+                  </div>
+                  <div style="flex:1;background:#0b1626;border:1px solid #2a4066;border-radius:12px;padding:12px;">
+                    <div style="font-size:.78rem;color:#8fb0d6;">${suPuesto}</div>
+                    <div style="font-weight:800;margin:2px 0;">${_esc(suNombre)}</div>
+                    <div style="color:#f87171;font-weight:700;">${suHp} HP</div>
+                  </div>
+                </div>
+                <button id="finVolver" style="background:linear-gradient(180deg,#2f6bd8,#1f4fa8);border:none;color:#fff;border-radius:10px;padding:12px 22px;font-weight:700;cursor:pointer;">🏠 Volver al menú</button>
+              </div>`;
+            document.body.appendChild(m);
+            const b = document.getElementById('finVolver'); if (b) b.onclick = () => location.reload();
+        } catch (e) { }
+    }
+    // 🏆 Pantalla de RESULTADOS FINALES (posiciones 1º/2º) al terminar la partida online.
+    // Reutiliza el overlay clásico (pantallaResultadosFinales) con los 2 jugadores reales.
+    function mostrarResultadosFinalesOnline(hpArr, opts) {
+        opts = opts || {};
+        try {
+            const overlay = document.getElementById('pantallaResultadosFinales');
+            const lista = document.getElementById('resultadosLista');
+            const titulo = document.getElementById('resultadosTitulo');
+            const tiempoEl = document.getElementById('resultadosTiempo');
+            if (!overlay || !lista) { mostrarFinPartida(opts.gane === true, hpArr, opts); return; }
+
+            try { if (typeof tiendaAbierta !== 'undefined' && tiendaAbierta && typeof cerrarTienda === 'function') cerrarTienda(); } catch (e) { }
+            try { const ap = document.getElementById('amistosoPanel'); if (ap) ap.style.display = 'none'; } catch (e) { }
+
+            const hpDe = function (p) {
+                const x = (Array.isArray(hpArr) ? hpArr : []).find(h => h && h.pid === p);
+                return (x && typeof x.hp === 'number') ? x.hp : null;
+            };
+
+            const equipoLocal = (typeof tablero !== 'undefined' && tablero ? tablero : [])
+                .filter(u => u && !u.esArticuno)
+                .map(u => ({ nombre: u.pokemon.nombre, nivel: u.nivel || 1, spriteId: u.pokemon.spriteId, tipos: u.pokemon.tipos || [], clase: u.pokemon.clase || '' }));
+
+            const equipoAmigo = (amigo && Array.isArray(amigo.board) ? amigo.board : []).map(function (it) {
+                let d = null; try { d = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(it.nombre) : null; } catch (e) { }
+                return { nombre: it.nombre, nivel: it.nivel || 1, spriteId: it.spriteId || (d && d.spriteId), tipos: (d && d.tipos) || [], clase: (d && d.clase) || '' };
+            });
+
+            const jugadores = [
+                { yo: true, nombre: (window.nombreJugador || 'Tú'), avatar: (window.avatarJugador || 'rojo'), hp: hpDe(pid), equipo: equipoLocal },
+                { yo: false, nombre: (amigo && amigo.name) || 'Tu amigo', avatar: (amigo && amigo.avatar) || 'rojo', hp: hpDe(amigo ? amigo.pid : null), equipo: equipoAmigo }
+            ];
+
+            jugadores.sort(function (a, b) {
+                const ha = (typeof a.hp === 'number') ? a.hp : -1;
+                const hb = (typeof b.hp === 'number') ? b.hp : -1;
+                if (ha !== hb) return hb - ha;
+                return a.yo ? -1 : 1;
+            });
+
+            const miPos = jugadores.findIndex(j => j.yo) + 1;
+            if (titulo) {
+                if (opts.empate) { titulo.textContent = '🤝 EMPATE'; titulo.style.color = '#fbbf24'; }
+                else if (miPos === 1) { titulo.textContent = '🏆 ¡VICTORIA TOTAL!'; titulo.style.color = '#fbbf24'; }
+                else { titulo.textContent = `#${miPos} Lugar`; titulo.style.color = '#e2e8f0'; }
+            }
+            if (tiempoEl) tiempoEl.textContent = (typeof opts.ronda === 'number') ? `⏱️ Ronda ${opts.ronda}` : 'Fin de partida';
+
+            function sinergiasDe(equipo) {
+                const tipos = {}, clases = {};
+                (equipo || []).forEach(u => {
+                    (u.tipos || []).forEach(t => tipos[t] = (tipos[t] || 0) + 1);
+                    if (u.clase) clases[u.clase] = (clases[u.clase] || 0) + 1;
+                });
+                const out = {};
+                Object.keys(tipos).forEach(t => { if (tipos[t] >= 2) out[t] = { nivel: tipos[t], esClase: false }; });
+                Object.keys(clases).forEach(c => { if (clases[c] >= 2) out[c] = { nivel: clases[c], esClase: true }; });
+                return out;
+            }
+
+            lista.innerHTML = '';
+            jugadores.forEach(function (jugador, index) {
+                const pos = index + 1;
+                const fila = document.createElement('div');
+                fila.className = `fila-resultado pos-${pos} ${jugador.yo ? 'es-jugador' : ''}`;
+
+                let rangoHtml = pos.toString();
+                if (opts.empate) rangoHtml = '—';
+                else if (pos === 1) rangoHtml = '🥇';
+                else if (pos === 2) rangoHtml = '🥈';
+                else if (pos === 3) rangoHtml = '🥉';
+
+                let equipoHtml = '';
+                (jugador.equipo || []).forEach(function (u) {
+                    const spriteUrl = (typeof getSpriteUrl === 'function') ? getSpriteUrl(u.spriteId, u.nombre) : '';
+                    const estrellas = (typeof getEstrellasUrl === 'function') ? `<img class="estrellas-final" src="${getEstrellasUrl(u.nivel || 1)}">` : '';
+                    equipoHtml += `<div class="unidad-final" title="${u.nombre}"><img src="${spriteUrl}" onerror="this.style.display='none'">${estrellas}</div>`;
+                });
+                if (!equipoHtml) equipoHtml = `<span style="font-size:0.7rem;color:#6b8aaa;font-style:italic;">Sin equipo</span>`;
+
+                let sinergiasHtml = '';
+                const sin = sinergiasDe(jugador.equipo);
+                Object.keys(sin).map(key => ({ nombre: key, nivel: sin[key].nivel, esClase: sin[key].esClase }))
+                    .sort((a, b) => b.nivel - a.nivel).slice(0, 3)
+                    .forEach(function (s) {
+                        let icono = '';
+                        try { icono = s.esClase ? getIconoClase(s.nombre) : getIconoTipo(s.nombre); } catch (e) { icono = ''; }
+                        sinergiasHtml += `<div class="sinergia-icono-final" title="${s.nombre}">${icono}<span class="lvl">${s.nivel}</span></div>`;
+                    });
+
+                fila.innerHTML = `
+                    <div class="rango-badge pos-${pos}">${rangoHtml}</div>
+                    <div class="info-entrenador">
+                        <img src="assets/avatars/jugador/${jugador.avatar}.png" onerror="this.style.display='none'">
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="nombre">${_esc(jugador.nombre)}</span>
+                            <span class="hp">❤️ ${(typeof jugador.hp === 'number') ? Math.max(0, jugador.hp) : '-'} HP</span>
+                        </div>
+                    </div>
+                    <div class="equipo-final">${equipoHtml}</div>
+                    <div class="sinergias-final">${sinergiasHtml}</div>
+                `;
+                lista.appendChild(fila);
+            });
+
+            overlay.style.display = 'flex';
+
+            const btnVolver = document.getElementById('btnResultadosVolverMenu');
+            if (btnVolver) {
+                const nuevoBtn = btnVolver.cloneNode(true);
+                btnVolver.parentNode.replaceChild(nuevoBtn, btnVolver);
+                nuevoBtn.addEventListener('click', () => { overlay.style.display = 'none'; location.reload(); });
+            }
+        } catch (e) {
+            try { mostrarFinPartida(opts.gane === true, hpArr, opts); } catch (e2) { }
+        }
+    }
+
+    // Abre la tienda que toca en la ronda actual (objetos o Pokémon) si el
+    // flujo normal no la ha abierto. Se llama al recibir 'nextRound'.
+    function asegurarTiendaDeRonda() {
+        try {
+            if (typeof fase === 'undefined' || fase <= 1) return;
+            if (typeof combatiendo !== 'undefined' && combatiendo) return;
+            if (typeof _finRondaEnCurso !== 'undefined' && window._finRondaEnCurso) return;
+            if (typeof _celebrandoFinRonda !== 'undefined' && window._celebrandoFinRonda) return;
+
+            if (window._tiendaForzadaRonda === fase) return;
+
+            const esRondaObjetos = (typeof debeAparecerTiendaObjetos === 'function' && debeAparecerTiendaObjetos(fase));
+            const yaCompro = (typeof objetoCompradoEstaRonda !== 'undefined' && objetoCompradoEstaRonda);
+            let mostrarObjetos = false;
+
+            if (esRondaObjetos && !yaCompro) {
+                // Regenerar los objetos si son de otra ronda o no hay
+                const tocaRegenerar = (typeof objetosEnTienda === 'undefined' || !Array.isArray(objetosEnTienda) || objetosEnTienda.length === 0 || window._rondaObjetosGenerada !== fase);
+                if (tocaRegenerar && typeof generarObjetosTienda === 'function') {
+                    objetosEnTienda = generarObjetosTienda();
+                    window._rondaObjetosGenerada = fase;
+                    if (typeof rerollObjetosRonda3Usado !== 'undefined') rerollObjetosRonda3Usado = false;
+                }
+                mostrarObjetos = Array.isArray(objetosEnTienda) && objetosEnTienda.length > 0;
+                if (mostrarObjetos && window._avisoObjetosRonda !== fase) {
+                    window._avisoObjetosRonda = fase;
+                    try { if (typeof addConsoleMessage === 'function') addConsoleMessage(`🎁 ¡Ronda ${fase} de OBJETOS! Elige 1 objeto GRATIS`, 'shop-objetos'); } catch (e) { }
+                }
+            }
+
+            // Si ya está abierta: dejarla solo si está en el modo correcto.
+            if (typeof tiendaAbierta !== 'undefined' && tiendaAbierta) {
+                if (!!modoTiendaObjetos === !!mostrarObjetos) { window._tiendaForzadaRonda = fase; return; }
+                try { if (typeof cerrarTienda === 'function') cerrarTienda(); } catch (e) { }
+            }
+
+            if (typeof abrirTienda === 'function') {
+                abrirTienda(mostrarObjetos);
+                window._tiendaForzadaRonda = fase;
+            }
+        } catch (e) { }
+    }
+
     // En PvE se debe ver el MONSTRUO, no el tablero del rival
     function asegurarMonstruoPve() {
         if (!esPvERonda()) { _rondaPveAsegurada = -1; return; }
@@ -225,8 +446,19 @@
         ea.appendChild(im);
     }
 
+    let _ultimaFirmaBaul = null;
+    function refrescarBaulPropio() {
+        try {
+            const firma = (typeof baulObjetos !== 'undefined' && Array.isArray(baulObjetos)) ? baulObjetos.join('|') : '';
+            if (firma === _ultimaFirmaBaul) return;
+            _ultimaFirmaBaul = firma;
+            if (typeof actualizarObjetosVerticales === 'function') actualizarObjetosVerticales('jugador');
+        } catch (e) { }
+    }
+
     function actualizarPanel() {
         const rk = document.getElementById('rankingTorneo'); if (rk) rk.style.display = 'none';
+        refrescarBaulPropio();
         // Online: el baúl enemigo no debe tener objetos (no hay IA rival)
         try { if (window._modoOnline && typeof enemyBaulObjetos !== 'undefined' && Array.isArray(enemyBaulObjetos) && enemyBaulObjetos.length > 0) { enemyBaulObjetos = []; if (typeof renderizar === 'function') renderizar(); } } catch (e) { }
         const rondaEl = document.getElementById('amistosoRonda'); if (rondaEl && typeof fase !== 'undefined') rondaEl.textContent = fase;
@@ -288,6 +520,14 @@
             const label = (estadoOnline === 'waiting') ? 'ESPERANDO…' : (estadoOnline === 'combat' ? 'COMBATE…' : (estadoOnline === 'ended' ? 'FIN' : 'LISTO'));
             if (spans[1]) spans[1].textContent = label;
         }
+        // Aviso persistente si toca comprar objeto y no se ha comprado
+        try {
+            if (estadoOnline === 'prep' && typeof fase !== 'undefined' && fase > 1
+                && typeof debeAparecerTiendaObjetos === 'function' && debeAparecerTiendaObjetos(fase)
+                && !objetoCompradoEstaRonda && !tiendaAbierta) {
+                setStatus(`🎁 Ronda ${fase}: te falta comprar tu OBJETO gratis (botón Tienda)`);
+            }
+        } catch (e) { }
         // En PvE: monstruo (no tablero del rival)
         asegurarMonstruoPve();
     }

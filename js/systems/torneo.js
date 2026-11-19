@@ -1783,6 +1783,9 @@ window.obtenerRivalesVivos = obtenerRivalesVivos;
 // ============================================================
 
 function mostrarPantallaResultadosFinales() {
+    // 🌐 Online 1v1: la pantalla final la pinta amistoso.js con los 2 jugadores
+    // reales (posiciones 1º/2º). Si no, aquí se sobrescribiría con los rivales IA.
+    if (window._modoOnline) return;
     const overlay = document.getElementById('pantallaResultadosFinales');
     const lista = document.getElementById('resultadosLista');
     const titulo = document.getElementById('resultadosTitulo');
