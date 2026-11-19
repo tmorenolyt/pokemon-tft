@@ -551,7 +551,9 @@ const SONIDOS_MOVIMIENTO_SIN_ARCHIVO = new Set([
     'espada-lamento',
     'azote-torrencial',
     'giro-fuego-hooh',
-    'tajo-supremo'
+    'tajo-supremo',
+    'somanta-epica',
+    'pasen-y-vean'
 ]);
 
 function playSonidoMovimiento(nombreMovimiento, volumen = 0.4) {
@@ -767,6 +769,13 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
             if (typeof asignarRivalAleatorioInmediato === 'function') {
                 asignarRivalAleatorioInmediato();
             }
+            // 🆕 FIX: si el torneo ya terminó (sin rivales vivos), finalizar
+            // en vez de seguir la ronda con un rival genérico / null.
+            if (window.torneoRivales && window.torneoRivales.length > 0
+                && typeof comprobarFinTorneo === 'function'
+                && comprobarFinTorneo()) {
+                return;
+            }
             if (typeof cambiarTerrenoPorRival === 'function' && window.rivalActual) {
                 cambiarTerrenoPorRival(window.rivalActual);
             }
@@ -828,9 +837,21 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
                     if (!esPvEArranque && typeof OBJETOS !== 'undefined' && typeof generarObjetosTienda === 'function') {
                         const objetosPosibles = generarObjetosTienda();
                         if (objetosPosibles.length > 0) {
-                            const objetoElegido = objetosPosibles[Math.floor(Math.random() * objetosPosibles.length)];
-                            if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
-                            rival.objetosAcumulados.push(objetoElegido);
+                            // 🆕 FIX: no dar chips de tipos ajenos a la estrategia del rival.
+                            const tiposRival = (rival.estrategia && rival.estrategia.tipos) || [];
+                            const objetosFiltrados = objetosPosibles.filter(nombre => {
+                                const obj = OBJETOS[nombre];
+                                if (!obj) return false;
+                                if (obj.efecto && obj.efecto.tipoBonus) {
+                                    return tiposRival.includes(obj.efecto.tipoBonus);
+                                }
+                                return true; // objetos normales: siempre válidos
+                            });
+                            if (objetosFiltrados.length > 0) {
+                                const objetoElegido = objetosFiltrados[Math.floor(Math.random() * objetosFiltrados.length)];
+                                if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
+                                rival.objetosAcumulados.push(objetoElegido);
+                            }
                         }
                     } else if (esPvEArranque) {
                     }
@@ -1009,6 +1030,7 @@ function asignarRivalAleatorio() {
 }
 
 function asignarRivalAleatorioInmediato() {
+    if (window._modoOnline) return; // online 1v1: sin rival IA
     const rivalAnterior = window.rivalActual ? { ...window.rivalActual } : null;
 
     // 🆕 Desactivar parejas de la ronda anterior ANTES de recalcular.
@@ -1159,6 +1181,12 @@ function asignarRivalAleatorioInmediato() {
 
             return;
         } else {
+            // 🆕 FIX: no quedan rivales vivos en el torneo. No caer al
+            // rival genérico "Rival"; marcar null para que ejecutarFinDeRonda
+            // detecte el fin del torneo.
+            rivalActual = null;
+            window.rivalActual = null;
+            return;
         }
     }
 
@@ -1183,14 +1211,16 @@ function asignarRivalAleatorioInmediato() {
 
     const enemyNameEl = document.getElementById("enemyName");
     const enemyAvatarEl = document.getElementById("enemyAvatar");
-    if (enemyNameEl) enemyNameEl.textContent = rivalElegido.nombre;
-    if (enemyAvatarEl) {
-        enemyAvatarEl.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = `assets/avatars/rivales/${rivalElegido.avatar}.png`;
-        img.alt = rivalElegido.nombre;
-        img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
-        enemyAvatarEl.appendChild(img);
+    if (!window._modoOnline) { // online: el panel rival es el jugador 2, no la IA
+        if (enemyNameEl) enemyNameEl.textContent = rivalElegido.nombre;
+        if (enemyAvatarEl) {
+            enemyAvatarEl.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = `assets/avatars/rivales/${rivalElegido.avatar}.png`;
+            img.alt = rivalElegido.nombre;
+            img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
+            enemyAvatarEl.appendChild(img);
+        }
     }
     if (typeof addConsoleMessage === 'function') addConsoleMessage(`🎭 RIVAL: ${rivalElegido.nombre} — ${rivalElegido.estrategia.descripcion}`, 'enemy');
     if (typeof enemyElegirEstrategia === 'function') enemyElegirEstrategia();
@@ -1198,8 +1228,8 @@ function asignarRivalAleatorioInmediato() {
     // 🆕 FIX: objetos iniciales SOLO si NO es ronda de objetos
     if (typeof enemyBaulObjetos !== 'undefined' && Array.isArray(enemyBaulObjetos)) {
         enemyBaulObjetos = [];
-        const esRondaObjetosActual = (typeof debeAparecerTiendaObjetos === 'function' && debeAparecerTiendaObjetos(fase));
-        if (!esRondaObjetosActual) {
+        const esRondaObjetosActual = (!window._modoOnline && typeof debeAparecerTiendaObjetos === 'function' && debeAparecerTiendaObjetos(fase));
+        if (!window._modoOnline && !esRondaObjetosActual) {
             const objetosIniciales = Math.floor((fase - 1) / 3);
             const MAX_OBJETOS_INICIALES = 4;
             if (objetosIniciales > 0 && typeof generarObjetosTienda === 'function') {

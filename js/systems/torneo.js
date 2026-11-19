@@ -158,6 +158,7 @@ function inicializarTorneo() {
 // ============================================================
 function restaurarEquipoRival(rival, motivo = '') {
     if (!rival) return false;
+    if (window._modoOnline) return false; // 🆕 online 1v1: no cargar equipos IA
 
     for (let i = 0; i < enemyBoard.length; i++) enemyBoard[i] = null;
     for (let i = 0; i < enemyBanquillo.length; i++) enemyBanquillo[i] = null;
@@ -254,6 +255,7 @@ window.restaurarEquipoRival = restaurarEquipoRival;
 //   E) Tope de oro respetado siempre
 // ============================================================
 function avanzarRivalUnTurno(rival) {
+    if (window._modoOnline) return; // online 1v1: sin economía/torneo IA
     if (!rival || rival.eliminado) return;
 
     if (!rival._equipoGuardado || !Array.isArray(rival._equipoGuardado.tablero)) {
@@ -317,7 +319,7 @@ function avanzarRivalUnTurno(rival) {
                 : u.pokemon.nombre;
             if (famU === fam) copiasNivel1++;
         }
-        return copiasNivel1 === 2;
+        return copiasNivel1 < 3;
     }
 
     // ============================================================
@@ -613,7 +615,7 @@ function avanzarRivalUnTurno(rival) {
                 let score = 0;
                 if (obj.efecto && obj.efecto.tipoBonus) {
                     if (rival.estrategia && rival.estrategia.tipos && rival.estrategia.tipos.includes(obj.efecto.tipoBonus)) score += 100;
-                    else score -= 50;
+                    else score = -999;
                 } else if (obj.efecto) {
                     if (obj.efecto.damagePercent || obj.efecto.attackPercent || obj.efecto.spAttackPercent) score += 10;
                     if (obj.efecto.hpBonus || obj.efecto.defense || obj.efecto.spDefense) score += 8;
@@ -628,7 +630,7 @@ function avanzarRivalUnTurno(rival) {
                 if (score > mejorScore) { mejorScore = score; mejorObjeto = nombreObjeto; }
             }
 
-            if (mejorObjeto) {
+            if (mejorObjeto && mejorScore > -900) {
                 if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
                 if (rival.objetosAcumulados.length < ((typeof CONFIG !== 'undefined' && CONFIG.MAX_BAUL) ? CONFIG.MAX_BAUL : 8)) {
                     rival.objetosAcumulados.push(mejorObjeto);
@@ -705,14 +707,16 @@ function avanzarRivalUnTurno(rival) {
         rival.nivel++;
         console.log(`🎭 [avanzarRivalUnTurno] ${rival.nombre} sube a NIVEL ${rival.nivel} (-${coste}💰)`);
 
-        if ((rival.nivel === 5 || rival.nivel === 8)) {
-            const tieneAlguna2Estrellas = [...tablero, ...banco].some(u => u && !u.esZacian && !u.esArticuno && u.nivel >= 2);
-            if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
-            const tieneDisco = rival.objetosAcumulados.includes("Disco Definitivo");
-            if (!tieneDisco && tieneAlguna2Estrellas) {
-                rival.objetosAcumulados.push("Disco Definitivo");
-                console.log(`💿 [avanzarRivalUnTurno] ${rival.nombre} consiguió un DISCO DEFINITIVO! (Nivel ${rival.nivel})`);
-            }
+    }
+
+    // ⭐ Asegurar Disco Definitivo para CUALQUIER rival de nivel 5+, aunque ya
+    // estuviera en nivel 5 y no haya subido esta ronda. Si no tiene 2★, se
+    // queda en su baúl hasta que pueda equiparlo.
+    if (rival.nivel >= 5) {
+        if (!rival.objetosAcumulados) rival.objetosAcumulados = [];
+        if (!rival.objetosAcumulados.includes("Disco Definitivo")) {
+            rival.objetosAcumulados.push("Disco Definitivo");
+            console.log(`💿 [avanzarRivalUnTurno] ${rival.nombre} tiene DISCO DEFINITIVO en el baúl (Nivel ${rival.nivel})`);
         }
     }
 
@@ -756,6 +760,8 @@ function avanzarRivalUnTurno(rival) {
             if (!hayHuecoTablero && !hayHuecoBanco) break;
 
             oroRival -= 2;
+            // ⭐ Sesgo: forzar que la tienda incluya la especie a fusionar
+            try { window._enemyTiendaForzarNombre = (typeof _enemyElegirEspecieSesgo === 'function') ? _enemyElegirEspecieSesgo([...tablero, ...banco]) : (nombresBuscados[0] || null); } catch (e) { window._enemyTiendaForzarNombre = null; }
             if (typeof generarTiendaEnemigo === 'function') generarTiendaEnemigo();
 
             const enTienda = (typeof enemyTienda !== 'undefined') ? enemyTienda : [];
@@ -796,6 +802,8 @@ function avanzarRivalUnTurno(rival) {
             if (!hayHuecoTablero && !hayHuecoBanco) break;
 
             oroRival -= 2;
+            // ⭐ Sesgo: facilitar acumular pares/tríos para fusionar
+            try { window._enemyTiendaForzarNombre = (typeof _enemyElegirEspecieSesgo === 'function') ? _enemyElegirEspecieSesgo([...tablero, ...banco]) : null; } catch (e) { window._enemyTiendaForzarNombre = null; }
             if (typeof generarTiendaEnemigo === 'function') generarTiendaEnemigo();
 
             const enTienda = (typeof enemyTienda !== 'undefined') ? enemyTienda : [];
@@ -995,6 +1003,7 @@ function calcularPoderRival(rival) {
 // SIMULAR COMBATES ENTRE RIVALES (rondas PvP)
 // ============================================================
 function simularCombatesRivales(rivalDelJugador, parejasRonda) {
+    if (window._modoOnline) return; // 🆕 online 1v1: sin torneo IA
     if (!window.torneoRivales || window.torneoRivales.length === 0) return;
 
     if (typeof fase !== 'undefined' && fase <= 1) {
@@ -1556,6 +1565,9 @@ function abrirInspeccionRival(nombreRival) {
         enemyLevel: enemyLevel,
         enemyGold: enemyGold,
         enemyHealth: enemyHealth,
+        // 🎯 FIX: guardar la racha del rival actual para restaurarla al salir del espía
+        enemyWinStreak: (typeof enemyWinStreak !== 'undefined') ? enemyWinStreak : 0,
+        enemyLossStreak: (typeof enemyLossStreak !== 'undefined') ? enemyLossStreak : 0,
         rivalNombre: window.rivalActual ? window.rivalActual.nombre : null,
         fondoArena: fondoArenaActual,
         terrenoGlobal: terrenoGlobalActual
@@ -1568,6 +1580,21 @@ function abrirInspeccionRival(nombreRival) {
         estrategia: rivalData.estrategia,
         frases: rivalData.frases
     };
+
+    // 🎯 FIX: cargar la racha del rival espiado (igual que al elegirlo para la ronda)
+    if (typeof enemyWinStreak !== 'undefined' && typeof enemyLossStreak !== 'undefined') {
+        const rachaEspia = (typeof rivalData.racha === 'number') ? rivalData.racha : 0;
+        if (rachaEspia > 0) {
+            enemyWinStreak = rachaEspia;
+            enemyLossStreak = 0;
+        } else if (rachaEspia < 0) {
+            enemyWinStreak = 0;
+            enemyLossStreak = Math.abs(rachaEspia);
+        } else {
+            enemyWinStreak = 0;
+            enemyLossStreak = 0;
+        }
+    }
 
     if (typeof restaurarEquipoRival === 'function') {
         restaurarEquipoRival(rivalData, '(espía)');
@@ -1688,6 +1715,14 @@ function cerrarEspia() {
     document.body.classList.remove('modo-espia');
     const aviso = document.getElementById('avisoEspia');
     if (aviso) aviso.remove();
+
+    // 🎯 FIX: restaurar la racha del rival que estaba antes del espía
+    if (typeof enemyWinStreak !== 'undefined' && _espiaEstadoAnterior && _espiaEstadoAnterior.enemyWinStreak !== undefined) {
+        enemyWinStreak = _espiaEstadoAnterior.enemyWinStreak;
+    }
+    if (typeof enemyLossStreak !== 'undefined' && _espiaEstadoAnterior && _espiaEstadoAnterior.enemyLossStreak !== undefined) {
+        enemyLossStreak = _espiaEstadoAnterior.enemyLossStreak;
+    }
 
     if (typeof actualizarInfoEnemigo === 'function') actualizarInfoEnemigo();
     if (typeof renderizar === 'function') renderizar();

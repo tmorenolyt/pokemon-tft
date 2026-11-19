@@ -1038,6 +1038,31 @@ body.celebrando .btn-abrir-tienda {
 }
 
 /* ============================================================
+   DESVANECIMIENTO AL CAER (destello + fade + encogimiento)
+   ============================================================ */
+.board-cell .unit-sprite.faint-fade-out,
+.bank-cell .unit-sprite.faint-fade-out {
+    animation: faintFadeOut 0.5s ease-in forwards !important;
+}
+
+@keyframes faintFadeOut {
+    0% {
+        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+        opacity: 1;
+        filter: grayscale(0) brightness(1);
+    }
+    30% {
+        opacity: 1;
+        filter: grayscale(0) brightness(2.2) saturate(0.4);
+    }
+    100% {
+        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(calc(var(--sprite-scale, 1) * 0.4));
+        opacity: 0;
+        filter: grayscale(1) brightness(0.3);
+    }
+}
+
+/* ============================================================
    🆕 CARTEL DE TURNO (modo 2 jugadores)
    Estilo similar al letrero de victoria, en cian, con el avatar
    del jugador que entra en turno.

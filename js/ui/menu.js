@@ -8,7 +8,22 @@ let nombreJugador = "Entrenador";
 let avatarJugador = "rojo";
 let nombreJugador2 = "Jugador 2";
 let avatarJugador2 = "azul";
+let colorBordeJ1 = "#4dd4f7";   // 🎨 color borde J1 (default cian)
+let colorBordeJ2 = "#ff4d8d";   // 🎨 color borde J2 (default rosa)
 let modoMenuSeleccionado = '1j';
+
+// ===== COLORES DE BORDE DISPONIBLES =====
+const COLORES_BORDE = [
+    { id: 'cian',    valor: '#4dd4f7', nombre: 'Cian' },
+    { id: 'rosa',    valor: '#ff4d8d', nombre: 'Rosa' },
+    { id: 'rojo',    valor: '#ef4444', nombre: 'Rojo' },
+    { id: 'naranja', valor: '#f97316', nombre: 'Naranja' },
+    { id: 'dorado',  valor: '#fbbf24', nombre: 'Dorado' },
+    { id: 'verde',   valor: '#34d399', nombre: 'Verde' },
+    { id: 'azul',    valor: '#3b82f6', nombre: 'Azul' },
+    { id: 'purpura', valor: '#a78bfa', nombre: 'Púrpura' },
+    { id: 'blanco',  valor: '#e2e8f0', nombre: 'Blanco' },
+];
 
 // ===== LISTA DE AVATARES DISPONIBLES =====
 const AVATARES_JUGADOR = [
@@ -267,6 +282,69 @@ function construirAvatarGrid2(avatarSeleccionado) {
 }
 
 // ============================================================
+// 🎨 COLOR DE BORDE (selector de jugadores)
+// ============================================================
+function hexToRgbTriplet(hex) {
+    if (typeof hex !== 'string') return '77, 212, 247';
+    let h = hex.replace('#', '').trim();
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    if (h.length !== 6) return '77, 212, 247';
+    const n = parseInt(h, 16);
+    if (Number.isNaN(n)) return '77, 212, 247';
+    return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+window.hexToRgbTriplet = hexToRgbTriplet;
+
+function aplicarColoresBorde() {
+    const c1 = (typeof colorBordeJ1 === 'string' ? colorBordeJ1 : '#4dd4f7');
+    const c2 = (typeof colorBordeJ2 === 'string' ? colorBordeJ2 : '#ff4d8d');
+    const root = document.documentElement;
+    if (root) {
+        root.style.setProperty('--borde-j1-rgb', hexToRgbTriplet(c1));
+        root.style.setProperty('--borde-j2-rgb', hexToRgbTriplet(c2));
+    }
+}
+window.aplicarColoresBorde = aplicarColoresBorde;
+
+function construirColorGrid(containerId, colorSeleccionado, onSelect) {
+    const grid = document.getElementById(containerId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let c of COLORES_BORDE) {
+        const opt = document.createElement('div');
+        opt.className = 'menu-color-option';
+        opt.style.background = c.valor;
+        opt.title = c.nombre;
+        if (c.valor.toLowerCase() === String(colorSeleccionado).toLowerCase()) opt.classList.add('selected');
+        opt.addEventListener('click', function () {
+            grid.querySelectorAll('.menu-color-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            onSelect(c.valor);
+            if (typeof playButtonSound === 'function') playButtonSound();
+        });
+        grid.appendChild(opt);
+    }
+}
+
+function construirColorGrid1(sel) {
+    construirColorGrid('menuColorGrid', sel, function (valor) {
+        colorBordeJ1 = valor;
+        window.colorBordeJ1 = valor;
+        try { localStorage.setItem('colorBordeJ1', valor); } catch (e) {}
+        aplicarColoresBorde();
+    });
+}
+
+function construirColorGrid2(sel) {
+    construirColorGrid('menuColorGrid2', sel, function (valor) {
+        colorBordeJ2 = valor;
+        window.colorBordeJ2 = valor;
+        try { localStorage.setItem('colorBordeJ2', valor); } catch (e) {}
+        aplicarColoresBorde();
+    });
+}
+
+// ============================================================
 // 🆕 FIX: conecta los botones del header de la Pokédex
 // (📖 Pokédex y ⚙️ Ajustes) de forma idempotente.
 // - Si los botones ya existen en el HTML, solo engancha listeners
@@ -343,7 +421,10 @@ function initMenu() {
 
     // Botones de modo
     document.getElementById('btnModo1j')?.addEventListener('click', () => abrirSeleccion('1j'));
-    document.getElementById('btnModo2j')?.addEventListener('click', () => abrirSeleccion('2j'));
+    document.getElementById('btnModo2j')?.addEventListener('click', () => {
+        if (typeof window.mostrarEleccion2J === 'function') window.mostrarEleccion2J();
+        else abrirSeleccion('2j');
+    });
     document.getElementById('btnVolverMenu')?.addEventListener('click', volverAlMenu);
 
     document.getElementById('btnModoCreativo')?.addEventListener('click', () => {
@@ -410,6 +491,19 @@ function initMenu() {
     window.avatarJugador2 = avatarJugador2;
     construirAvatarGrid(avatarJugador);
     construirAvatarGrid2(avatarJugador2);
+
+    // 🎨 Colores de borde
+    try {
+        const c1 = localStorage.getItem('colorBordeJ1');
+        if (c1) colorBordeJ1 = c1;
+        const c2 = localStorage.getItem('colorBordeJ2');
+        if (c2) colorBordeJ2 = c2;
+    } catch (e) {}
+    window.colorBordeJ1 = colorBordeJ1;
+    window.colorBordeJ2 = colorBordeJ2;
+    construirColorGrid1(colorBordeJ1);
+    construirColorGrid2(colorBordeJ2);
+    aplicarColoresBorde();
 
     // Avatar grande inicial y Footer
     const display1 = document.getElementById('avatarDisplay1');

@@ -81,20 +81,20 @@ body.turno-j2 .enemy-info-panel .player-info-hp-fill {
 /* 👥 2P: borde del panel info (y del avatar) con color FIJO por jugador.
    J2 (activo) → rojo/rosa · J1 (inactivo) → azul, igual que en su turno. */
 body.turno-j2 .player-info-panel-self {
-    border-color: rgba(255, 77, 141, 0.55);
-    box-shadow: 0 0 25px rgba(255, 77, 141, 0.20), inset 0 0 30px rgba(255, 77, 141, 0.05);
+    border-color: rgba(var(--borde-j2-rgb), 0.55);
+    box-shadow: 0 0 25px rgba(var(--borde-j2-rgb), 0.20), inset 0 0 30px rgba(var(--borde-j2-rgb), 0.05);
 }
 body.turno-j2 .player-info-panel-self .player-info-avatar {
-    border-color: rgba(255, 77, 141, 0.65);
-    box-shadow: 0 0 15px rgba(255, 77, 141, 0.30);
+    border-color: rgba(var(--borde-j2-rgb), 0.65);
+    box-shadow: 0 0 15px rgba(var(--borde-j2-rgb), 0.30);
 }
 body.turno-j2 .enemy-info-panel {
-    border-color: rgba(77, 212, 247, 0.55);
-    box-shadow: 0 0 25px rgba(77, 212, 247, 0.20), inset 0 0 30px rgba(77, 212, 247, 0.05);
+    border-color: rgba(var(--borde-j1-rgb), 0.55);
+    box-shadow: 0 0 25px rgba(var(--borde-j1-rgb), 0.20), inset 0 0 30px rgba(var(--borde-j1-rgb), 0.05);
 }
 body.turno-j2 .enemy-info-panel .player-info-avatar {
-    border-color: rgba(77, 212, 247, 0.65);
-    box-shadow: 0 0 15px rgba(77, 212, 247, 0.30);
+    border-color: rgba(var(--borde-j1-rgb), 0.65);
+    box-shadow: 0 0 15px rgba(var(--borde-j1-rgb), 0.30);
 }
 
 /* 👥 2P turno J2: espejar también los márgenes/desplazamientos asimétricos de
@@ -148,8 +148,8 @@ body.turno-j2 #objetosVerticalContainer        { top: var(--pos-baul-right-top);
 }
 
 .player-info-panel-self {
-    border: 2px solid rgba(77, 212, 247, 0.55);
-    box-shadow: 0 0 25px rgba(77, 212, 247, 0.20), inset 0 0 30px rgba(77, 212, 247, 0.05);
+    border: 2px solid rgba(var(--borde-j1-rgb), 0.55);
+    box-shadow: 0 0 25px rgba(var(--borde-j1-rgb), 0.20), inset 0 0 30px rgba(var(--borde-j1-rgb), 0.05);
     position: relative;
     top: 0px; left: 0px;
 }
@@ -192,8 +192,8 @@ body.turno-j2 .player-info-panel-self.turno-activo {
 /* 👥 Durante el combate NO se marca ningún panel ni banco: vuelven a su aspecto por defecto. */
 body.combatiendo .player-info-panel-self.turno-activo {
     border-width: 2px;
-    border-color: rgba(77, 212, 247, 0.55);
-    box-shadow: 0 0 25px rgba(77, 212, 247, 0.20), inset 0 0 30px rgba(77, 212, 247, 0.05);
+    border-color: rgba(var(--borde-j1-rgb), 0.55);
+    box-shadow: 0 0 25px rgba(var(--borde-j1-rgb), 0.20), inset 0 0 30px rgba(var(--borde-j1-rgb), 0.05);
 }
 body.combatiendo .enemy-info-panel.turno-inactivo {
     opacity: 1;
@@ -210,8 +210,8 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
 
 .player-info-panel-enemy,
 .enemy-info-panel {
-    border: 2px solid rgba(255, 77, 141, 0.55);
-    box-shadow: 0 0 25px rgba(255, 77, 141, 0.20), inset 0 0 30px rgba(255, 77, 141, 0.05);
+    border: 2px solid rgba(var(--borde-j2-rgb), 0.55);
+    box-shadow: 0 0 25px rgba(var(--borde-j2-rgb), 0.20), inset 0 0 30px rgba(var(--borde-j2-rgb), 0.05);
     position: relative;
     top: 0px; left: 0px;
 }
@@ -229,9 +229,9 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
     overflow: hidden;
 }
 
-.player-info-panel-self .player-info-avatar { border-color: rgba(77, 212, 247, 0.65); box-shadow: 0 0 15px rgba(77, 212, 247, 0.30); }
+.player-info-panel-self .player-info-avatar { border-color: rgba(var(--borde-j1-rgb), 0.65); box-shadow: 0 0 15px rgba(var(--borde-j1-rgb), 0.30); }
 .player-info-panel-enemy .player-info-avatar,
-.enemy-info-panel .player-info-avatar { border-color: rgba(255, 77, 141, 0.65); box-shadow: 0 0 15px rgba(255, 77, 141, 0.30); }
+.enemy-info-panel .player-info-avatar { border-color: rgba(var(--borde-j2-rgb), 0.65); box-shadow: 0 0 15px rgba(var(--borde-j2-rgb), 0.30); }
 
 .player-info-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
@@ -812,7 +812,7 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
 @keyframes shockFlash { 0% { filter: brightness(2.3) saturate(0.2); } 100% { filter: brightness(1) saturate(1); } }
 
 .board-cell .unit-hp-container { width: 100%; padding: 0 4px; margin-top: 2px; margin-bottom: 0; flex-shrink: 0; }
-.board-cell .energy-bar { margin-top: 2px !important; height: 6px !important; min-height: 6px !important; max-height: 6px !important; }
+.board-cell .energy-bar { margin-top: 0 !important; height: 6px !important; min-height: 6px !important; max-height: 6px !important; }
 .board-cell .ulti-bar {
     width: calc(100% - 8px) !important;
     height: 6px !important; min-height: 6px !important; max-height: 6px !important;
@@ -820,7 +820,7 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
     border-radius: 6px !important; overflow: hidden !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
-    margin-top: 2px !important; position: relative;
+    margin-top: 0 !important; position: relative;
 }
 .board-cell .ulti-bar .ulti-fill { height: 100% !important; min-height: 100% !important; border-radius: 4px !important; transition: width 0.3s ease !important; }
 @keyframes pulseUlti { 0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.7); } 50% { box-shadow: 0 0 16px rgba(251, 191, 36, 1); } }
@@ -1125,7 +1125,7 @@ html body #playerBoard .energy-bar,
 html body #enemigoBoard .energy-bar {
     width: calc(100% - 8px) !important; height: 6px !important; min-height: 6px !important; max-height: 6px !important;
     background: rgba(0, 0, 0, 0.85) !important; border-radius: 6px !important; overflow: hidden !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important; margin-top: 2px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; margin-top: 0 !important;
 }
 html body .board-cell .energy-bar .energy-fill,
 html body #playerBoard .energy-bar .energy-fill,

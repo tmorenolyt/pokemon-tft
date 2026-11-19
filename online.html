@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Pokémon TFT — Duelo Online (prototipo)</title>
+<style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: radial-gradient(1200px 800px at 50% 0%, #1b2a4a, #0b1120); color: #e6eefc; min-height: 100vh; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+    h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+    .sub { color: #8fb0d6; font-size: .85rem; margin-bottom: 16px; }
+    .card { background: rgba(15,23,42,.75); border: 1px solid #274167; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input { background: #0b1626; border: 1px solid #2a4066; color: #e6eefc; border-radius: 10px; padding: 10px 12px; font-size: 1rem; }
+    button { background: linear-gradient(180deg,#2f6bd8,#1f4fa8); border: none; color: #fff; border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; font-size: .95rem; }
+    button:disabled { opacity: .45; cursor: default; }
+    button.ghost { background: transparent; border: 1px solid #2a4066; }
+    .code { font-size: 1.6rem; letter-spacing: 4px; font-weight: 800; color: #7fd4ff; }
+    .players { display: flex; gap: 10px; margin-top: 8px; }
+    .pl { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a4066; background: #0b1626; }
+    .pl.ready { border-color: #34d399; box-shadow: 0 0 12px rgba(52,211,153,.35); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+    .unit { background: #0b1626; border: 2px solid #2a4066; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; transition: .12s; }
+    .unit:hover { border-color: #3b82f6; }
+    .unit.sel { border-color: #fbbf24; box-shadow: 0 0 14px rgba(251,191,36,.4); background: #16233a; }
+    .unit .n { font-weight: 700; font-size: .9rem; }
+    .unit .s { color: #8fb0d6; font-size: .72rem; margin-top: 4px; }
+    .result { font-size: 1.6rem; font-weight: 800; }
+    .win { color: #4ade80; } .lose { color: #f87171; }
+    .log { color: #9fb6d4; font-size: .82rem; white-space: pre-line; margin-top: 8px; }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>⚔️ Duelo Online — prototipo</h1>
+    <div class="sub">Entra con un código, elige 3 Pokémon y ambos veréis el mismo combate (determinista).</div>
+
+    <!-- Lobby -->
+    <div class="card" id="lobby">
+        <div class="row">
+            <input id="nombre" placeholder="Tu nombre" maxlength="16" />
+            <input id="sala" placeholder="Código de sala (ej. PATO)" maxlength="12" />
+            <button id="btnEntrar">Entrar a la sala</button>
+        </div>
+        <div id="salaInfo" class="hidden" style="margin-top:12px;">
+            <div class="row" style="justify-content:space-between;">
+                <div>Sala: <span class="code" id="salaCodigo">----</span></div>
+                <button class="ghost" id="btnCopiar">Copiar enlace</button>
+            </div>
+            <div class="players" id="players"></div>
+        </div>
+    </div>
+
+    <!-- Selección de equipo -->
+    <div class="card hidden" id="pickerCard">
+        <div class="row" style="justify-content:space-between;">
+            <strong>Elige tu equipo (3)</strong>
+            <span id="selCount">0/3</span>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="row" style="margin-top:12px;">
+            <button id="btnListo" disabled>✅ Listo</button>
+            <button class="ghost" id="btnReset" style="display:none;">🔄 Nueva ronda</button>
+        </div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="card hidden" id="resultCard">
+        <div class="result" id="resultText"></div>
+        <div class="log" id="resultLog"></div>
+        <div class="row" style="margin-top:12px;"><button class="ghost" id="btnReset2">🔄 Otra ronda</button></div>
+    </div>
+</div>
+
+<script src="js/online/duel.js"></script>
+<script>
+    const UNITS = [
+        { nombre: 'Charmander', hp: 850, ataque: 53, spAttack: 20, defense: 205, attackSpeed: 0.8 },
+        { nombre: 'Pikachu', hp: 550, ataque: 15, spAttack: 45, defense: 70, attackSpeed: 0.7 },
+        { nombre: 'Bulbasaur', hp: 600, ataque: 20, spAttack: 55, defense: 90, attackSpeed: 0.7 },
+        { nombre: 'Dwebble', hp: 900, ataque: 45, spAttack: 20, defense: 320, attackSpeed: 0.7 },
+        { nombre: 'Machop', hp: 900, ataque: 50, spAttack: 20, defense: 190, attackSpeed: 0.8 },
+        { nombre: 'Cramorant', hp: 600, ataque: 20, spAttack: 65, defense: 90, attackSpeed: 0.9 },
+        { nombre: 'Marill', hp: 900, ataque: 50, spAttack: 20, defense: 200, attackSpeed: 0.7 },
+        { nombre: 'Phantump', hp: 950, ataque: 55, spAttack: 25, defense: 270, attackSpeed: 0.7 },
+        { nombre: 'Ralts', hp: 600, ataque: 20, spAttack: 55, defense: 90, attackSpeed: 0.7 },
+        { nombre: 'Eevee', hp: 750, ataque: 40, spAttack: 30, defense: 180, attackSpeed: 0.8 },
+        { nombre: 'Swinub', hp: 900, ataque: 45, spAttack: 20, defense: 335, attackSpeed: 0.7 },
+        { nombre: 'Zorua', hp: 900, ataque: 50, spAttack: 20, defense: 195, attackSpeed: 0.7 }
+    ];
+
+    const params = new URLSearchParams(location.search);
+    let sala = (params.get('sala') || '').toUpperCase();
+    let pid = '';
+    let es = null;
+    let seleccion = [];
+    let players = [];
+    let startData = null;
+
+    const $ = id => document.getElementById(id);
+
+    // Render del selector de equipo
+    $('grid').innerHTML = UNITS.map((u, i) =>
+        `<div class="unit" data-i="${i}"><div class="n">${u.nombre}</div><div class="s">${u.hp} HP · ${Math.max(u.ataque, u.spAttack)} ATQ</div></div>`
+    ).join('');
+    document.querySelectorAll('.unit').forEach(el => {
+        el.addEventListener('click', () => {
+            const i = +el.dataset.i;
+            const pos = seleccion.indexOf(i);
+            if (pos >= 0) seleccion.splice(pos, 1);
+            else if (seleccion.length < 3) seleccion.push(i);
+            document.querySelectorAll('.unit').forEach(x => x.classList.toggle('sel', seleccion.includes(+x.dataset.i)));
+            $('selCount').textContent = seleccion.length + '/3';
+            $('btnListo').disabled = seleccion.length !== 3;
+        });
+    });
+
+    if (sala) $('sala').value = sala;
+
+    function getPid(room) {
+        // Permite forzar identidad con ?pid=... (ideal para probar solo con 2 pestañas)
+        const fromUrl = (params.get('pid') || '').trim();
+        if (fromUrl) return fromUrl;
+        let key = 'pid_' + room;
+        let v = localStorage.getItem(key);
+        if (!v) { v = 'p' + Math.random().toString(36).slice(2, 8); localStorage.setItem(key, v); }
+        return v;
+    }
+
+    function conectar() {
+        sala = (sala || $('sala').value || '').trim().toUpperCase();
+        if (!sala) { alert('Escribe un código de sala'); return; }
+        const nombre = ($('nombre').value || '').trim() || 'Jugador';
+        pid = getPid(sala);
+
+        $('salaCodigo').textContent = sala;
+        $('salaInfo').classList.remove('hidden');
+        $('pickerCard').classList.remove('hidden');
+        history.replaceState(null, '', '?sala=' + encodeURIComponent(sala) + (pid ? '&pid=' + encodeURIComponent(pid) : ''));
+
+        fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, name: nombre }) })
+            .then(r => r.json()).then(d => { if (d && d.players) renderPlayers(d.players); });
+
+        if (es) es.close();
+        es = new EventSource('/api/events?room=' + encodeURIComponent(sala) + '&pid=' + encodeURIComponent(pid));
+        es.onmessage = (ev) => {
+            let msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
+            if (msg.type === 'state') { renderPlayers(msg.players); }
+            else if (msg.type === 'start') { startData = msg; resolverDuelo(msg); }
+        };
+    }
+
+    function renderPlayers(list) {
+        players = list || [];
+        $('players').innerHTML = players.map(p =>
+            `<div class="pl ${p.ready ? 'ready' : ''}">${escapeHtml(p.name)}${p.pid === pid ? ' (tú)' : ''}<br><small>${p.ready ? '✅ Listo' : '⏳ Eligiendo…'}</small></div>`
+        ).join('') || '<div class="pl">Esperando jugadores…</div>';
+    }
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    function resolverDuelo(msg) {
+        const pids = (msg.players || []).slice().sort();
+        if (pids.length < 2) return;
+        const teamA = msg.teams[pids[0]] || [];
+        const teamB = msg.teams[pids[1]] || [];
+        const res = window.Duel.runDuel(msg.seed, teamA, teamB);
+        const iAmA = (pid === pids[0]);
+        const gane = (res.winner === 0) === iAmA;
+
+        $('resultCard').classList.remove('hidden');
+        $('resultText').className = 'result ' + (gane ? 'win' : 'lose');
+        $('resultText').textContent = gane ? '🎉 ¡Ganaste!' : '💀 Perdiste';
+        $('resultLog').textContent =
+            `Rondas: ${res.round} · Vivos: ${res.aAlive} vs ${res.bAlive}\n` + (res.log || []).join('\n');
+        $('btnReset').style.display = 'inline-block';
+
+        fetch('/api/result', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ room: sala, pid, result: { gane, seed: msg.seed } }) });
+    }
+
+    function listo() {
+        const team = seleccion.map(i => UNITS[i]);
+        fetch('/api/ready', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ room: sala, pid, team }) });
+        $('btnListo').disabled = true;
+        $('btnListo').textContent = '⏳ Esperando al rival…';
+    }
+
+    function nuevaRonda() {
+        fetch('/api/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala }) });
+        seleccion = [];
+        document.querySelectorAll('.unit').forEach(x => x.classList.remove('sel'));
+        $('selCount').textContent = '0/3';
+        $('btnListo').disabled = true;
+        $('btnListo').textContent = '✅ Listo';
+        $('resultCard').classList.add('hidden');
+        $('btnReset').style.display = 'none';
+    }
+
+    $('btnEntrar').addEventListener('click', conectar);
+    $('btnListo').addEventListener('click', listo);
+    $('btnReset').addEventListener('click', nuevaRonda);
+    $('btnReset2').addEventListener('click', nuevaRonda);
+    $('btnCopiar').addEventListener('click', () => {
+        const link = location.origin + location.pathname + '?sala=' + encodeURIComponent(sala);
+        navigator.clipboard && navigator.clipboard.writeText(link);
+        $('btnCopiar').textContent = '¡Copiado!';
+        setTimeout(() => $('btnCopiar').textContent = 'Copiar enlace', 1200);
+    });
+</script>
+</body>
+</html>

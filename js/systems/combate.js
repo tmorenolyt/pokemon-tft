@@ -538,8 +538,10 @@ window.restaurarPosicionesOriginales = restaurarPosicionesOriginales;
 function ocultarUnidadMuerta(elemento) {
     if (!elemento || !elemento.style) return;
     try {
-        // 🆕 Animación de "recogida a Pokéball" (reemplaza el fade gris)
-        if (typeof efectoRecogidaPokeball === 'function') efectoRecogidaPokeball(elemento);
+        // 🆕 Desvanecimiento al caer: destello + fade + partículas
+        if (typeof efectoFaintDesaparicion === 'function') efectoFaintDesaparicion(elemento);
+        const sprite = elemento.querySelector ? elemento.querySelector('.unit-sprite') : null;
+        if (sprite && sprite.classList) sprite.classList.add('faint-fade-out');
         elemento.style.pointerEvents = 'none';
         let hpBar = elemento.querySelector('.unit-hp-bar');
         if (hpBar && hpBar.style) hpBar.style.opacity = '0';
@@ -559,7 +561,7 @@ function ocultarUnidadMuerta(elemento) {
             elemento.style.transform = '';
             elemento.style.filter = '';
             elemento.style.pointerEvents = '';
-        }, 460);
+        }, 560);
     } catch (e) {
         console.warn('⚠️ ocultarUnidadMuerta: elemento ya no existe en el DOM');
     }
@@ -586,7 +588,7 @@ function restaurarUnidad(elemento) {
             sprite.style.filter = 'grayscale(0) brightness(1)';
             sprite.style.opacity = '1';
         }
-        if (sprite && sprite.classList) sprite.classList.remove('recall-suck');
+        if (sprite && sprite.classList) sprite.classList.remove('recall-suck', 'faint-fade-out');
         if (elemento.classList) elemento.classList.remove('muerto');
         if (elemento.classList) elemento.classList.add('restaurando');
         setTimeout(() => {

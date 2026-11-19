@@ -71,7 +71,7 @@ function resaltarRangoHover(tipo, indice) {
     else if (tipo === 'enemigo') unidad = enemyBoard[indice];
     if (!unidad) return;
     if (typeof window.aplicarColoresDeSeleccion === 'function') {
-        window.aplicarColoresDeSeleccion(tipo, indice, unidad, null);
+        window.aplicarColoresDeSeleccion(tipo, indice, unidad, null, true);
     }
 }
 
@@ -81,6 +81,55 @@ function limpiarResaltadoRango() {
         window.limpiarColoresDeSeleccion();
     }
 }
+
+// ============================================================
+// 🎯 TOOLTIP DE OBJETOS (hover)
+// ============================================================
+// Tooltip flotante único que muestra el nombre + descripción de cualquier
+// objeto con `data-objeto-nombre` (objetos equipados y del baúl).
+(function initTooltipObjetos() {
+    if (document.getElementById('tooltipObjetoFlotante')) return;
+    const tip = document.createElement('div');
+    tip.id = 'tooltipObjetoFlotante';
+    tip.style.cssText = 'position:fixed;z-index:100000;pointer-events:none;display:none;background:#1a2236;border:1px solid #fbbf24;border-radius:8px;padding:8px 12px;max-width:240px;box-shadow:0 8px 25px rgba(0,0,0,0.5);';
+    document.body.appendChild(tip);
+
+    function posicionar(e) {
+        const pad = 14;
+        let x = e.clientX + pad;
+        let y = e.clientY + pad;
+        const w = tip.offsetWidth || 160;
+        const h = tip.offsetHeight || 60;
+        if (x + w > window.innerWidth) x = e.clientX - w - pad;
+        if (y + h > window.innerHeight) y = e.clientY - h - pad;
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+    }
+
+    document.addEventListener('mouseover', function (e) {
+        const el = e.target && e.target.closest ? e.target.closest('[data-objeto-nombre]') : null;
+        if (!el || !window.OBJETOS) return;
+        const nombre = el.getAttribute('data-objeto-nombre');
+        const obj = window.OBJETOS[nombre];
+        if (!obj) return;
+        tip.innerHTML =
+            `<div style="font-size:0.72rem;font-weight:700;color:#fbbf24;margin-bottom:3px;">${nombre}</div>` +
+            `<div style="font-size:0.62rem;color:#93c5fd;line-height:1.4;">${obj.descripcion || ''}</div>` +
+            (obj.requerido ? `<div style="font-size:0.58rem;color:#f87171;margin-top:3px;">🔒 Requiere: ${obj.requerido}</div>` : '');
+        tip.style.display = 'block';
+        posicionar(e);
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (tip.style.display === 'block') posicionar(e);
+    });
+
+    document.addEventListener('mouseout', function (e) {
+        const el = e.target && e.target.closest ? e.target.closest('[data-objeto-nombre]') : null;
+        if (el && e.relatedTarget && el.contains(e.relatedTarget)) return;
+        tip.style.display = 'none';
+    });
+})();
 
 function renderSpriteHtml(unidad, clasesExtra = '', ladoTablero = 'player') {
     const spriteId = unidad.spriteIdAlternativo || unidad.pokemon.spriteId;
@@ -98,14 +147,35 @@ function renderSpriteHtml(unidad, clasesExtra = '', ladoTablero = 'player') {
     // así que invertimos la orientación del sprite para que mire al rival.
     if (window.modoDosJugadores && window.turnoJugador === 2) flip = -flip;
 
-    const onerrorChain = esShiny
-        ? `if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='${urlFallbackShiny}';}
-           else if(this.dataset.fb!=='2'){this.dataset.fb='2';this.src='${getSpriteUrl(spriteId, unidad.pokemon.nombre, false)}';}
-           else if(this.dataset.fb!=='3'){this.dataset.fb='3';this.src='${urlFallback}';}
-           else{this.style.display='none';}`
-        : `if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='${urlFallback}';}else{this.style.display='none';}`;
+    // 🚫 FIX parpadeo: si ya conocemos el formato real del sprite (GIF o PNG),
+    // emitimos la URL definitiva sin la cadena onerror que alternaba GIF→PNG en
+    // cada re-render del tablero. Solo aplica a no-shiny (los shiny mantienen su
+    // cadena de 4 pasos original para no romper el fallback shiny).
+    const formato = (!esShiny && typeof formatoSpriteResuelto === 'function')
+        ? formatoSpriteResuelto(spriteId, false)
+        : null;
 
-    return `<img class="${clases}" src="${url}" alt="${unidad.pokemon.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escala}; --sprite-offset-x: ${offsetX}; --sprite-flip: ${flip}" onerror="${onerrorChain}">`;
+    let src = url;
+    let onerrorAttr = '';
+
+    if (formato === 'png') {
+        // El sprite solo existe como PNG → URL directa, sin cadena de fallback.
+        src = urlFallback;
+    } else if (formato === 'gif') {
+        // El sprite existe como GIF → URL directa, sin cadena de fallback.
+        src = url;
+    } else {
+        // Formato aún no resuelto (o shiny) → mantener la cadena onerror original.
+        const onerrorChain = esShiny
+            ? `if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='${urlFallbackShiny}';}
+               else if(this.dataset.fb!=='2'){this.dataset.fb='2';this.src='${getSpriteUrl(spriteId, unidad.pokemon.nombre, false)}';}
+               else if(this.dataset.fb!=='3'){this.dataset.fb='3';this.src='${urlFallback}';}
+               else{this.style.display='none';}`
+            : `if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='${urlFallback}';}else{this.style.display='none';}`;
+        onerrorAttr = ` onerror="${onerrorChain}"`;
+    }
+
+    return `<img class="${clases}" src="${src}" alt="${unidad.pokemon.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escala}; --sprite-offset-x: ${offsetX}; --sprite-flip: ${flip}"${onerrorAttr}>`;
 }
 
 function renderEstrellasHtml(nivel) {
@@ -219,7 +289,7 @@ function _renderSlotObjeto(obj, idx, data, tipoUnidad, indiceUnidad, claseSpan, 
     const onclickStr = `event.stopPropagation(); if(!combatiendo && typeof desequiparObjeto === 'function') desequiparObjeto('${tipoUnidad}', ${indiceUnidad}, ${idx})`;
     const borderColor = esDisco ? 'rgba(251,191,36,0.6)' : 'rgba(251,191,36,0.3)';
     const bg = esDisco ? 'rgba(251,191,36,0.2)' : 'rgba(0,0,0,0.5)';
-    return `<span class="${claseSpan}" data-objeto-index="${idx}" data-objeto-nombre="${obj}" onclick="${onclickStr}" title="${obj}: ${data.descripcion}" style="display:inline-flex;align-items:center;justify-content:center;width:${tamano}px;height:${tamano}px;background:${bg};border:2px solid ${borderColor};border-radius:6px;cursor:grab;padding:2px;box-sizing:border-box;">${iconoHtml}</span>`;
+    return `<span class="${claseSpan}" data-objeto-index="${idx}" data-objeto-nombre="${obj}" onclick="${onclickStr}" style="display:inline-flex;align-items:center;justify-content:center;width:${tamano}px;height:${tamano}px;background:${bg};border:2px solid ${borderColor};border-radius:6px;cursor:grab;padding:2px;box-sizing:border-box;">${iconoHtml}</span>`;
 }
 
 function renderObjetosEquipados(unidad, tipoUnidad, indiceUnidad, esBanquillo = false) {
@@ -446,9 +516,6 @@ function renderizarTableroEnemigo() {
                 if (enemyBoard[i]) abrirCarta('enemigo', i);
             });
 
-            // ✨ HOVER: resaltar el rango de ataque al pasar el ratón
-            cell.addEventListener('mouseenter', function () { resaltarRangoHover('enemigo', i); });
-            cell.addEventListener('mouseleave', function () { limpiarResaltadoRango(); });
         } else {
             cell.innerHTML = '<span style="font-size:1.2rem;opacity:0.15;">▢</span>';
             cell.style.cssText = 'font-size:0.8rem;color:#4a6a8a;background:transparent;border:2px solid #2a3a5a;box-shadow:none;cursor:default;';
@@ -672,6 +739,18 @@ function renderizarTablero(lado, unidades) {
     const gridId = lado === 'player' ? 'playerBoard' : 'enemigoBoard';
     const grid = document.getElementById(gridId);
     if (!grid) return;
+
+    // 🔑 Preservar los <img> de sprite existentes para no reiniciar la animación
+    // del GIF (lo que provocaba el parpadeo "desaparece/aparece" en cada re-render).
+    const spritesPrevios = new Map();
+    for (const cell of Array.from(grid.children)) {
+        const key = cell.dataset && cell.dataset.spriteUid;
+        if (key) {
+            const img = cell.querySelector ? cell.querySelector('.unit-sprite') : null;
+            if (img) spritesPrevios.set(key, img);
+        }
+    }
+
     grid.innerHTML = '';
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
@@ -729,6 +808,23 @@ function renderizarTablero(lado, unidades) {
                 ${renderEscudoRoto(unidad)}
                 ${renderIconoLlamarada(unidad)}
             `;
+
+            // 🔑 Asignar identificador estable y reutilizar el <img> anterior para
+            // que el GIF no se reinicie (evita que el sprite parpadee en combate).
+            if (unidad._spriteUid === undefined) {
+                unidad._spriteUid = (window._spriteUidCounter = (window._spriteUidCounter || 0) + 1);
+            }
+            const spriteKey = unidad._spriteUid + ':' + (unidad.spriteIdAlternativo || (unidad.pokemon ? unidad.pokemon.spriteId : '')) + ':' + (unidad.esShiny ? 1 : 0);
+            cell.dataset.spriteUid = spriteKey;
+            const imgPrevio = spritesPrevios.get(spriteKey);
+            if (imgPrevio && !imgPrevio.isConnected) {
+                imgPrevio.classList.remove('faint-fade-out', 'recall-suck');
+                imgPrevio.style.opacity = '';
+                imgPrevio.style.filter = '';
+                imgPrevio.style.transform = '';
+                const imgNuevo = cell.querySelector('.unit-sprite');
+                if (imgNuevo) imgNuevo.replaceWith(imgPrevio);
+            }
         } else {
             cell.classList.add('vacia');
             cell.innerHTML = '<span style="font-size:1.2rem;opacity:0.15;">▢</span>';
@@ -859,7 +955,7 @@ function actualizarObjetosVerticales(lado = 'jugador') {
                 slot.style.lineHeight = '1';
                 slot.style.textAlign = 'center';
             }
-            slot.title = nombre;
+            slot.dataset.objetoNombre = nombre;
             slot.onclick = function (e) {
                 e.stopPropagation();
                 if (combatiendo) { addConsoleMessage('⛔ No puedes equipar objetos durante el combate!', 'error'); return; }
@@ -1106,6 +1202,11 @@ function actualizarInfoEnemigo() {
         const monstruosVivos = enemyBoard.filter(u => u && u.esMonstruo).length;
         if (enemyBoardCount) enemyBoardCount.textContent = monstruosVivos;
         if (enemyBoardMax) enemyBoardMax.textContent = monstruosVivos;
+
+        // 🎯 FIX: en PvE el contador siempre está "lleno" (vivos == total),
+        // así el número sale en blanco y no en naranja.
+        const headerEnemy = document.getElementById('bankHeaderEnemy');
+        if (headerEnemy) headerEnemy.classList.add('is-full');
 
         return;  // No ejecutar la lógica PvP normal
     }

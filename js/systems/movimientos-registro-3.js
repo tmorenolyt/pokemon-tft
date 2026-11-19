@@ -558,6 +558,9 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
                             if (sprite) {
                                 sprite.style.filter = 'grayscale(0) brightness(1)';
                                 sprite.style.opacity = '1';
+                                // 🎯 FIX: quitar el fade de muerte para que el sprite
+                                // no quede invisible tras revivir (faintfadeOut deja opacity 0 con fill:forwards).
+                                if (sprite.classList) sprite.classList.remove('faint-fade-out', 'recall-suck');
                             }
                             if (typeof actualizarBarraVidaPokemon === 'function') {
                                 actualizarBarraVidaPokemon(pos.elemento, aliadoRevivido.hp, aliadoRevivido.maxHp);

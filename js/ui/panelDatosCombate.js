@@ -169,6 +169,13 @@ function renderizarPanelDatosCombate() {
         nombreEnemigo = rivalActual.nombre + ' (PvE)';
     }
 
+    // 🌐 Online 1v1: el rival es el Jugador 2 (tu amigo), no la IA
+    if (window._modoOnline && !(rivalActual && rivalActual.esMonstruo)) {
+        nombreEnemigo = (window._amigo && window._amigo.name) ? window._amigo.name : 'Jugador 2';
+        avatarEnemigo = (window._amigo && window._amigo.avatar) ? window._amigo.avatar : 'azul';
+        carpetaEnemigo = 'jugador';
+    }
+
     // 👥 2P: lados FIJOS — J1 siempre a la izquierda, J2 a la derecha
     // (independientemente de quién tenga el turno activo).
     let ladosFijos2P = false;

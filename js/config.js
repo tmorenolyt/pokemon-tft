@@ -186,8 +186,40 @@ function getSpriteOffsetX(spriteId) {
 }
 
 // ============================================================
-// PRECARGA DE SPRITES
+// PRECARGA DE SPRITES + CACHÉ DE FORMATO (evita parpadeo GIF→PNG)
 // ============================================================
+
+// Caché del formato resuelto por sprite (gif | png) según sea shiny o no.
+// Cada sprite se resuelve una sola vez al arrancar, de modo que render.js
+// pueda emitir directamente la URL correcta sin la cadena onerror que
+// provocaba el parpadeo (GIF roto → PNG) en cada re-render del tablero.
+const SPRITE_FORMATO_CACHE = {};
+window.SPRITE_FORMATO_CACHE = SPRITE_FORMATO_CACHE;
+
+function claveSprite(spriteId, esShiny) {
+    return (esShiny ? 's:' : 'n:') + spriteId;
+}
+
+function formatoSpriteResuelto(spriteId, esShiny) {
+    return SPRITE_FORMATO_CACHE[claveSprite(spriteId, esShiny)] || null;
+}
+window.formatoSpriteResuelto = formatoSpriteResuelto;
+
+function _probarFormatoSprite(spriteId, esShiny) {
+    const carpeta = esShiny ? 'shiny/' : '';
+    const base = CONFIG.SPRITE_BASE_URL + carpeta + spriteId;
+    const key = claveSprite(spriteId, esShiny);
+    const img = new Image();
+    img.onload = function () { SPRITE_FORMATO_CACHE[key] = 'gif'; };
+    img.onerror = function () {
+        // El GIF no existe → probamos el PNG de fallback
+        const img2 = new Image();
+        img2.onload = function () { SPRITE_FORMATO_CACHE[key] = 'png'; };
+        img2.onerror = function () { SPRITE_FORMATO_CACHE[key] = 'png'; };
+        img2.src = base + '.' + CONFIG.SPRITE_EXTENSION_FALLBACK;
+    };
+    img.src = base + '.' + CONFIG.SPRITE_EXTENSION_PREFERIDA;
+}
 
 function precargarSprites() {
     if (typeof document === 'undefined') return;
@@ -198,16 +230,12 @@ function precargarSprites() {
         if (p.spriteId) spriteIds.add(p.spriteId);
     }
 
-    let precargados = 0;
     for (let id of spriteIds) {
-        const url = `${CONFIG.SPRITE_BASE_URL}${id}.${CONFIG.SPRITE_EXTENSION_PREFERIDA}`;
-        const img = new Image();
-        img.src = url;
-        precargados++;
+        _probarFormatoSprite(id, false);
     }
 
-    if (precargados > 0) {
-        console.log(`🎬 Precargando ${precargados} sprite(s) (.${CONFIG.SPRITE_EXTENSION_PREFERIDA})`);
+    if (spriteIds.size > 0) {
+        console.log(`🎬 Precargando y resolviendo formato de ${spriteIds.size} sprite(s)`);
     }
 }
 

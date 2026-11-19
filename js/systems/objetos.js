@@ -52,7 +52,8 @@ function aplicarObjeto(unidad, objetoNombre) {
             ? (typeof enemyLevel !== 'undefined' ? enemyLevel : 1)
             : (typeof nivelJugador !== 'undefined' ? nivelJugador : 1);
 
-        if (nivelEquipo < 5) {
+        // 🧪 En modo creativo se omite el requisito de nivel de equipo
+        if (!window.modoCreativo && nivelEquipo < 5) {
             addConsoleMessage(`❌ El Disco Definitivo requiere nivel de equipo 5+ (actual: ${nivelEquipo})`, 'error');
             return false;
         }

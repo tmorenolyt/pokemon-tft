@@ -190,3 +190,9 @@ TODOS_POKEMONS.forEach(p => {
     const r = p.rangoAtaque || 'sin_definir';
     conteoRangos[r] = (conteoRangos[r] || 0) + 1;
 });
+
+// 🎬 Precargar y resolver el formato de los sprites (GIF o PNG) una sola vez,
+// para evitar el parpadeo de unidades que "desaparecen y aparecen" en combate.
+if (typeof window.precargarSprites === 'function') {
+    window.precargarSprites();
+}

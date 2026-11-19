@@ -2356,8 +2356,9 @@ function enemyEquiparObjetos() {
         let prioridad = 0;
         if (enemyPokemonEncaja(u.pokemon)) prioridad += 10;
         if (_esPokemonClave(u)) prioridad += 50;
-        if (u.nivel === 3) prioridad += 30;
-        else if (u.nivel === 2) prioridad += 15;
+        // ⭐ Los MÁS PODEROSOS (3★ > 2★ > 1★) deben recibir objetos primero.
+        if (u.nivel === 3) prioridad += 300;
+        else if (u.nivel === 2) prioridad += 120;
 
         if (objetosNormales.length === 0) prioridad += 15;
         if (objetosNormales.length === 1) prioridad += 5;
@@ -2380,6 +2381,9 @@ function enemyEquiparObjetos() {
             if (!u || u.esZacian || u.esArticuno) continue;
             if (!u.objetos || u.objetos.length === 0) continue;
 
+            // ⭐ No quitar objetos a unidades fuertes (2★/3★): solo a 1★,
+            // para que "los más poderosos" conserven sus objetos.
+            if ((u.nivel || 1) >= 2) continue;
             const encaja = enemyPokemonEncaja(u.pokemon);
             if (!encaja) {
                 const utilidad = evaluarPokemon(u.pokemon);
@@ -3409,6 +3413,8 @@ async function enemyIntentarRerolls() {
         }
 
         enemyGold -= COSTE_REROLL;
+        // ⭐ Sesgo: si tiene pares/tríos a medio hacer, forzar que la tienda los ofrezca
+        try { window._enemyTiendaForzarNombre = (typeof _enemyElegirEspecieSesgo === 'function') ? _enemyElegirEspecieSesgo([...(enemyBoard || []), ...(enemyBanquillo || [])]) : null; } catch (e) { window._enemyTiendaForzarNombre = null; }
         generarTiendaEnemigo();
         rerollsHechos++;
 
@@ -3531,6 +3537,7 @@ function mostrarFlash3EstrellasEnemigo(nombresPokemon) {
 
         async function upgradeEnemyTeam() {
     if (window.modoDosJugadores) return;
+    if (window._modoOnline) return; // 🆕 online 1v1: sin IA que compre/suba
 
     // 🆕 FIX: Asegurar Disco Definitivo si es nivel 5+
     if (enemyLevel >= 5) {
@@ -3567,6 +3574,18 @@ function mostrarFlash3EstrellasEnemigo(nombresPokemon) {
                 }
             }
         }
+
+        // ⭐ Persistir el Disco en el rival (objetosAcumulados) para que no se
+        // pierda al cambiar de rival y aparezca en su baúl aunque no tenga 2★.
+        try {
+            if (window.rivalActual && Array.isArray(window.torneoRivales)) {
+                const _rv = window.torneoRivales.find(r => r.nombre === window.rivalActual.nombre);
+                if (_rv) {
+                    if (!_rv.objetosAcumulados) _rv.objetosAcumulados = [];
+                    if (!_rv.objetosAcumulados.includes("Disco Definitivo")) _rv.objetosAcumulados.push("Disco Definitivo");
+                }
+            }
+        } catch (e) {}
     }
 
     // 🆕 FIX PvE: en ronda PvE, el "enemigo" es un monstruo estático.
@@ -4235,7 +4254,7 @@ function enemyComprarObjetoGarantizado() {
             if (enemyEstrategia && enemyEstrategia.tipos && enemyEstrategia.tipos.includes(obj.efecto.tipoBonus)) {
                 score += 100;
             } else {
-                score -= 50;
+                score = -999; // 🆕 descartar chips que no son de la estrategia
             }
         }
 
@@ -4258,8 +4277,8 @@ function enemyComprarObjetoGarantizado() {
         }
     }
 
-    if (!mejorObjeto) {
-        console.log(`   ⚠️ ${rivalNombre()}: ningún objeto útil en la tienda`);
+    if (!mejorObjeto || mejorScore <= -900) {
+        console.log(`   ⚠️ ${rivalNombre()}: ningún objeto útil en la tienda (solo chips de otra estrategia)`);
         return false;
     }
 

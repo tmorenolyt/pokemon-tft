@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: pokemon-tft-online
+    env: node
+    plan: free
+    buildCommand: "echo sin-dependencias"
+    startCommand: node servidor-online.js
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

@@ -167,6 +167,85 @@ function generarTienda() {
     return tienda;
 }
 
+// ⭐ SESGO DE FUSIÓN DEL RIVAL
+// Elige qué especie conviene inyectar en la tienda del rival para que
+// progrese hacia 2★ (y, acumulando, 3★):
+//   1) especie con 2 copias 1★ → ofrecer la 3ª (completa 2★)
+//   2) especie con 1 copia 1★  → ofrecer la 2ª (forma el par)
+//   3) especie con 2 copias 2★ → ofrecer lo que complete el 3★ (vía par de 1★)
+function _enemyElegirEspecieSesgo(units) {
+    try {
+        const c1 = {}, c2 = {};
+        for (const u of (units || [])) {
+            if (!u || u.esZacian || u.esArticuno) continue;
+            const n = u.pokemon && u.pokemon.nombre;
+            if (!n) continue;
+            if (u.nivel === 1) c1[n] = (c1[n] || 0) + 1;
+            else if (u.nivel === 2) c2[n] = (c2[n] || 0) + 1;
+        }
+        for (const n in c1) { if (c1[n] === 2) return n; }   // completar 2★
+        for (const n in c1) { if (c1[n] === 1) return n; }   // formar par
+        for (const n in c2) { if (c2[n] === 2) return n; }   // completar 3★
+        return null;
+    } catch (e) { return null; }
+}
+
+// Devuelve la BASE (base !== false) de la familia de `nombre`. Si `nombre`
+// ya es base, se devuelve tal cual. Así el sesgo nunca inyecta evoluciones
+// como 1★ (lo que producía, p.ej., Gardevoir 2★ al fusionar 3× Kirlia 1★).
+function _baseAncestroEspecie(nombre) {
+    try {
+        if (typeof TODOS_POKEMONS === 'undefined') return null;
+        const directo = TODOS_POKEMONS.find(p => p && p.nombre === nombre);
+        if (directo && directo.base !== false) return directo;
+        for (const p of TODOS_POKEMONS) {
+            if (!p || p.base === false) continue;
+            let actual = p;
+            let guard = 0;
+            while (actual && actual.evolucion && guard < 10) {
+                if (actual.evolucion === nombre) return p;
+                actual = TODOS_POKEMONS.find(q => q.nombre === actual.evolucion);
+                guard++;
+            }
+        }
+        return null;
+    } catch (e) { return null; }
+}
+
+function _sesgarTiendaEnemigoHaciaFusion() {
+    // Consume el hint (one-shot) y mete en la tienda la copia que el rival
+    // necesita para fusionar, si no está ya y hay copias en el pool.
+    try {
+        const objetivo = window._enemyTiendaForzarNombre;
+        window._enemyTiendaForzarNombre = null;
+        if (!objetivo) return;
+        if (typeof enemyTienda === 'undefined' || !enemyTienda || !enemyTienda.length) return;
+        if (enemyTienda.some(p => p && p.nombre === objetivo)) return;
+        let data = (typeof TODOS_POKEMONS !== 'undefined')
+            ? TODOS_POKEMONS.find(p => p && p.nombre === objetivo)
+            : null;
+        if (!data) return;
+        // ⭐ Si la especie objetivo es una evolución (no-base), inyectar su BASE.
+        if (data.base === false) {
+            data = (typeof _baseAncestroEspecie === 'function') ? _baseAncestroEspecie(objetivo) : null;
+            if (!data) return;
+        }
+        if (enemyTienda.some(p => p && p.nombre === data.nombre)) return;
+        if (typeof getCopiasDisponibles === 'function' && getCopiasDisponibles(data) <= 0) return;
+        // Preferir reemplazar un slot que NO sea una especie que ya tengamos
+        const yaTenemos = new Set();
+        if (typeof enemyBoard !== 'undefined') for (const u of enemyBoard) { if (u && u.pokemon) yaTenemos.add(u.pokemon.nombre); }
+        if (typeof enemyBanquillo !== 'undefined') for (const u of enemyBanquillo) { if (u && u.pokemon) yaTenemos.add(u.pokemon.nombre); }
+        let idx = enemyTienda.findIndex(p => !p || !yaTenemos.has(p.nombre));
+        if (idx === -1) idx = Math.floor(Math.random() * enemyTienda.length);
+        enemyTienda[idx] = { ...data, shiny: false };
+        // Mover la especie objetivo al frente para que el 'find' de compra la elija primero
+        const _tmp = enemyTienda.splice(idx, 1)[0];
+        enemyTienda.unshift(_tmp);
+        if (typeof console !== 'undefined') console.log(`🎯 [SESGO FUSIÓN] Tienda rival incluye ${data.nombre} (1★)${data.nombre !== objetivo ? ' [base de ' + objetivo + ']' : ''}`);
+    } catch (e) { /* nunca romper la generación de la tienda */ }
+}
+
 function generarTiendaEnemigo() {
     if (!enemyTiendaBloqueada) {
         enemyTienda = [];
@@ -174,6 +253,7 @@ function generarTiendaEnemigo() {
         for (let i = 0; i < numFichas; i++) {
             enemyTienda.push(getRandomPokemonPorNivelEnemigo());
         }
+        _sesgarTiendaEnemigoHaciaFusion();
     }
 }
 
@@ -199,15 +279,37 @@ function generarObjetosTienda() {
 
     if (listaObjetos.length === 0) return [];
 
-    const seleccionados = [];
-    const disponibles = [...listaObjetos];
-    const cantidad = Math.min(3, disponibles.length);
-
-    for (let i = 0; i < cantidad && disponibles.length > 0; i++) {
-        const index = Math.floor(Math.random() * disponibles.length);
-        seleccionados.push(disponibles[index]);
-        disponibles.splice(index, 1);
+    // 🆕 FIX: separar chips (tipoBonus) de objetos normales para que la
+    // tienda nunca muestre solo chips (máximo 2 chips por tienda).
+    const chips = [];
+    const noChips = [];
+    for (const nombre of listaObjetos) {
+        const obj = objetosDisponibles[nombre];
+        if (obj && obj.efecto && obj.efecto.tipoBonus) chips.push(nombre);
+        else noChips.push(nombre);
     }
+
+    function _barajarObjetos(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+    _barajarObjetos(chips);
+    _barajarObjetos(noChips);
+
+    const seleccionados = [];
+    // Máximo 2 chips.
+    for (let i = 0; i < 2 && i < chips.length; i++) seleccionados.push(chips[i]);
+    // Rellenar con objetos normales.
+    for (let i = 0; seleccionados.length < 3 && i < noChips.length; i++) seleccionados.push(noChips[i]);
+    // Fallback (raro): si apenas hay objetos normales, rellenar con más chips.
+    for (let i = 0; seleccionados.length < 3 && i < chips.length; i++) {
+        if (!seleccionados.includes(chips[i])) seleccionados.push(chips[i]);
+    }
+
+    _barajarObjetos(seleccionados);
 
     return seleccionados;
 }

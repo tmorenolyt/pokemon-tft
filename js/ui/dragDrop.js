@@ -133,8 +133,9 @@
 
     window.bloquearClicksGlobales = bloquearClicksGlobales;
 
-    function aplicarColoresDeSeleccion(tipoOrigen, indiceOrigen, unidad, indiceHover) {
+    function aplicarColoresDeSeleccion(tipoOrigen, indiceOrigen, unidad, indiceHover, esHover) {
         if (indiceHover === undefined) indiceHover = null;
+        if (esHover === undefined) esHover = false;
 
         limpiarColoresDeSeleccion();
 
@@ -186,12 +187,16 @@
                 }
             });
 
-            document.querySelectorAll('#banquilloGrid .bank-cell').forEach(cell => {
-                cell.style.setProperty('border', '3px solid ' + AZUL, 'important');
-                cell.style.setProperty('box-shadow',
-                    '0 0 20px rgba(' + AZUL_RGB + ', 0.3), inset 0 0 20px rgba(' + AZUL_RGB + ', 0.08)',
-                    'important');
-            });
+            // 🖱️ Al pasar el ratón (hover) NO se marcan las casillas del banco;
+            // solo al ARRASTRAR se resalta el banco como posible destino.
+            if (!esHover) {
+                document.querySelectorAll('#banquilloGrid .bank-cell').forEach(cell => {
+                    cell.style.setProperty('border', '3px solid ' + AZUL, 'important');
+                    cell.style.setProperty('box-shadow',
+                        '0 0 20px rgba(' + AZUL_RGB + ', 0.3), inset 0 0 20px rgba(' + AZUL_RGB + ', 0.08)',
+                        'important');
+                });
+            }
         }
 
         if (tipoOrigen === 'banquillo') {

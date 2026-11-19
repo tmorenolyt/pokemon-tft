@@ -945,16 +945,9 @@ function mostrarTiendaPostRonda() {
     if (fase <= 1) return;
     if (fase === 2 && tiendaRonda2Comprada) return;
 
-    // 🆕 FIX PUNTO 1: Si estamos en ronda PvE y el monstruo sigue vivo,
-    // NO abrir la tienda. La tienda se abrirá DESPUÉS de derrotar al monstruo.
-    if (window.enRondaPvE === true) {
-        const hayMonstruoVivo = enemyBoard.some(u => u && u.esMonstruo && u.hp > 0 && !u.muerto);
-        if (hayMonstruoVivo) {
-            console.log('👾 Ronda PvE: monstruo vivo. La tienda se abrirá DESPUÉS de derrotarlo.');
-            return;
-        }
-    }
-
+    // 🆕 FIX: en rondas PvE la tienda también debe regenerarse y abrirse igual
+    // que en PvP. Antes se salía aquí si el monstruo PvE seguía vivo, lo que
+    // dejaba la tienda con la última tienda de la ronda anterior (sin actualizar).
     console.log("🛒 mostrarTiendaPostRonda()");
 
     if (!tiendaBloqueada) {

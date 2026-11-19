@@ -26,6 +26,10 @@
     --accent-green:   #34d399;
     --accent-purple:  #a78bfa;
 
+    /* 🎨 Color del borde de cada jugador (seleccionable en el selector) */
+    --borde-j1-rgb:  77, 212, 247;   /* cian (J1 por defecto) */
+    --borde-j2-rgb: 255, 77, 141;    /* rosa (J2 por defecto) */
+
     --text-main:      #e8eefc;
     --text-soft:      #a8b4d4;
     --text-mute:      #6b7aa0;
