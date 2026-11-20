@@ -1,5 +1,8 @@
 // ============================================================
-// MODO MÓVIL - ayudas de UI (rotación, ranking, clases)
+// MODO MÓVIL - ayudas de UI
+// - En móvil SIEMPRE horizontal: en retrato se bloquea con un aviso.
+// - Botón para pantalla completa + bloqueo de orientación (Android).
+// - Botón 🏆 del header para abrir el ranking (oculto en móvil).
 // ============================================================
 (function () {
     function esPantallaPequena() {
@@ -17,27 +20,43 @@
     }
 
     // ------------------------------------------------------------
-    // Aviso "gira el móvil" (solo dentro de la partida)
+    // Aviso "gira el móvil" (bloquea el juego en vertical)
     // ------------------------------------------------------------
     function crearAvisoRotacion() {
         if (document.getElementById('mobRotate')) return;
-        const cont = document.getElementById('juegoContainer');
-        if (!cont) return;
         const d = document.createElement('div');
         d.id = 'mobRotate';
         d.innerHTML = `
             <div class="mob-rotate-card">
                 <div class="mob-rotate-icon">📱</div>
                 <h3>Gira el móvil</h3>
-                <p>Pokémon TFT se juega mejor en horizontal: así ves los dos tableros, la tienda y los objetos a la vez.</p>
-                <button id="mobRotateForce" type="button">Jugar en vertical igualmente</button>
+                <p>Pokémon TFT solo se puede jugar en <b>horizontal</b>: así ves los dos tableros, la tienda y los objetos a la vez.</p>
+                <button id="mobRotateFull" class="mob-rotate-full" type="button">⛶ Pantalla completa horizontal</button>
+                <div class="mob-rotate-hint">Si el botón no hace nada (iPhone), gira el móvil manualmente.</div>
             </div>`;
-        cont.appendChild(d);
-        const btn = document.getElementById('mobRotateForce');
-        if (btn) btn.addEventListener('click', () => {
-            document.body.classList.add('mob-force-portrait');
-            d.style.display = 'none';
-        });
+        document.body.appendChild(d);
+
+        const btn = document.getElementById('mobRotateFull');
+        if (btn) btn.addEventListener('click', intentarHorizontal);
+    }
+
+    // Intenta pantalla completa + bloqueo de orientación (solo Android/Chrome;
+    // en iOS no está soportado y el usuario tendrá que girar el móvil).
+    function intentarHorizontal() {
+        try {
+            const el = document.documentElement;
+            const pedirFull = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+            const p = pedirFull ? pedirFull.call(el) : null;
+            const lock = () => {
+                try {
+                    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                        screen.orientation.lock('landscape').catch(() => { });
+                    }
+                } catch (e) { }
+            };
+            if (p && typeof p.then === 'function') p.then(lock).catch(() => lock());
+            else lock();
+        } catch (e) { }
     }
 
     // ------------------------------------------------------------
@@ -85,18 +104,11 @@
     }
 
     let t = null;
-    function onResize() {
+    window.addEventListener('resize', function () {
         clearTimeout(t);
-        t = setTimeout(() => {
-            actualizarClases();
-            // Si pasamos a paisaje, el aviso deja de aplicar
-            if (window.innerWidth > window.innerHeight) {
-                document.body.classList.remove('mob-force-portrait');
-            }
-        }, 180);
-    }
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
+        t = setTimeout(actualizarClases, 180);
+    });
+    window.addEventListener('orientationchange', () => setTimeout(actualizarClases, 250));
 
-    window.mobileUI = { actualizarClases };
+    window.mobileUI = { actualizarClases, intentarHorizontal };
 })();

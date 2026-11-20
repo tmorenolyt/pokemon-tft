@@ -299,8 +299,10 @@
    ============================================================ */
 #mobRotate { display: none; }
 
-@media (orientation: portrait) and (max-width: 900px) {
-    body:not(.mob-force-portrait) #mobRotate {
+/* En móvil táctil SIEMPRE horizontal: en retrato se bloquea con este aviso */
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 1000px) {
+    html, body { overflow: hidden !important; height: 100dvh !important; }
+    #mobRotate {
         display: flex;
         position: fixed;
         inset: 0;
@@ -336,23 +338,24 @@
         cursor: pointer;
     }
 
-    /* Si decide jugar en vertical: scroll vertical cómodo */
-    html, body { height: auto !important; overflow-y: auto !important; }
-    body.mob-force-portrait { overflow-y: auto !important; }
-    body.mob-force-portrait #juegoContainer { overflow: visible !important; }
-    body.mob-force-portrait #juegoContainer .container {
-        height: auto !important;
-        min-height: 100dvh !important;
-        overflow: visible !important;
-        padding-bottom: calc(var(--action-bar-height) + 70px) !important;
+    #mobRotate .mob-rotate-hint {
+        margin-top: 12px;
+        font-size: 0.72rem;
+        color: #6b8aaa;
+        line-height: 1.3;
     }
-    body.mob-force-portrait #juegoContainer .arena-row { flex-wrap: wrap !important; }
-    body.mob-force-portrait #juegoContainer .board-wrapper { flex: 1 1 100% !important; max-width: 100% !important; }
-    body.mob-force-portrait #juegoContainer .board-grid { max-width: 430px; margin: 0 auto; }
-    body.mob-force-portrait #juegoContainer .board-cell { aspect-ratio: 1 / 1.05 !important; height: auto !important; }
-    body.mob-force-portrait #juegoContainer .side-column-player,
-    body.mob-force-portrait #juegoContainer .side-column-enemy { flex: 1 1 100% !important; max-width: 100% !important; }
-    body.mob-force-portrait #juegoContainer .action-bar { overflow-x: auto !important; }
+    #mobRotate button.mob-rotate-full {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #2f6bd8, #1f4fa8);
+        color: #fff;
+        font-size: 0.86rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 8px;
+    }
 }
 
 /* ============================================================

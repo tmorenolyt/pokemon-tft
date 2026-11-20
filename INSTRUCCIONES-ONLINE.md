@@ -104,11 +104,13 @@ la lógica del servidor. La clave + repo privado es el límite práctico.
 
 El juego detecta pantallas pequeñas y cambia solo:
 
-- **Paisaje (recomendado)**: todo cabe en una pantalla. Cabecera y barra de
-  acciones compactas, los dos tableros lado a lado, banco y baúl reducidos y el
-  ranking oculto (se abre con el botón **🏆** de la cabecera).
-- **Retrato**: sale el aviso **“Gira el móvil”**. Si eliges *Jugar en vertical*,
-  la pantalla pasa a ser desplazable (los tableros se apilan).
+- **Solo horizontal**: en móvil táctil el juego se bloquea en vertical con un
+  aviso **“Gira el móvil”** (también en el menú). Incluye botón de **pantalla
+  completa horizontal** para Android/Chrome; en iPhone hay que girar el móvil a
+  mano (Safari no permite bloquear la orientación).
+- **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
+  los dos tableros lado a lado, banco y baúl reducidos y el ranking oculto (se
+  abre con el botón **🏆** de la cabecera).
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo.
 - **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
   Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.
