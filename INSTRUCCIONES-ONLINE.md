@@ -109,8 +109,9 @@ El juego detecta pantallas pequeñas y cambia solo:
   completa horizontal** para Android/Chrome; en iPhone hay que girar el móvil a
   mano (Safari no permite bloquear la orientación).
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
-  los dos tableros lado a lado, banco y baúl reducidos y el ranking oculto (se
-  abre con el botón **🏆** de la cabecera).
+  los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
+  y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
+  Las sinergias verticales se ocultan en móvil para no tapar el tablero.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo.
 - **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
   Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.
