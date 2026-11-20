@@ -100,6 +100,24 @@ la lógica del servidor. La clave + repo privado es el límite práctico.
 
 ---
 
+## 📱 Jugar en el móvil
+
+El juego detecta pantallas pequeñas y cambia solo:
+
+- **Paisaje (recomendado)**: todo cabe en una pantalla. Cabecera y barra de
+  acciones compactas, los dos tableros lado a lado, banco y baúl reducidos y el
+  ranking oculto (se abre con el botón **🏆** de la cabecera).
+- **Retrato**: sale el aviso **“Gira el móvil”**. Si eliges *Jugar en vertical*,
+  la pantalla pasa a ser desplazable (los tableros se apilan).
+- **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo.
+- **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
+  Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.
+- El panel del amistoso online se coloca por encima de la barra de acciones.
+
+Archivos: `css/mobile.css` y `js/ui/mobile.js` (se cargan al final).
+
+---
+
 ## 🏷️ Versión desplegada (saber si se ha actualizado)
 
 En el **menú principal**, justo debajo de la ficha de perfil, aparece:

@@ -1,0 +1,407 @@
+/* ============================================================
+   MODO MÓVIL — layout compacto (paisaje) + aviso en retrato
+   Se carga DESPUÉS de todos los CSS para poder sobrescribir.
+   ============================================================ */
+
+/* ---------- Base móvil ---------- */
+@media (max-width: 900px) {
+    :root {
+        --action-bar-height: 66px;
+        --action-bar-gap: 6px;
+    }
+
+    /* El ranking ocupaba media pantalla y tapaba el tablero */
+    #rankingTorneo { display: none !important; }
+
+    /* Las sinergias verticales son enormes en móvil */
+    .traits-vertical { display: none !important; }
+
+    /* Ranking desplegable con el botón 🏆 del header */
+    body.mob-ranking-open #rankingTorneo {
+        display: block !important;
+        position: fixed !important;
+        top: 44px !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: 72px !important;
+        width: auto !important;
+        max-width: 460px !important;
+        margin: 0 auto !important;
+        padding: 10px !important;
+        overflow-y: auto !important;
+        background: rgba(8, 14, 26, 0.97) !important;
+        border: 1px solid #2a4066 !important;
+        border-radius: 14px !important;
+        z-index: 150000 !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #mobRankingBtn { display: inline-flex !important; }
+
+    /* Panel del amistoso online: no tapar la barra de acciones */
+    #amistosoPanel {
+        right: 4px !important;
+        bottom: calc(var(--action-bar-height) + 10px) !important;
+        max-width: 190px !important;
+        padding: 8px !important;
+        font-size: 11px !important;
+        transform: scale(0.92);
+        transform-origin: bottom right;
+    }
+
+    /* Nombres largos (rivales PvE) sin romper el panel */
+    #juegoContainer .player-info-panel { min-width: 0 !important; }
+    #juegoContainer .player-info-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    #juegoContainer .side-column-player,
+    #juegoContainer .side-column-enemy { overflow: hidden; }
+}
+
+/* Botón 🏆 del header (solo móvil) */
+#mobRankingBtn { display: none; }
+
+/* ============================================================
+   PAISAJE (móvil): todo el juego en una sola pantalla
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 560px) {
+    /* En el juego no hay scroll (todo se ajusta); en el menú sí se puede
+       desplazar si hace falta. */
+    html, body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100dvh;
+        overscroll-behavior: none;
+    }
+    #juegoContainer { overflow: hidden; }
+
+    /* -------- MENÚ compacto en paisaje -------- */
+    #menuPrincipal {
+        height: auto !important;
+        min-height: 100dvh;
+        overflow-y: auto !important;
+        align-items: flex-start !important;
+    }
+    #menuPrincipal .menu-container {
+        height: auto !important;
+        min-height: 100dvh;
+        padding: 8px 14px !important;
+    }
+    #menuPrincipal .menu-header { padding-bottom: 8px !important; }
+    #menuPrincipal .logo-icon { font-size: 1.6rem !important; }
+    #menuPrincipal .logo-text h1 { font-size: 1.1rem !important; }
+    #menuPrincipal .logo-text p { font-size: 0.6rem !important; }
+    #menuPrincipal .menu-icon-btn { width: 32px !important; height: 32px !important; font-size: 0.9rem !important; }
+    #menuPrincipal .main-content { flex: 0 0 auto !important; }
+    #menuPrincipal .section-title { margin-bottom: 6px !important; }
+    #menuPrincipal .section-title h2 { font-size: 1.3rem !important; }
+    #menuPrincipal .section-title .line { width: 24px !important; }
+    #menuPrincipal .section-subtitle { margin-bottom: 10px !important; margin-left: 24px !important; font-size: 0.8rem !important; }
+    #menuPrincipal .modes-grid { gap: 10px !important; }
+    #menuPrincipal .mode-card {
+        min-height: 104px !important;
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+    }
+    #menuPrincipal .mode-card h3 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
+    #menuPrincipal .mode-card p { font-size: 0.62rem !important; line-height: 1.25 !important; padding-right: 24px !important; }
+    #menuPrincipal .mode-icon { font-size: 1.4rem !important; }
+    #menuPrincipal .mode-badge-proximamente { top: 8px !important; right: 8px !important; font-size: 0.5rem !important; padding: 3px 7px !important; }
+    #menuPrincipal .footer { padding-top: 6px !important; }
+    #menuPrincipal .profile-capsule { transform: scale(0.85); transform-origin: top center; }
+    #menuPrincipal .app-version { margin-top: 2px !important; font-size: 0.6rem !important; }
+
+    #juegoContainer .container {
+        height: 100dvh !important;
+        min-height: 0 !important;
+        max-width: none !important;
+        padding: 2px 4px calc(var(--action-bar-height) + var(--action-bar-gap)) 4px !important;
+        gap: 3px !important;
+        overflow: hidden !important;
+    }
+
+    /* La cadena de flex debe poder ENCOGER: si no, la arena mide su alto
+       de contenido (600+ px) y el tablero se sale de la pantalla. */
+    #juegoContainer .vs-section.arena-horizontal {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: hidden !important;
+    }
+
+    /* -------- HEADER compacto -------- */
+    #juegoContainer .header {
+        flex: 0 0 auto;
+        padding: 2px 6px !important;
+        gap: 6px !important;
+        border-radius: 8px !important;
+        min-height: 0 !important;
+    }
+    #juegoContainer .header-left { gap: 6px !important; }
+    #juegoContainer .header-left h1 { font-size: 0.78rem !important; letter-spacing: 0 !important; }
+    #juegoContainer .round-badge { font-size: 0.66rem !important; padding: 2px 7px !important; }
+    #juegoContainer .stat-item { font-size: 0.66rem !important; }
+    #juegoContainer .enemy-level-display,
+    #juegoContainer .enemy-gold-display { font-size: 0.66rem !important; padding: 2px 6px !important; }
+    #juegoContainer .btn-volver-menu { width: 28px !important; height: 28px !important; padding: 0 !important; }
+
+    /* -------- ARENA en una fila -------- */
+    #juegoContainer .arena-row {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        flex-wrap: nowrap !important;
+        padding: 0 !important;
+        gap: 2px !important;
+        align-items: stretch;
+    }
+
+    /* Columnas laterales estrechas */
+    #juegoContainer .side-column-player,
+    #juegoContainer .side-column-enemy {
+        flex: 0 0 120px !important;
+        min-width: 0 !important;
+        max-width: 120px !important;
+        gap: 4px !important;
+        justify-content: flex-start;
+    }
+
+    #juegoContainer .player-info-panel {
+        padding: 4px !important;
+        border-radius: 8px !important;
+        gap: 2px !important;
+    }
+    #juegoContainer .player-info-header { gap: 4px !important; }
+    #juegoContainer .player-info-avatar { width: 24px !important; height: 24px !important; font-size: 0.8rem !important; }
+    #juegoContainer .player-info-name { font-size: 0.62rem !important; }
+    #juegoContainer .player-info-hp { font-size: 0.6rem !important; }
+    #juegoContainer .player-info-hp-bar { height: 5px !important; }
+    #juegoContainer .player-info-stats { gap: 2px !important; }
+    #juegoContainer .player-info-stat { font-size: 0.55rem !important; padding: 1px 3px !important; }
+    #juegoContainer .player-info-stat img { width: 14px !important; height: 14px !important; }
+
+    /* Banco compacto */
+    #juegoContainer .bank-container { padding: 2px !important; border-radius: 8px !important; }
+    #juegoContainer .bank-header { padding: 1px 3px !important; }
+    #juegoContainer .big-counter { font-size: 0.7rem !important; }
+    #juegoContainer .bank-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 2px !important;
+    }
+    #juegoContainer .bank-cell {
+        min-height: 0 !important;
+        border-radius: 4px !important;
+        padding: 1px !important;
+    }
+    #juegoContainer .bank-cell .unit-sprite { width: 24px !important; height: 24px !important; }
+    #juegoContainer .bank-cell .cost-badge { font-size: 0.5rem !important; }
+
+    /* Baúl de objetos (tiras laterales) */
+    #juegoContainer .objetos-vertical-container {
+        flex: 0 0 26px !important;
+        padding: 0 !important;
+    }
+    #juegoContainer .objeto-slot-vertical {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        min-height: 20px !important;
+        border-width: 1px !important;
+    }
+
+    /* -------- TABLEROS: ocupan el alto disponible -------- */
+    #juegoContainer .board-wrapper {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        padding: 0 2px !important;
+        gap: 0 !important;
+    }
+    #juegoContainer .board-grid {
+        height: 100% !important;
+        min-height: 0 !important;
+        grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+        gap: 3px !important;
+    }
+    #juegoContainer .board-cell {
+        aspect-ratio: auto !important;
+        height: 100% !important;
+        padding: 1px 1px 2px 1px !important;
+        border-radius: 6px !important;
+    }
+    #juegoContainer .board-cell .unit-sprite {
+        width: 36px !important;
+        height: 36px !important;
+        max-width: 90% !important;
+    }
+    #juegoContainer .board-cell .unit-name { font-size: 0.34rem !important; line-height: 1 !important; }
+    #juegoContainer .board-cell::before { font-size: 0.36rem !important; bottom: 1px !important; left: 2px !important; }
+    #juegoContainer .unit-hp-bar,
+    #juegoContainer .energy-bar { height: 4px !important; min-height: 4px !important; max-height: 4px !important; }
+    #juegoContainer .board-cell .star-icon,
+    #juegoContainer .board-cell .unit-stars { font-size: 0.4rem !important; }
+
+    /* -------- BARRA DE ACCIONES -------- */
+    #juegoContainer .action-bar {
+        left: 4px !important;
+        right: 4px !important;
+        bottom: 4px !important;
+        transform: none !important;
+        width: auto !important;
+        height: 52px !important;
+        padding: 3px 6px !important;
+        gap: 4px !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none;
+    }
+    /* En pantallas muy bajas (iPhone SE en paisaje) el nivel ya se ve en el
+       panel del jugador: se oculta para que la barra quepa en una fila. */
+    @media (max-height: 420px) {
+        #juegoContainer .action-bar-left { display: none !important; }
+    }
+    #juegoContainer .action-bar::-webkit-scrollbar { display: none; }
+    #juegoContainer .action-bar .btn-action {
+        padding: 4px 8px !important;
+        font-size: 0.64rem !important;
+        min-height: 0 !important;
+        height: 44px !important;
+        border-radius: 8px !important;
+        flex: 0 1 auto !important;
+    }
+    #juegoContainer .nivel-exp-wrapper { transform: scale(0.82); transform-origin: left center; }
+    #juegoContainer .action-bar-left { flex: 0 0 auto !important; }
+
+    /* Tienda a pantalla completa */
+    #tiendaOverlay .tienda-modal {
+        width: 98vw !important;
+        max-width: none !important;
+        max-height: 94dvh !important;
+        overflow-y: auto !important;
+        padding: 10px !important;
+    }
+    #tiendaGridTienda { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
+    #tiendaGridTienda .shop-card .unit-sprite { width: 48px !important; height: 48px !important; }
+    #tiendaGridTienda .shop-card .shop-card-name { font-size: 0.6rem !important; }
+    #tiendaGridTienda .shop-card { min-height: 0 !important; }
+}
+
+/* ============================================================
+   RETRATO: aviso de girar el móvil
+   ============================================================ */
+#mobRotate { display: none; }
+
+@media (orientation: portrait) and (max-width: 900px) {
+    body:not(.mob-force-portrait) #mobRotate {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 200000;
+        align-items: center;
+        justify-content: center;
+        background: rgba(5, 10, 20, 0.97);
+        padding: 18px;
+        font-family: Inter, system-ui, sans-serif;
+    }
+    #mobRotate .mob-rotate-card {
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+        color: #e6eefc;
+        background: #0f172a;
+        border: 1px solid #2a4066;
+        border-radius: 18px;
+        padding: 26px 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+    #mobRotate .mob-rotate-icon { font-size: 3.2rem; transform: rotate(-90deg); margin-bottom: 6px; }
+    #mobRotate h3 { margin: 0 0 6px; font-size: 1.15rem; }
+    #mobRotate p { margin: 0 0 18px; color: #8fb0d6; font-size: 0.85rem; line-height: 1.4; }
+    #mobRotate button {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #2a4066;
+        border-radius: 10px;
+        background: transparent;
+        color: #9fb6d4;
+        font-size: 0.82rem;
+        cursor: pointer;
+    }
+
+    /* Si decide jugar en vertical: scroll vertical cómodo */
+    html, body { height: auto !important; overflow-y: auto !important; }
+    body.mob-force-portrait { overflow-y: auto !important; }
+    body.mob-force-portrait #juegoContainer { overflow: visible !important; }
+    body.mob-force-portrait #juegoContainer .container {
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+        padding-bottom: calc(var(--action-bar-height) + 70px) !important;
+    }
+    body.mob-force-portrait #juegoContainer .arena-row { flex-wrap: wrap !important; }
+    body.mob-force-portrait #juegoContainer .board-wrapper { flex: 1 1 100% !important; max-width: 100% !important; }
+    body.mob-force-portrait #juegoContainer .board-grid { max-width: 430px; margin: 0 auto; }
+    body.mob-force-portrait #juegoContainer .board-cell { aspect-ratio: 1 / 1.05 !important; height: auto !important; }
+    body.mob-force-portrait #juegoContainer .side-column-player,
+    body.mob-force-portrait #juegoContainer .side-column-enemy { flex: 1 1 100% !important; max-width: 100% !important; }
+    body.mob-force-portrait #juegoContainer .action-bar { overflow-x: auto !important; }
+}
+
+/* ============================================================
+   TIENDA en móvil: modal a pantalla completa con scroll
+   ============================================================ */
+@media (max-width: 1000px) {
+    #tiendaOverlay { align-items: stretch !important; justify-content: center !important; padding: 4px !important; }
+    #tiendaOverlay .tienda-modal {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: calc(100dvh - 8px) !important;
+        max-height: calc(100dvh - 8px) !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        padding: 10px !important;
+    }
+    #tiendaOverlay #tiendaGridTienda {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #tiendaOverlay .tienda-grid .shop-card .unit-sprite { width: 54px !important; height: 54px !important; }
+    #tiendaOverlay .tienda-grid .shop-card { min-height: 0 !important; }
+    #tiendaOverlay .objeto-card { padding: 8px !important; }
+    #tiendaOverlay .objeto-icon { width: 42px !important; height: 42px !important; }
+    #tiendaOverlay .objeto-nombre { font-size: 0.72rem !important; }
+    #tiendaOverlay .objeto-desc { font-size: 0.62rem !important; }
+}
+
+/* ============================================================
+   Ajustes extra de usabilidad táctil
+   ============================================================ */
+@media (pointer: coarse) and (orientation: landscape) {
+    /* Arrastrar Pokémon entre casillas con el dedo (en paisaje no hay scroll) */
+    #playerBoard .board-cell, #enemigoBoard .board-cell,
+    #banquilloGrid .bank-cell, #enemyBanquilloGrid .bank-cell { touch-action: none; }
+}
+
+@media (pointer: coarse) {
+    /* Evita el zoom accidental al tocar dos veces */
+    #juegoContainer, #tiendaOverlay { touch-action: manipulation; }
+    /* Arrastrar objetos del baúl con el dedo sin que el navegador scrollee */
+    .objeto-slot-vertical, .objetos-vertical-grid { touch-action: none; }
+    /* Botones un poco más grandes para el dedo */
+    .action-bar .btn-action { min-height: 40px; }
+    /* La tienda se puede desplazar con el dedo */
+    #tiendaOverlay .tienda-modal, #rankingTorneo { -webkit-overflow-scrolling: touch; }
+}
