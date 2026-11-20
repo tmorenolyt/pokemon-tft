@@ -113,6 +113,11 @@ El juego detecta pantallas pequeñas y cambia solo:
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
   Las sinergias se abren con el botón **⚔️** de la cabecera (panel desplegable).
   La barra de acciones va centrada y mantiene visible la barra de XP.
+- **Cartas del tablero**: se ven las barras de **vida**, **energía** y **definitiva**
+  (esta última solo si el Pokémon lleva Disco Definitivo). Para que quepan, en
+  móvil no se dibujan los iconos de objetos equipados dentro de la carta.
+- **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
+  pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo.
 - **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
   Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.

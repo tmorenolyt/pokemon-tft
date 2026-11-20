@@ -121,7 +121,7 @@
         height: 100dvh !important;
         min-height: 0 !important;
         max-width: none !important;
-        padding: 2px 4px calc(var(--action-bar-height) + var(--action-bar-gap)) 4px !important;
+        padding: 1px 4px 54px 4px !important;
         gap: 3px !important;
         overflow: hidden !important;
     }
@@ -140,7 +140,7 @@
     /* -------- HEADER compacto -------- */
     #juegoContainer .header {
         flex: 0 0 auto;
-        padding: 2px 6px !important;
+        padding: 1px 6px !important;
         gap: 6px !important;
         border-radius: 8px !important;
         min-height: 0 !important;
@@ -153,7 +153,7 @@
     #juegoContainer .stat-item { font-size: 0.66rem !important; }
     #juegoContainer .enemy-level-display,
     #juegoContainer .enemy-gold-display { font-size: 0.66rem !important; padding: 2px 6px !important; }
-    #juegoContainer .btn-volver-menu { width: 28px !important; height: 28px !important; padding: 0 !important; }
+    #juegoContainer .btn-volver-menu { width: 26px !important; height: 26px !important; padding: 0 !important; }
 
     /* -------- ARENA en una fila -------- */
     #juegoContainer .arena-row {
@@ -167,13 +167,18 @@
     }
 
     /* Columnas laterales estrechas */
+    /* ⚠️ `arena-horizontal.css` (max-width:992px) las convierte en fila con
+       wrap; en móvil deben seguir siendo COLUMNAS (panel arriba, banco abajo)
+       o el panel se estira y el banco se coloca al lado. */
     #juegoContainer .side-column-player,
     #juegoContainer .side-column-enemy {
-        flex: 0 0 120px !important;
-        min-width: 0 !important;
+        flex: 0 1 120px !important;
+        min-width: 88px !important;
         max-width: 120px !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
         gap: 4px !important;
-        justify-content: flex-start;
+        justify-content: flex-start !important;
         /* Quitar los márgenes internos del layout de escritorio */
         margin: 0 !important;
     }
@@ -183,7 +188,8 @@
         position: relative !important;
         left: 0 !important;
         top: 0 !important;
-        margin: 0 !important;
+        /* El banco se queda pegado abajo de su columna (como en escritorio) */
+        margin: auto 0 0 0 !important;
     }
     #juegoContainer #objetosVerticalContainer,
     #juegoContainer #objetosVerticalContainerEnemigo {
@@ -199,7 +205,15 @@
         border-radius: 8px !important;
         gap: 2px !important;
         min-height: 0 !important;
+        /* El panel no debe crecer con nombres largos (rivales PvE) */
+        width: 100% !important;
+        max-width: 100% !important;
+        align-self: stretch !important;
+        overflow: hidden !important;
     }
+    #juegoContainer .player-info-text { min-width: 0 !important; }
+    #juegoContainer .player-info-stats { overflow: hidden !important; }
+    #juegoContainer .player-info-stat { overflow: hidden !important; }
     #juegoContainer .bank-container { flex: 0 0 auto !important; }
     #juegoContainer .player-info-header { gap: 4px !important; }
     #juegoContainer .player-info-avatar { width: 24px !important; height: 24px !important; font-size: 0.8rem !important; }
@@ -223,8 +237,18 @@
 
     /* Banco compacto */
     #juegoContainer .bank-container { padding: 2px !important; border-radius: 8px !important; }
-    #juegoContainer .bank-header { padding: 1px 3px !important; }
-    #juegoContainer .big-counter { font-size: 0.7rem !important; }
+    #juegoContainer .bank-header {
+        padding: 0 3px 2px !important;
+        margin-bottom: 2px !important;
+        justify-content: center !important;
+        gap: 2px !important;
+        overflow: hidden !important;
+    }
+    /* Las 6 pokéballs + el contador no caben juntos en 120px: se ocultan las
+       bolas (decorativas) y queda el contador compacto y centrado. */
+    #juegoContainer .bank-capsule { display: none !important; }
+    #juegoContainer .bank-header .big-counter { font-size: 0.62rem !important; line-height: 1 !important; }
+    #juegoContainer .bank-header .big-counter .max { font-size: 0.62rem !important; margin-left: 1px !important; }
     #juegoContainer .bank-grid {
         grid-template-columns: repeat(4, 1fr) !important;
         gap: 2px !important;
@@ -239,14 +263,16 @@
 
     /* Baúl de objetos (tiras laterales) */
     #juegoContainer .objetos-vertical-container {
-        flex: 0 0 26px !important;
+        flex: 0 1 24px !important;
+        min-width: 20px !important;
         padding: 0 !important;
+        justify-content: flex-start !important;
     }
     #juegoContainer .objeto-slot-vertical {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
-        min-height: 20px !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
         border-width: 1px !important;
     }
 
@@ -272,7 +298,7 @@
         grid-template-columns: repeat(4, 1fr) !important;
         grid-template-rows: repeat(5, 1fr) !important;
         min-height: 0 !important;
-        gap: 3px !important;
+        gap: 2px !important;
     }
     #juegoContainer .board-cell {
         width: auto !important;
@@ -288,14 +314,46 @@
         display: flex !important;
     }
     #juegoContainer .board-cell .unit-sprite {
-        width: min(38px, 80%) !important;
-        height: min(38px, 80%) !important;
-        max-width: 80% !important;
+        width: 34px !important;
+        height: 34px !important;
+        max-width: 84% !important;
+        max-height: 34px !important;
+        margin: 0 !important;
+        object-fit: contain;
     }
-    #juegoContainer .board-cell .unit-name { font-size: 0.34rem !important; line-height: 1 !important; }
+    #juegoContainer .board-cell .unit-name { font-size: 0.3rem !important; line-height: 1 !important; margin: 0 !important; }
     #juegoContainer .board-cell::before { font-size: 0.36rem !important; bottom: 1px !important; left: 2px !important; }
-    #juegoContainer .unit-hp-bar,
-    #juegoContainer .energy-bar { height: 4px !important; min-height: 4px !important; max-height: 4px !important; }
+
+    /* 💚❤️ BARRAS: hp, energía y definitiva visibles dentro de la casilla */
+    #juegoContainer .board-cell .unit-hp-container,
+    #juegoContainer #playerBoard .unit-hp-bar,
+    #juegoContainer #enemigoBoard .unit-hp-bar,
+    #juegoContainer #playerBoard .energy-bar,
+    #juegoContainer #enemigoBoard .energy-bar,
+    #juegoContainer #playerBoard .ulti-bar,
+    #juegoContainer #enemigoBoard .ulti-bar {
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    #juegoContainer .board-cell .unit-hp-container { height: 4px !important; }
+    #juegoContainer #playerBoard .unit-hp-bar,
+    #juegoContainer #enemigoBoard .unit-hp-bar { height: 4px !important; min-height: 4px !important; max-height: 4px !important; }
+    #juegoContainer #playerBoard .energy-bar,
+    #juegoContainer #enemigoBoard .energy-bar { height: 3px !important; min-height: 3px !important; max-height: 3px !important; }
+    #juegoContainer #playerBoard .ulti-bar,
+    #juegoContainer #enemigoBoard .ulti-bar { height: 3px !important; min-height: 3px !important; max-height: 3px !important; width: calc(100% - 2px) !important; }
+    #juegoContainer #playerBoard .unit-hp-bar .hp-fill,
+    #juegoContainer #enemigoBoard .unit-hp-bar .hp-fill,
+    #juegoContainer #playerBoard .energy-bar .energy-fill,
+    #juegoContainer #enemigoBoard .energy-bar .energy-fill,
+    #juegoContainer #playerBoard .ulti-bar .ulti-fill,
+    #juegoContainer #enemigoBoard .ulti-bar .ulti-fill { height: 100% !important; }
+
+    /* Los objetos equipados no caben en la tarjeta pequeña: se ocultan para
+       dejar sitio a las barras de vida/energía/ulti. */
+    #juegoContainer .board-cell .objetos-equipados { display: none !important; }
+
     #juegoContainer .board-cell .star-icon,
     #juegoContainer .board-cell .unit-stars { font-size: 0.4rem !important; }
 
@@ -306,7 +364,7 @@
         bottom: 4px !important;
         transform: none !important;
         width: auto !important;
-        height: 52px !important;
+        height: 48px !important;
         padding: 3px 6px !important;
         gap: 4px !important;
         flex-direction: row !important;
@@ -345,7 +403,7 @@
         padding: 3px 6px !important;
         font-size: 0.6rem !important;
         min-height: 0 !important;
-        height: 42px !important;
+        height: 40px !important;
         border-radius: 8px !important;
         flex: 0 1 auto !important;
         gap: 3px !important;
