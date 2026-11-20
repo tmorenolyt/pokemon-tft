@@ -80,21 +80,52 @@
         right.insertBefore(b, right.firstChild);
     }
 
-    // Al cerrar el ranking tocando fuera
+    // ------------------------------------------------------------
+    // Botón ⚔️ para abrir/cerrar las sinergias en móvil
+    // ------------------------------------------------------------
+    function crearBotonSinergias() {
+        if (document.getElementById('mobTraitsBtn')) return;
+        const right = document.querySelector('#juegoContainer .header-right');
+        if (!right) return;
+        const b = document.createElement('button');
+        b.id = 'mobTraitsBtn';
+        b.className = 'btn-volver-menu';
+        b.type = 'button';
+        b.title = 'Sinergias';
+        b.textContent = '⚔️';
+        b.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.body.classList.toggle('mob-traits-open');
+            b.classList.toggle('activo', document.body.classList.contains('mob-traits-open'));
+        });
+        right.insertBefore(b, right.firstChild);
+    }
+
+    // Al cerrar el ranking o las sinergias tocando fuera
     document.addEventListener('click', (e) => {
-        if (!document.body.classList.contains('mob-ranking-open')) return;
-        const rk = document.getElementById('rankingTorneo');
-        const btn = document.getElementById('mobRankingBtn');
-        if (!rk) return;
-        if (rk.contains(e.target) || (btn && btn.contains(e.target))) return;
-        document.body.classList.remove('mob-ranking-open');
-        if (btn) btn.classList.remove('activo');
+        if (document.body.classList.contains('mob-ranking-open')) {
+            const rk = document.getElementById('rankingTorneo');
+            const btn = document.getElementById('mobRankingBtn');
+            if (rk && !rk.contains(e.target) && !(btn && btn.contains(e.target))) {
+                document.body.classList.remove('mob-ranking-open');
+                if (btn) btn.classList.remove('activo');
+            }
+        }
+        if (document.body.classList.contains('mob-traits-open')) {
+            const tr = document.querySelector('#juegoContainer .side-column-player .traits-vertical');
+            const btn = document.getElementById('mobTraitsBtn');
+            if (tr && !tr.contains(e.target) && !(btn && btn.contains(e.target))) {
+                document.body.classList.remove('mob-traits-open');
+                if (btn) btn.classList.remove('activo');
+            }
+        }
     }, true);
 
     function init() {
         actualizarClases();
         crearAvisoRotacion();
         crearBotonRanking();
+        crearBotonSinergias();
     }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
