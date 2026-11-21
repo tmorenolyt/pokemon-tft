@@ -136,6 +136,10 @@ El juego detecta pantallas pequeñas y cambia solo:
   de 9 px como en escritorio (7 px si el Pokémon lleva Disco Definitivo, que
   añade la barra de ulti); en el banco, una tira de 7 px. Los huecos vacíos no
   se dibujan: para equipar se toca el objeto en el baúl y luego el Pokémon.
+- **Escala de sprites**: se fija desde móvil (antes se colaban los tamaños de
+  escritorio y algunos Pokémon se salían de la casilla): **30 px** en el tablero
+  (máx. ~39 con su escala propia) y **22 px** en el banco, con los iconos de
+  sinergia (7 px) y la estrella (8 px) en miniatura.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la

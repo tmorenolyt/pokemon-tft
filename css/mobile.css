@@ -930,13 +930,39 @@
     #juegoContainer #objetosVerticalContainerEnemigo {
         display: flex !important;
     }
-    #juegoContainer .board-cell .unit-sprite {
-        width: 34px !important;
-        height: 34px !important;
-        max-width: 84% !important;
-        max-height: 34px !important;
+    /* ⚠️ arena-horizontal.css usa selectores con ID y `!important`
+       (`html body #playerBoard .board-cell .unit-sprite`), que ganaban a
+       las reglas de móvil: por eso los sprites del banco/tablero salían
+       enormes y desbordaban la casilla. Duplicamos el ID para ganar. */
+    html body #juegoContainer #playerBoard .board-cell .unit-sprite,
+    html body #juegoContainer #enemigoBoard .board-cell .unit-sprite {
+        width: 30px !important;
+        height: 30px !important;
+        max-width: 30px !important;
+        max-height: 30px !important;
         margin: 0 !important;
         object-fit: contain;
+    }
+    html body #juegoContainer #banquilloGrid .bank-cell .unit-sprite,
+    html body #juegoContainer #enemyBanquilloGrid .bank-cell .unit-sprite {
+        width: 22px !important;
+        height: 22px !important;
+        max-width: 22px !important;
+        max-height: 22px !important;
+        margin: 0 !important;
+        object-fit: contain;
+    }
+    /* En el banco la casilla es de 27 px: iconos y estrella más pequeños */
+    #juegoContainer .bank-cell .unit-traits-left .tipo-icon,
+    #juegoContainer .bank-cell .unit-traits-left .clase-icon {
+        width: 7px !important;
+        height: 7px !important;
+    }
+    #juegoContainer .bank-cell .unit-stars-right img.estrellas-img {
+        width: 8px !important;
+        height: 8px !important;
+        min-width: 8px !important;
+        max-width: 8px !important;
     }
     #juegoContainer .board-cell .unit-name { font-size: 0.3rem !important; line-height: 1 !important; margin: 0 !important; }
     #juegoContainer .board-cell::before { font-size: 0.36rem !important; bottom: 1px !important; left: 2px !important; }
