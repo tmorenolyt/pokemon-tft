@@ -119,9 +119,11 @@ El juego detecta pantallas pequeñas y cambia solo:
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas** y el banco reducido.
   El **baúl de objetos** ya no son dos tiras laterales: se abre con el botón
-  **📦** de la cabecera como panel flotante, con la rejilla de huecos grandes
-  (36 px) para el dedo; al tocar un objeto se cierra solo y ya puedes tocar el
-  Pokémon para equiparlo.
+  **📦** de la cabecera como panel flotante en forma de **tira vertical**: una sola
+  columna de huecos de 32 px (con scroll si hay muchos objetos), pegada a la
+  izquierda para no tapar el tablero; si el rival también tiene objetos, su baúl
+  sale como otra tira a la derecha. Al tocar un objeto el panel se cierra solo y
+  ya puedes tocar el Pokémon para equiparlo.
 - **Ranking**: oculto; se abre con el botón **🏆** de la cabecera en **dos
   columnas**, así se ven los 8 rivales sin hacer scroll. Cada fila lleva su
   **posición** (1, 2, 3…) a la izquierda y el **nivel** como mini insignia en la

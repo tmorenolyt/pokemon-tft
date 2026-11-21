@@ -950,13 +950,15 @@
         left: 8px !important;
         right: auto !important;
         width: auto !important;
-        max-width: 220px !important;
+        max-width: 60px !important;
         height: auto !important;
+        max-height: calc(100dvh - 104px) !important;
+        overflow-y: auto !important;
         min-width: 0 !important;
         flex: 0 0 auto !important;
         flex-direction: column !important;
-        gap: 4px !important;
-        padding: 8px !important;
+        gap: 3px !important;
+        padding: 6px !important;
         margin: 0 !important;
         background: rgba(8, 14, 26, 0.97) !important;
         border: 1px solid #2a4066 !important;
@@ -984,21 +986,22 @@
         color: #93c5fd;
         letter-spacing: 0.5px;
     }
-    /* Huecos en rejilla 4×2 grandes para el dedo */
+    /* Huecos en UNA columna: el baúl abierto es una tira vertical */
     body.mob-baul-open #juegoContainer .objetos-vertical-grid {
         display: grid !important;
-        grid-template-columns: repeat(4, auto) !important;
+        grid-template-columns: auto !important;
         grid-auto-rows: auto !important;
-        gap: 4px !important;
+        justify-items: center !important;
+        gap: 3px !important;
         height: auto !important;
         overflow: visible !important;
     }
     body.mob-baul-open #juegoContainer .objeto-slot-vertical {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
-        min-height: 36px !important;
-        border-radius: 8px !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        border-radius: 7px !important;
     }
     /* Si el rival no tiene nada en el baúl, no se muestra su panel */
     body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo:not(:has(.objeto-slot-vertical[data-objeto-nombre])) {
