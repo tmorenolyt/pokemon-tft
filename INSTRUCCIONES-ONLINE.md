@@ -117,11 +117,15 @@ El juego detecta pantallas pequeñas y cambia solo:
   (VOLVER / JUGAR / TUTORIAL) van abajo, separados del panel. En 2 Jugadores se
   muestran dos tarjetas gemelas lado a lado (sin ilustración) con el VS en medio.
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
-  los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
-  y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
-  En el **ranking** cada fila lleva su **posición** (1, 2, 3…) a la izquierda y el
-  **nivel** como mini insignia en la esquina superior derecha del avatar, para
-  que no se confundan.
+  los dos tableros lado a lado con **casillas cuadradas** y el banco reducido.
+  El **baúl de objetos** ya no son dos tiras laterales: se abre con el botón
+  **📦** de la cabecera como panel flotante, con la rejilla de huecos grandes
+  (36 px) para el dedo; al tocar un objeto se cierra solo y ya puedes tocar el
+  Pokémon para equiparlo.
+- **Ranking**: oculto; se abre con el botón **🏆** de la cabecera en **dos
+  columnas**, así se ven los 8 rivales sin hacer scroll. Cada fila lleva su
+  **posición** (1, 2, 3…) a la izquierda y el **nivel** como mini insignia en la
+  esquina superior derecha del avatar, para que no se confundan.
   Las **sinergias** van fijas **debajo del panel de cada jugador** (como en
   escritorio) en miniatura: icono, contador y circulitos del nivel; si hay
   muchas, se desplazan con el dedo dentro del panel. Ya no hace falta el botón

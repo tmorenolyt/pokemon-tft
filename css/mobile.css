@@ -18,16 +18,21 @@
     /* Las sinergias verticales son enormes en móvil */
     .traits-vertical { display: none !important; }
 
-    /* Ranking desplegable con el botón 🏆 del header */
+    /* Ranking desplegable con el botón 🏆 del header.
+       En móvil va en 2 columnas: caben los 8 rivales sin hacer scroll. */
     body.mob-ranking-open #rankingTorneo {
-        display: block !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        align-content: start !important;
+        gap: 2px 8px !important;
         position: fixed !important;
         top: 44px !important;
         left: 8px !important;
         right: 8px !important;
-        bottom: 72px !important;
+        bottom: auto !important;
         width: auto !important;
-        max-width: 460px !important;
+        max-width: 620px !important;
+        max-height: calc(100dvh - 116px) !important;
         margin: 0 auto !important;
         padding: 10px !important;
         overflow-y: auto !important;
@@ -36,6 +41,11 @@
         border-radius: 14px !important;
         z-index: 150000 !important;
         -webkit-overflow-scrolling: touch;
+    }
+
+    body.mob-ranking-open #rankingTorneo .ranking-header {
+        grid-column: 1 / -1 !important;
+        text-align: center !important;
     }
 
     #mobRankingBtn { display: inline-flex !important; }
@@ -924,11 +934,75 @@
         padding: 1px 1px 2px 1px !important;
         border-radius: 6px !important;
     }
-    /* El baúl de objetos laterales sí se muestra en móvil (arena.css lo
-       ocultaba por ancho) */
+    /* ---- BAÚL DE OBJETOS: desplegable 📦 ----
+       Las dos tiras laterales robaban ancho al tablero. Ahora están
+       ocultas y se abren como panel flotante con el botón 📦 del header. */
     #juegoContainer #objetosVerticalContainer,
     #juegoContainer #objetosVerticalContainerEnemigo {
+        display: none !important;
+    }
+    body.mob-baul-open #juegoContainer #objetosVerticalContainer,
+    body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo {
         display: flex !important;
+        position: fixed !important;
+        top: 44px !important;
+        bottom: auto !important;
+        left: 8px !important;
+        right: auto !important;
+        width: auto !important;
+        max-width: 220px !important;
+        height: auto !important;
+        min-width: 0 !important;
+        flex: 0 0 auto !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 8px !important;
+        margin: 0 !important;
+        background: rgba(8, 14, 26, 0.97) !important;
+        border: 1px solid #2a4066 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+        z-index: 150000 !important;
+        align-self: auto !important;
+    }
+    body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo {
+        left: auto !important;
+        right: 8px !important;
+    }
+    /* Título de cada baúl */
+    body.mob-baul-open #juegoContainer #objetosVerticalContainer::before {
+        content: '📦 Tu baúl';
+        font-size: 0.66rem;
+        font-weight: 800;
+        color: #fbbf24;
+        letter-spacing: 0.5px;
+    }
+    body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo::before {
+        content: '📦 Rival';
+        font-size: 0.66rem;
+        font-weight: 800;
+        color: #93c5fd;
+        letter-spacing: 0.5px;
+    }
+    /* Huecos en rejilla 4×2 grandes para el dedo */
+    body.mob-baul-open #juegoContainer .objetos-vertical-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, auto) !important;
+        grid-auto-rows: auto !important;
+        gap: 4px !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    body.mob-baul-open #juegoContainer .objeto-slot-vertical {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        border-radius: 8px !important;
+    }
+    /* Si el rival no tiene nada en el baúl, no se muestra su panel */
+    body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo:not(:has(.objeto-slot-vertical[data-objeto-nombre])) {
+        display: none !important;
     }
     /* ⚠️ arena-horizontal.css usa selectores con ID y `!important`
        (`html body #playerBoard .board-cell .unit-sprite`), que ganaban a

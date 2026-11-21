@@ -81,6 +81,42 @@
     }
 
     // ------------------------------------------------------------
+    // Botón 📦 para abrir/cerrar el baúl de objetos en móvil
+    // (antes eran dos tiras laterales que robaban ancho al tablero)
+    // ------------------------------------------------------------
+    function crearBotonBaul() {
+        if (document.getElementById('mobBaulBtn')) return;
+        const right = document.querySelector('#juegoContainer .header-right');
+        if (!right) return;
+        const b = document.createElement('button');
+        b.id = 'mobBaulBtn';
+        b.className = 'btn-volver-menu';
+        b.type = 'button';
+        b.title = 'Baúl de objetos';
+        b.textContent = '📦';
+        b.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.body.classList.toggle('mob-baul-open');
+            b.classList.toggle('activo', document.body.classList.contains('mob-baul-open'));
+        });
+        right.insertBefore(b, right.firstChild);
+    }
+
+    // Al tocar un objeto del baúl se cierra el desplegable para poder
+    // tocar el Pokémon y equiparlo (flujo tocar-objeto → tocar-Pokémon).
+    document.addEventListener('click', (e) => {
+        if (!document.body.classList.contains('mob-baul-open')) return;
+        const slot = e.target && e.target.closest ? e.target.closest('.objeto-slot-vertical') : null;
+        if (slot && slot.dataset && slot.dataset.objetoNombre) {
+            setTimeout(() => {
+                document.body.classList.remove('mob-baul-open');
+                const btn = document.getElementById('mobBaulBtn');
+                if (btn) btn.classList.remove('activo');
+            }, 0);
+        }
+    }, true);
+
+    // ------------------------------------------------------------
     // Botón ⚔️ para abrir/cerrar las sinergias en móvil
     // ------------------------------------------------------------
     function crearBotonSinergias() {
@@ -119,6 +155,16 @@
                 if (btn) btn.classList.remove('activo');
             }
         }
+        if (document.body.classList.contains('mob-baul-open')) {
+            const b1 = document.getElementById('objetosVerticalContainer');
+            const b2 = document.getElementById('objetosVerticalContainerEnemigo');
+            const btn = document.getElementById('mobBaulBtn');
+            const dentro = (b1 && b1.contains(e.target)) || (b2 && b2.contains(e.target)) || (btn && btn.contains(e.target));
+            if (!dentro) {
+                document.body.classList.remove('mob-baul-open');
+                if (btn) btn.classList.remove('activo');
+            }
+        }
     }, true);
 
     function init() {
@@ -126,6 +172,7 @@
         crearAvisoRotacion();
         crearBotonRanking();
         crearBotonSinergias();
+        crearBotonBaul();
     }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
