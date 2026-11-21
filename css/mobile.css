@@ -121,6 +121,123 @@
     #menuPrincipal .profile-capsule { transform: scale(0.85); transform-origin: top center; }
     #menuPrincipal .app-version { margin-top: 2px !important; font-size: 0.6rem !important; }
 
+    /* ============================================================
+       VISTA SELECCIÓN (1 JUGADOR / 2 JUGADORES) EN MÓVIL
+       El diseño de escritorio es vertical (personaje grande + panel
+       alto) y medía ~870 px: aquí se compacta a una sola pantalla.
+       ============================================================ */
+    #menuPrincipal .seleccion-container {
+        padding: 2px 10px 6px !important;
+        height: auto !important;
+        min-height: calc(100dvh - 54px) !important;
+        justify-content: center !important;
+        gap: 4px !important;
+    }
+    #menuPrincipal .sel-title-container {
+        margin-bottom: 0 !important;
+        padding: 2px 18px !important;
+        border-radius: 10px !important;
+    }
+    #menuPrincipal .sel-title-container::before { display: none !important; }
+    #menuPrincipal .sel-title-container h1 { font-size: 0.9rem !important; letter-spacing: 0 !important; }
+    #menuPrincipal .sel-title-container p { font-size: 0.6rem !important; margin-top: 0 !important; }
+
+    #menuPrincipal .vs-container {
+        margin-top: 0 !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+    }
+    #menuPrincipal .vs-center { font-size: 1.1rem !important; margin: 2px 0 !important; align-self: center !important; }
+    #menuPrincipal .vs-center::before { display: none !important; }
+
+    #menuPrincipal .player-panel {
+        padding: 6px 8px !important;
+        gap: 8px !important;
+        flex: 1 1 0 !important;
+        max-width: 760px !important;
+        clip-path: none !important;
+        border-radius: 10px !important;
+        align-items: stretch !important;
+    }
+    /* La ilustración del personaje y el avatar grande no caben: se ocultan
+       (el avatar elegido ya se marca en la rejilla con ✓) */
+    #menuPrincipal .character-image-container,
+    #menuPrincipal .avatar-display,
+    #menuPrincipal .panel-header { display: none !important; }
+
+    #menuPrincipal .panel-content {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        grid-template-areas: "avatares datos" "avatares colores" !important;
+        gap: 4px 10px !important;
+        align-items: center !important;
+        min-width: 0 !important;
+    }
+    #menuPrincipal .avatar-grid-container { grid-area: avatares !important; }
+    #menuPrincipal .avatar-grid-container .menu-avatar-grid {
+        grid-template-columns: repeat(4, 38px) !important;
+        gap: 4px !important;
+        padding: 0 !important;
+    }
+    #menuPrincipal .input-group {
+        grid-area: datos !important;
+        margin-bottom: 0 !important;
+        min-width: 0 !important;
+        max-width: 360px !important;
+    }
+    #menuPrincipal .input-group label { font-size: 0.5rem !important; margin-bottom: 2px !important; }
+    #menuPrincipal .input-group .menu-nombre-input {
+        padding: 4px 8px !important;
+        font-size: 0.78rem !important;
+        min-width: 0 !important;
+    }
+    #menuPrincipal .input-group .char-count { display: none !important; }
+    #menuPrincipal .color-picker-container {
+        grid-area: colores !important;
+        margin: 0 !important;
+        align-self: end !important;
+    }
+    #menuPrincipal .color-picker-container label { display: none !important; }
+    #menuPrincipal .menu-color-grid { gap: 4px !important; flex-wrap: nowrap !important; }
+    #menuPrincipal .menu-color-option { width: 18px !important; height: 18px !important; }
+
+    /* Botones: JUGAR/TUTORIAL a la derecha, VOLVER a la izquierda */
+    #menuPrincipal .bottom-actions {
+        margin: 2px 0 0 0 !important;
+        flex-direction: row-reverse !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+    }
+    #menuPrincipal .start-actions { flex-wrap: nowrap !important; gap: 8px !important; }
+    #menuPrincipal .btn-start {
+        padding: 7px 24px !important;
+        font-size: 0.95rem !important;
+        border-radius: 20px !important;
+        gap: 6px !important;
+    }
+    #menuPrincipal .btn-tutorial {
+        padding: 7px 12px !important;
+        font-size: 0.7rem !important;
+        border-radius: 18px !important;
+        letter-spacing: 0 !important;
+    }
+    #menuPrincipal .footer-info {
+        position: static !important;
+        height: auto !important;
+        width: auto !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    #menuPrincipal .footer-info .btn-volver-menu {
+        position: static !important;
+        padding: 7px 14px !important;
+        font-size: 0.72rem !important;
+        border-radius: 18px !important;
+    }
+    #menuPrincipal .footer-info .info-text { display: none !important; }
+
     #juegoContainer .container {
         height: 100dvh !important;
         min-height: 0 !important;
