@@ -994,6 +994,14 @@
 
     <div id="tiendaOverlay" class="tienda-overlay" style="display:none;">
         <div class="tienda-modal">
+            <!-- Cabecera de la tienda: oro actual + cerrar -->
+            <div class="tienda-header">
+                <span class="tienda-oro" id="tiendaOroWrap" title="Tu oro">
+                    <img class="coin-icon" src="assets/icons/moneda.png" alt="oro" draggable="false">
+                    <span id="tiendaOro">0</span>
+                </span>
+                <button class="tienda-cerrar" id="btnCerrarTienda" type="button" title="Cerrar tienda (Esc)">✕</button>
+            </div>
             <div class="tienda-info">
                 <div class="tienda-info-left">
                     <div class="tienda-cost-chances" id="tiendaCostChances">

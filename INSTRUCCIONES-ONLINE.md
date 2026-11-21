@@ -108,6 +108,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   aviso **“Gira el móvil”** (también en el menú). Incluye botón de **pantalla
   completa horizontal** para Android/Chrome; en iPhone hay que girar el móvil a
   mano (Safari no permite bloquear la orientación).
+- **Menú inicial**: los 4 modos se colocan en **2×2** para que se vean todos sin
+  hacer scroll (perfil y versión incluidos).
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
@@ -118,7 +120,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   móvil no se dibujan los iconos de objetos equipados dentro de la carta.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
-- **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo.
+- **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
+  izquierda se ve tu **oro actual** y arriba a la derecha hay una **✕** para cerrarla.
 - **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
   Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.
 - El panel del amistoso online se coloca por encima de la barra de acciones.

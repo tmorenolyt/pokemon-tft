@@ -1095,6 +1095,10 @@ function actualizarInfoJugador() {
     const playerGoldInfo = document.getElementById("playerGoldInfo");
     if (playerGoldInfo) playerGoldInfo.textContent = oro;
 
+    // 🛒 Oro dentro de la tienda (la barra de acciones queda tapada en móvil)
+    const tiendaOroEl = document.getElementById('tiendaOro');
+    if (tiendaOroEl) tiendaOroEl.textContent = oro;
+
     const enemyLevelNumberCheck = document.getElementById("enemyLevelNumber");
     if (enemyLevelNumberCheck && typeof enemyLevel !== 'undefined') enemyLevelNumberCheck.textContent = enemyLevel;
 

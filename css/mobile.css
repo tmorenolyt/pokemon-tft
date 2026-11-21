@@ -91,7 +91,7 @@
     #menuPrincipal .menu-container {
         height: auto !important;
         min-height: 100dvh;
-        padding: 8px 14px !important;
+        padding: 4px 10px 6px !important;
     }
     #menuPrincipal .menu-header { padding-bottom: 8px !important; }
     #menuPrincipal .logo-icon { font-size: 1.6rem !important; }
@@ -102,18 +102,22 @@
     #menuPrincipal .section-title { margin-bottom: 6px !important; }
     #menuPrincipal .section-title h2 { font-size: 1.3rem !important; }
     #menuPrincipal .section-title .line { width: 24px !important; }
-    #menuPrincipal .section-subtitle { margin-bottom: 10px !important; margin-left: 24px !important; font-size: 0.8rem !important; }
-    #menuPrincipal .modes-grid { gap: 10px !important; }
-    #menuPrincipal .mode-card {
-        min-height: 104px !important;
-        padding: 12px 14px !important;
-        border-radius: 14px !important;
+    #menuPrincipal .section-subtitle { margin-bottom: 6px !important; margin-left: 20px !important; font-size: 0.7rem !important; }
+    /* 🆕 2x2: los 4 modos caben en la primera pantalla sin hacer scroll */
+    #menuPrincipal .modes-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
     }
-    #menuPrincipal .mode-card h3 { font-size: 0.95rem !important; margin-bottom: 4px !important; }
-    #menuPrincipal .mode-card p { font-size: 0.62rem !important; line-height: 1.25 !important; padding-right: 24px !important; }
-    #menuPrincipal .mode-icon { font-size: 1.4rem !important; }
-    #menuPrincipal .mode-badge-proximamente { top: 8px !important; right: 8px !important; font-size: 0.5rem !important; padding: 3px 7px !important; }
-    #menuPrincipal .footer { padding-top: 6px !important; }
+    #menuPrincipal .mode-card {
+        min-height: 76px !important;
+        padding: 7px 10px !important;
+        border-radius: 12px !important;
+    }
+    #menuPrincipal .mode-card h3 { font-size: 0.8rem !important; margin-bottom: 2px !important; }
+    #menuPrincipal .mode-card p { font-size: 0.55rem !important; line-height: 1.2 !important; padding-right: 16px !important; }
+    #menuPrincipal .mode-icon { font-size: 1.1rem !important; }
+    #menuPrincipal .mode-badge-proximamente { top: 6px !important; right: 6px !important; font-size: 0.46rem !important; padding: 2px 6px !important; }
+    #menuPrincipal .footer { padding-top: 2px !important; }
     #menuPrincipal .profile-capsule { transform: scale(0.85); transform-origin: top center; }
     #menuPrincipal .app-version { margin-top: 2px !important; font-size: 0.6rem !important; }
 
@@ -547,6 +551,22 @@
     }
     #tiendaOverlay .tienda-grid .shop-card .unit-sprite { width: 54px !important; height: 54px !important; }
     #tiendaOverlay .tienda-grid .shop-card { min-height: 0 !important; }
+    /* Cabecera de la tienda: oro actual + botón de cerrar (siempre visible) */
+    #tiendaOverlay .tienda-header {
+        flex: 0 0 auto !important;
+        margin: 0 0 6px 0 !important;
+        padding: 0 2px !important;
+    }
+    #tiendaOverlay .tienda-oro { font-size: 1rem !important; gap: 6px !important; }
+    #tiendaOverlay .tienda-oro .coin-icon { width: 22px !important; height: 22px !important; }
+    #tiendaOverlay .tienda-cerrar {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 1rem !important;
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(255, 255, 255, 0.28) !important;
+    }
     #tiendaOverlay .objeto-card { padding: 8px !important; }
     #tiendaOverlay .objeto-icon { width: 42px !important; height: 42px !important; }
     #tiendaOverlay .objeto-nombre { font-size: 0.72rem !important; }

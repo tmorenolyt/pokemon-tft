@@ -211,8 +211,9 @@
 /* ===== HEADER ===== */
 .tienda-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-bottom: 4px;
     padding-bottom: 0;
     border-bottom: none;
@@ -296,17 +297,12 @@
 }
 
 .tienda-oro .coin-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at 35% 35%, #fbbf24, #b8860b);
-    border: 1.5px solid #4a6a8a;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #b8860b;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.45));
 }
 
 .tienda-ronda {
