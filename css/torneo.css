@@ -84,21 +84,49 @@
 }
 
 /* ============================================================
-   NIVEL (fondo negro restaurado + borde gris)
+   POSICIÓN EN LA CLASIFICACIÓN (1, 2, 3…)
    ============================================================ */
-.ranking-torneo .ranking-nivel {
-    background: #000;
-    color: #ffffff;
-    font-size: 0.8rem;
+.ranking-torneo .ranking-pos {
+    width: 18px;
+    text-align: center;
+    font-size: 0.82rem;
     font-weight: 900;
-    width: 26px;
-    height: 26px;
+    color: #fbbf24;
+    flex-shrink: 0;
+    text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+/* ============================================================
+   NIVEL: mini insignia en la esquina superior derecha del avatar
+   ============================================================ */
+.ranking-torneo .ranking-avatar-wrap {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.ranking-torneo .ranking-nivel {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 17px;
+    height: 17px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    border: 1px solid #333;
-    flex-shrink: 0;
+    background: #000;
+    border: 1px solid #4a6a8a;
+    color: #ffffff;
+    font-size: 0.55rem;
+    font-weight: 900;
+    line-height: 1;
+    z-index: 2;
+    box-sizing: border-box;
     text-shadow:
         -1px -1px 0 #000,
          1px -1px 0 #000,
@@ -295,10 +323,17 @@
         gap: 6px;
     }
 
-    .ranking-torneo .ranking-nivel {
-        width: 22px;
-        height: 22px;
-        font-size: 0.7rem;
+    .ranking-torneo .ranking-pos {
+        width: 15px;
+        font-size: 0.72rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap .ranking-nivel {
+        width: 15px;
+        height: 15px;
+        font-size: 0.5rem;
+        top: -4px;
+        right: -4px;
     }
 
     .ranking-torneo .ranking-avatar {

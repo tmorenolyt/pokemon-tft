@@ -1417,7 +1417,10 @@ function actualizarRankingTorneo() {
 
     let html = '<div class="ranking-header">🏆 RANKING</div>';
 
-    todos.forEach((r) => {
+    todos.forEach((r, idx) => {
+        // Posición en la clasificación (1 = líder). Antes aquí se mostraba el
+        // NIVEL, que se confundía con la posición.
+        const posicion = idx + 1;
         const claseJugador = r.esJugador ? 'jugador' : '';
         const claseEliminado = r.eliminado ? 'eliminado' : '';
         const claseRacha = r.racha >= 3 ? 'racha-alta' : '';
@@ -1457,8 +1460,11 @@ function actualizarRankingTorneo() {
                  data-es-jugador="${r.esJugador}"
                  ${tituloPotencial}>
                 ${danoHtml}
-                <div class="ranking-nivel">${r.nivel}</div>
-                <img class="ranking-avatar" src="${srcAvatar}" onerror="this.src='${fallbackSvg}'">
+                <div class="ranking-pos" title="Posición ${posicion}">${posicion}</div>
+                <div class="ranking-avatar-wrap">
+                    <img class="ranking-avatar" src="${srcAvatar}" onerror="this.src='${fallbackSvg}'">
+                    <span class="ranking-nivel" title="Nivel ${r.nivel}">${r.nivel}</span>
+                </div>
                 <div class="ranking-info">
                     <div class="ranking-nombre">${r.nombre}</div>
                     <div class="ranking-hp-row">

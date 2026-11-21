@@ -119,6 +119,9 @@ El juego detecta pantallas pequeñas y cambia solo:
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
+  En el **ranking** cada fila lleva su **posición** (1, 2, 3…) a la izquierda y el
+  **nivel** como mini insignia en la esquina superior derecha del avatar, para
+  que no se confundan.
   Las **sinergias** van fijas **debajo del panel de cada jugador** (como en
   escritorio) en miniatura: icono, contador y circulitos del nivel; si hay
   muchas, se desplazan con el dedo dentro del panel. Ya no hace falta el botón
