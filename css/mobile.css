@@ -687,6 +687,52 @@
     /* Ya no hay panel flotante que abrir: se quita el botón ⚔️ */
     body.mob-landscape #mobTraitsBtn { display: none !important; }
 
+    /* ---- Iconos de sinergia y estrellas dentro de las cartas ----
+       En el móvil la carta es pequeña (58 px): los iconos de tipo/clase y
+       la estrella de nivel se reducen y se pegan a las esquinas. */
+    #juegoContainer .board-cell .unit-traits-left {
+        top: 2px !important;
+        left: 2px !important;
+        gap: 1px !important;
+    }
+    #juegoContainer .board-cell .unit-traits-left .tipo-icon,
+    #juegoContainer .board-cell .unit-traits-left .clase-icon {
+        width: 11px !important;
+        height: 11px !important;
+    }
+    #juegoContainer .board-cell .unit-stars-right {
+        top: 2px !important;
+        right: 2px !important;
+    }
+    #juegoContainer .board-cell .unit-stars-right img.estrellas-img {
+        width: 14px !important;
+        height: 14px !important;
+        min-width: 14px !important;
+        max-width: 14px !important;
+    }
+
+    /* Banco: todavía más pequeño */
+    #juegoContainer .bank-cell .unit-traits-left {
+        top: 1px !important;
+        left: 1px !important;
+        gap: 1px !important;
+    }
+    #juegoContainer .bank-cell .unit-traits-left .tipo-icon,
+    #juegoContainer .bank-cell .unit-traits-left .clase-icon {
+        width: 8px !important;
+        height: 8px !important;
+    }
+    #juegoContainer .bank-cell .unit-stars-right {
+        top: 1px !important;
+        right: 1px !important;
+    }
+    #juegoContainer .bank-cell .unit-stars-right img.estrellas-img {
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        max-width: 10px !important;
+    }
+
     #juegoContainer .player-info-panel {
         padding: 4px !important;
         border-radius: 8px !important;

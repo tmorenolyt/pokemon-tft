@@ -127,6 +127,9 @@ El juego detecta pantallas pequeñas y cambia solo:
 - **Cartas del tablero**: se ven las barras de **vida**, **energía** y **definitiva**
   (esta última solo si el Pokémon lleva Disco Definitivo). Para que quepan, en
   móvil no se dibujan los iconos de objetos equipados dentro de la carta.
+  Los **iconos de sinergia** (tipo y clase) y la **estrella de nivel** van
+  reducidos (11 y 14 px) y pegados a las esquinas superior izquierda/derecha;
+  en el banco todavía más pequeños (8 y 10 px).
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
