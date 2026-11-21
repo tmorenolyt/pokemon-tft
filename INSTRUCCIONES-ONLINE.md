@@ -111,11 +111,11 @@ El juego detecta pantallas pequeñas y cambia solo:
 - **Menú inicial**: los 4 modos se colocan en **2×2** para que se vean todos sin
   hacer scroll (perfil y versión incluidos).
 - **Selección (1 Jugador / 2 Jugadores)**: cabe en una pantalla. En 1 Jugador se
-  mantiene la **ilustración del personaje** a la izquierda, la **rejilla de
-  avatares** grande (el elegido se marca con ✓, sin recuadro duplicado), el
-  nombre, los colores de borde y los botones (VOLVER / JUGAR / TUTORIAL) sin
-  desplazarse. En 2 Jugadores los dos paneles van uno encima de otro (o lado a
-  lado en pantallas anchas) sin la ilustración, para que quepan ambos.
+  mantiene la **ilustración del personaje** a la izquierda y una tarjeta compacta
+  con el **nombre arriba**, la **rejilla de avatares** en medio (el elegido se
+  marca con ✓, sin recuadro duplicado) y los **colores debajo**; los botones
+  (VOLVER / JUGAR / TUTORIAL) van abajo, separados del panel. En 2 Jugadores se
+  muestran dos tarjetas gemelas lado a lado (sin ilustración) con el VS en medio.
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
