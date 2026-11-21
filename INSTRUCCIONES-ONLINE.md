@@ -129,10 +129,13 @@ El juego detecta pantallas pequeñas y cambia solo:
   Los **iconos de sinergia** (tipo y clase) y la **estrella de nivel** van
   reducidos (10 y 14 px) y pegados a las esquinas superior izquierda/derecha;
   en el banco todavía más pequeños (8 y 10 px).
-  Los **objetos equipados** se ven como una columnita de iconos de 9 px en el
-  borde derecho de la carta (debajo de la estrella); en el banco, una tira de
-  7 px abajo a la izquierda. Los huecos vacíos no se dibujan: para equipar se
-  toca el objeto en el baúl y luego el Pokémon.
+  La **etiqueta de casilla** (`A3`, `D2`…) se oculta en las casillas que tienen
+  Pokémon, para dejar libre la esquina inferior izquierda (las vacías la
+  mantienen como referencia).
+  Los **objetos equipados** se ven abajo a la izquierda, en una tira de iconos
+  de 9 px como en escritorio (7 px si el Pokémon lleva Disco Definitivo, que
+  añade la barra de ulti); en el banco, una tira de 7 px. Los huecos vacíos no
+  se dibujan: para equipar se toca el objeto en el baúl y luego el Pokémon.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la

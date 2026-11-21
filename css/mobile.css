@@ -705,29 +705,33 @@
         right: 4px !important;
     }
 
+    /* La etiqueta de casilla (A3, D2…) se quita cuando hay un Pokémon,
+       para dejar libre la esquina inferior izquierda. */
+    #juegoContainer .board-cell.has-unit::before { display: none !important; }
+
     /* ---- Objetos equipados (vuelven a verse en móvil) ----
-       La carta no tiene sitio abajo (nombre + barras), así que van en una
-       columna diminuta pegada al borde derecho, justo debajo de la
-       estrella. Los huecos vacíos (▢ y 💿) no se muestran: para equipar se
-       toca el objeto en el baúl y luego el Pokémon. */
+       Ahora hay sitio abajo (ya no está la etiqueta A3): se colocan como en
+       escritorio, en una tira horizontal en la esquina inferior izquierda.
+       Los huecos vacíos (▢ y 💿) no se muestran: para equipar se toca el
+       objeto en el baúl y luego el Pokémon. */
     #juegoContainer .board-cell .objetos-equipados {
         display: flex !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        gap: 0 !important;
+        gap: 1px !important;
         position: absolute !important;
-        top: 15px !important;
-        right: 1px !important;
-        left: auto !important;
-        bottom: auto !important;
+        bottom: 0px !important;
+        left: 2px !important;
+        top: auto !important;
+        right: auto !important;
         width: auto !important;
         height: auto !important;
         min-height: 0 !important;
-        max-height: 26px !important;
+        max-height: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         z-index: 5 !important;
     }
     #juegoContainer .board-cell .objetos-equipados > .vacio { display: none !important; }
@@ -744,6 +748,13 @@
         width: 9px !important;
         height: 9px !important;
         display: block !important;
+    }
+    /* Si el Pokémon lleva Disco Definitivo hay una barra más (ulti) y solo
+       quedan ~7 px abajo: los iconos se achican para no taparla. */
+    #juegoContainer .board-cell:has(.ulti-bar) .objetos-equipados > span,
+    #juegoContainer .board-cell:has(.ulti-bar) .objetos-equipados img {
+        width: 7px !important;
+        height: 7px !important;
     }
 
     /* Banco: tira en la esquina inferior izquierda, aún más pequeña */
