@@ -178,32 +178,27 @@
 
     #menuPrincipal .panel-content {
         display: grid !important;
-        grid-template-columns: auto 46px minmax(0, 1fr) !important;
-        grid-template-areas: "avatares avatar datos" "avatares avatar colores" !important;
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        grid-template-areas: "avatares datos" "avatares colores" !important;
         gap: 4px 10px !important;
         align-items: center !important;
+        align-content: center !important;
         min-width: 0 !important;
     }
-    /* Avatar elegido (vista previa) junto al nombre */
-    #menuPrincipal .avatar-display {
-        display: flex !important;
-        grid-area: avatar !important;
-        width: 46px !important;
-        height: 46px !important;
-        margin: 0 !important;
-        align-self: center !important;
-    }
+    /* El avatar elegido ya se marca con ✓ en la rejilla: se quita el cuadro
+       duplicado para ganar sitio */
+    #menuPrincipal .avatar-display { display: none !important; }
     #menuPrincipal .avatar-grid-container { grid-area: avatares !important; }
     #menuPrincipal .avatar-grid-container .menu-avatar-grid {
-        grid-template-columns: repeat(4, 46px) !important;
-        gap: 4px !important;
+        grid-template-columns: repeat(4, 54px) !important;
+        gap: 5px !important;
         padding: 0 !important;
     }
     #menuPrincipal .input-group {
         grid-area: datos !important;
         margin-bottom: 0 !important;
         min-width: 0 !important;
-        max-width: 360px !important;
+        max-width: 380px !important;
     }
     #menuPrincipal .input-group label { font-size: 0.5rem !important; margin-bottom: 2px !important; }
     #menuPrincipal .input-group .menu-nombre-input {
@@ -259,8 +254,7 @@
 
     /* 👥 2 JUGADORES: los dos paneles van lado a lado (o apilados en pantallas
        estrechas), así que se quitan ilustración y avatar grande para que quepan */
-    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .character-image-container,
-    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .avatar-display { display: none !important; }
+    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .character-image-container { display: none !important; }
     #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .panel-content {
         grid-template-columns: auto minmax(0, 1fr) !important;
         grid-template-areas: "avatares datos" "avatares colores" !important;
