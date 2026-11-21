@@ -110,9 +110,12 @@ El juego detecta pantallas pequeñas y cambia solo:
   mano (Safari no permite bloquear la orientación).
 - **Menú inicial**: los 4 modos se colocan en **2×2** para que se vean todos sin
   hacer scroll (perfil y versión incluidos).
-- **Selección (1 Jugador / 2 Jugadores)**: también cabe en una pantalla —
-  avatares en rejilla, nombre, color de borde y botones (VOLVER / JUGAR /
-  TUTORIAL) sin desplazarse.
+- **Selección (1 Jugador / 2 Jugadores)**: cabe en una pantalla. En 1 Jugador se
+  mantiene la **ilustración del personaje** a la izquierda, la **rejilla de
+  avatares** grande, la vista previa del avatar elegido, el nombre, los colores
+  de borde y los botones (VOLVER / JUGAR / TUTORIAL) sin desplazarse. En 2
+  Jugadores los dos paneles van uno encima de otro (o lado a lado en pantallas
+  anchas) sin la ilustración, para que quepan ambos.
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).

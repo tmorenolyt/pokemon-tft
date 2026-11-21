@@ -160,23 +160,42 @@
         border-radius: 10px !important;
         align-items: stretch !important;
     }
-    /* La ilustración del personaje y el avatar grande no caben: se ocultan
-       (el avatar elegido ya se marca en la rejilla con ✓) */
-    #menuPrincipal .character-image-container,
-    #menuPrincipal .avatar-display,
     #menuPrincipal .panel-header { display: none !important; }
+
+    /* Ilustración del personaje: vuelve, pero con alto limitado */
+    #menuPrincipal .character-image-container {
+        display: flex !important;
+        flex: 0 0 130px !important;
+        align-items: flex-end !important;
+        justify-content: center !important;
+        height: auto !important;
+    }
+    #menuPrincipal .character-image {
+        width: auto !important;
+        max-width: 100% !important;
+        max-height: 178px !important;
+    }
 
     #menuPrincipal .panel-content {
         display: grid !important;
-        grid-template-columns: auto minmax(0, 1fr) !important;
-        grid-template-areas: "avatares datos" "avatares colores" !important;
+        grid-template-columns: auto 46px minmax(0, 1fr) !important;
+        grid-template-areas: "avatares avatar datos" "avatares avatar colores" !important;
         gap: 4px 10px !important;
         align-items: center !important;
         min-width: 0 !important;
     }
+    /* Avatar elegido (vista previa) junto al nombre */
+    #menuPrincipal .avatar-display {
+        display: flex !important;
+        grid-area: avatar !important;
+        width: 46px !important;
+        height: 46px !important;
+        margin: 0 !important;
+        align-self: center !important;
+    }
     #menuPrincipal .avatar-grid-container { grid-area: avatares !important; }
     #menuPrincipal .avatar-grid-container .menu-avatar-grid {
-        grid-template-columns: repeat(4, 38px) !important;
+        grid-template-columns: repeat(4, 46px) !important;
         gap: 4px !important;
         padding: 0 !important;
     }
@@ -237,6 +256,18 @@
         border-radius: 18px !important;
     }
     #menuPrincipal .footer-info .info-text { display: none !important; }
+
+    /* 👥 2 JUGADORES: los dos paneles van lado a lado (o apilados en pantallas
+       estrechas), así que se quitan ilustración y avatar grande para que quepan */
+    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .character-image-container,
+    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .avatar-display { display: none !important; }
+    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .panel-content {
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        grid-template-areas: "avatares datos" "avatares colores" !important;
+    }
+    #menuPrincipal .vs-container:has(#panelJ2:not(.oculto)) .menu-avatar-grid {
+        grid-template-columns: repeat(4, 34px) !important;
+    }
 
     #juegoContainer .container {
         height: 100dvh !important;
