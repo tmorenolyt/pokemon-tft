@@ -144,6 +144,11 @@ El juego detecta pantallas pequeñas y cambia solo:
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
   izquierda se ve tu **oro actual** y arriba a la derecha hay una **✕** para cerrarla.
+  Las **cartas** se adaptan a la pantalla (sin alto fijo ni proporción 4:5): se
+  reparten en la fila, se centran y el sprite, la moneda y el nombre van
+  compactos, así no quedan huecos raros.
+- **Atajos de teclado** (`C`, `E`, `B`, `R`, `1`-`4`, `D`…): se ocultan en móvil,
+  porque en táctil no sirven.
 - **Pokédex**: la lista va en rejilla compacta (4 filas completas, se desplaza con
   el dedo) y el **VOLVER** está arriba a la izquierda para no tapar las cartas. El
   **detalle** de cada Pokémon también cabe en una pantalla: sprite y datos en una
