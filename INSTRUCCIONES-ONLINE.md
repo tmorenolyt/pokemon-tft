@@ -128,6 +128,10 @@ El juego detecta pantallas pequeñas y cambia solo:
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
   izquierda se ve tu **oro actual** y arriba a la derecha hay una **✕** para cerrarla.
+- **Pokédex**: la lista va en rejilla compacta (4 filas completas, se desplaza con
+  el dedo) y el **VOLVER** está arriba a la izquierda para no tapar las cartas. El
+  **detalle** de cada Pokémon también cabe en una pantalla: sprite y datos en una
+  fila, estrellas, stats, movimientos y ulti (con scroll interno).
 - **Arrastrar**: los Pokémon y los objetos se pueden arrastrar con el dedo.
   Los objetos también se pueden **tocar** y luego **tocar el Pokémon**.
 - El panel del amistoso online se coloca por encima de la barra de acciones.
