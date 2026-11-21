@@ -126,13 +126,19 @@
        El diseño de escritorio es vertical (personaje grande + panel
        alto) y medía ~870 px: aquí se compacta a una sola pantalla.
        ============================================================ */
+    /* Tres filas: título arriba, panel en el centro y botones ABAJO (con aire
+       respecto al panel, para que no queden pegados) */
     #menuPrincipal .seleccion-container {
-        padding: 2px 10px 6px !important;
-        height: auto !important;
-        min-height: calc(100dvh - 54px) !important;
-        justify-content: center !important;
-        gap: 4px !important;
+        display: grid !important;
+        grid-template-rows: auto minmax(0, 1fr) auto !important;
+        height: calc(100dvh - 54px) !important;
+        min-height: 0 !important;
+        padding: 4px 10px 8px !important;
+        gap: 2px !important;
+        justify-content: stretch !important;
+        align-items: stretch !important;
     }
+    #menuPrincipal .sel-title-container { justify-self: center !important; }
     #menuPrincipal .sel-title-container {
         margin-bottom: 0 !important;
         padding: 2px 18px !important;
@@ -143,10 +149,12 @@
     #menuPrincipal .sel-title-container p { font-size: 0.6rem !important; margin-top: 0 !important; }
 
     #menuPrincipal .vs-container {
-        margin-top: 0 !important;
+        margin: 0 auto !important;
         gap: 8px !important;
+        align-self: center !important;
         align-items: stretch !important;
         justify-content: center !important;
+        max-width: 100% !important;
     }
     #menuPrincipal .vs-center { font-size: 1.1rem !important; margin: 2px 0 !important; align-self: center !important; }
     #menuPrincipal .vs-center::before { display: none !important; }
@@ -218,7 +226,7 @@
 
     /* Botones: JUGAR/TUTORIAL a la derecha, VOLVER a la izquierda */
     #menuPrincipal .bottom-actions {
-        margin: 2px 0 0 0 !important;
+        margin: 0 !important;
         flex-direction: row-reverse !important;
         align-items: center !important;
         justify-content: space-between !important;
