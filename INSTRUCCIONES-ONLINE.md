@@ -119,7 +119,10 @@ El juego detecta pantallas pequeñas y cambia solo:
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas**, banco y baúl visibles
   y reducidos, y el ranking oculto (se abre con el botón **🏆** de la cabecera).
-  Las sinergias se abren con el botón **⚔️** de la cabecera (panel desplegable).
+  Las **sinergias** van fijas **debajo del panel de cada jugador** (como en
+  escritorio) en miniatura: icono, contador y circulitos del nivel; si hay
+  muchas, se desplazan con el dedo dentro del panel. Ya no hace falta el botón
+  **⚔️** (se ha quitado de la cabecera).
   La barra de acciones va centrada y mantiene visible la barra de XP.
 - **Cartas del tablero**: se ven las barras de **vida**, **energía** y **definitiva**
   (esta última solo si el Pokémon lleva Disco Definitivo). Para que quepan, en

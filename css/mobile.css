@@ -629,6 +629,64 @@
         align-self: center !important;
     }
 
+    /* ========================================================
+       SINERGIAS: visibles debajo del panel de cada jugador
+       (en escritorio viven en la columna lateral; el panel
+       desplegable del botón ⚔️ deja de hacer falta)
+       ======================================================== */
+    #juegoContainer .side-column-player .traits-vertical,
+    #juegoContainer .side-column-enemy .traits-vertical {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: 3px !important;
+        gap: 2px !important;
+        border-radius: 8px !important;
+        /* Panel algo más opaco: el fondo de la arena es muy claro y las
+           sinergias se perdían */
+        background: rgba(8, 14, 26, 0.82) !important;
+        border: 1px solid rgba(120, 150, 220, 0.35) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none;
+    }
+    #juegoContainer .side-column-player .traits-vertical::-webkit-scrollbar,
+    #juegoContainer .side-column-enemy .traits-vertical::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+    #juegoContainer .traits-vertical .trait-label { display: none !important; }
+    #juegoContainer .traits-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 2px !important;
+        align-content: start !important;
+        flex: 0 0 auto !important;
+    }
+    #juegoContainer .trait-item {
+        min-height: 0 !important;
+        max-width: none !important;
+        padding: 1px 0 2px !important;
+        gap: 1px !important;
+        border-radius: 5px !important;
+    }
+    #juegoContainer .trait-item .trait-icon-img { width: 20px !important; height: 20px !important; }
+    #juegoContainer .trait-item .trait-icon-emoji { font-size: 1rem !important; }
+    #juegoContainer .trait-item .trait-circles { gap: 0 !important; }
+    #juegoContainer .trait-item .trait-circles .circle {
+        width: 4px !important;
+        height: 4px !important;
+        min-width: 4px !important;
+        min-height: 4px !important;
+    }
+    #juegoContainer .trait-item .trait-count {
+        font-size: 0.5rem !important;
+        top: -2px !important;
+        right: -1px !important;
+        padding: 0 2px !important;
+    }
+    /* Ya no hay panel flotante que abrir: se quita el botón ⚔️ */
+    body.mob-landscape #mobTraitsBtn { display: none !important; }
+
     #juegoContainer .player-info-panel {
         padding: 4px !important;
         border-radius: 8px !important;
@@ -860,7 +918,9 @@
 #mobRotate { display: none; }
 
 /* En móvil táctil SIEMPRE horizontal: en retrato se bloquea con este aviso */
-/* Sinergias en móvil: panel desplegable con el botón ⚔️ */
+/* Sinergias en móvil: ahora van fijas en la arena (debajo del panel de
+   cada jugador), así que el botón ⚔️ y su panel desplegable ya no se usan.
+   El CSS del panel desplegable se deja por si se quisiera recuperar. */
 @media (max-height: 700px) and (max-width: 1100px) {
     #mobTraitsBtn { display: inline-flex !important; }
     body.mob-traits-open #juegoContainer .traits-vertical .trait-label {
@@ -873,6 +933,7 @@
     body.mob-traits-open #juegoContainer .side-column-player .traits-vertical {
         display: flex !important;
         position: fixed !important;
+        /* (sin uso actualmente: las sinergias ya se ven fijas en la arena) */
         top: 44px !important;
         left: 8px !important;
         right: 8px !important;
@@ -891,6 +952,12 @@
         z-index: 150000 !important;
         -webkit-overflow-scrolling: touch;
     }
+}
+
+/* Móvil horizontal: las sinergias ya se ven fijas, el botón ⚔️ sobra
+   (va al final para ganar a la regla anterior) */
+@media (orientation: landscape) and (max-height: 560px) {
+    #mobTraitsBtn { display: none !important; }
 }
 
 @media (orientation: portrait) and (max-width: 800px) {
