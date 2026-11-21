@@ -155,9 +155,9 @@ El juego detecta pantallas pequeñas y cambia solo:
   sinergia (7 px) y la estrella (8 px) en miniatura.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos. El
-  contador va **arriba a la derecha** y las cartas son **algo más altas**
-  (29 px en vez de 23), con el sprite un poco más grande y **desplazado hacia
-  abajo** dentro de la carta.
+  contador va **arriba a la derecha** y un poco **hacia abajo** dentro del panel;
+  las cartas son **algo más altas** (29 px en vez de 23), con el sprite un poco
+  más grande y **desplazado hacia abajo** dentro de la carta.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
   izquierda se ve tu **oro actual** y arriba a la derecha hay una **✕** para cerrarla.
   Las **cartas** se adaptan a la pantalla (sin alto fijo ni proporción 4:5): se
@@ -227,10 +227,11 @@ protegido solo por `ACCESS_KEY`.
 ## Cambios recientes (online 1v1)
 
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
-  en la tienda, venta de un Pokémon con objetos o paso de un Pokémon con objetos
-  al banco) la tira (📦) se abre sola para enseñarlo; no se abre durante un
-  combate ni encima de la tienda. Además, al cerrarse la tienda desde la compra
-  ya se quita la clase `tienda-abierta`.
+  en la tienda, venta de un Pokémon con objetos, paso de un Pokémon con objetos
+  al banco o al conseguir el **Disco Definitivo** de nivel 5 y 8) la tira (📦) se
+  abre sola para enseñarlo; no se abre durante un combate ni encima de la tienda.
+  Además, al cerrarse la tienda desde la compra ya se quita la clase
+  `tienda-abierta`.
 - **Tienda de objetos fiable**: si al terminar la ronda quedaba abierta la tienda de
   Pokémon, ahora se cambia automáticamente a la tienda de OBJETOS cuando toca
   (antes se quedaba la de Pokémon y nunca aparecían los objetos). Además, al recibir

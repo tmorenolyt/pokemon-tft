@@ -1433,6 +1433,9 @@ function darDiscoDefinitivo() {
     if (typeof playSonidoEvolucion === 'function') playSonidoEvolucion();
     if (typeof actualizarBadgeBaul === 'function') actualizarBadgeBaul();
     if (typeof actualizarObjetosVerticales === 'function') actualizarObjetosVerticales();
+    // 📱 En móvil, abrir la tira del baúl para ver el disco recién conseguido
+    //    (solo actúa en móvil; en escritorio no hace nada).
+    if (typeof avisarObjetosAlBaul === 'function') avisarObjetosAlBaul();
     if (typeof renderizar === 'function') renderizar();
     return true;
 }

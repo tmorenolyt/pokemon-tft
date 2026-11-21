@@ -882,7 +882,7 @@
     #juegoContainer .bank-header .big-counter {
         font-size: 0.6rem !important;
         line-height: 1 !important;
-        margin-top: -2px !important;   /* un pelín más arriba */
+        margin-top: 1px !important;    /* un pelín más abajo, dentro del panel */
     }
     #juegoContainer .bank-header .big-counter .max { font-size: 0.6rem !important; margin-left: 1px !important; }
     #juegoContainer .bank-grid {
@@ -1036,7 +1036,7 @@
         max-width: 26px !important;
         max-height: 26px !important;
         /* Un poco hacia abajo dentro de la carta */
-        margin: 2px 0 0 0 !important;
+        margin: 3px 0 0 0 !important;
         object-fit: contain;
     }
     /* En el banco la casilla es de 27 px: iconos y estrella más pequeños */
