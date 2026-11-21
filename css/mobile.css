@@ -971,20 +971,12 @@
         left: auto !important;
         right: 8px !important;
     }
-    /* Título de cada baúl */
-    body.mob-baul-open #juegoContainer #objetosVerticalContainer::before {
-        content: '📦 Tu baúl';
-        font-size: 0.66rem;
-        font-weight: 800;
-        color: #fbbf24;
-        letter-spacing: 0.5px;
-    }
+    /* Sin título en móvil: ni emoji 📦 ni la palabra "baúl".
+       La tira se reconoce por los iconos de los objetos. */
+    body.mob-baul-open #juegoContainer #objetosVerticalContainer::before,
     body.mob-baul-open #juegoContainer #objetosVerticalContainerEnemigo::before {
-        content: '📦 Rival';
-        font-size: 0.66rem;
-        font-weight: 800;
-        color: #93c5fd;
-        letter-spacing: 0.5px;
+        display: none !important;
+        content: none !important;
     }
     /* Huecos en UNA columna: el baúl abierto es una tira vertical */
     body.mob-baul-open #juegoContainer .objetos-vertical-grid {

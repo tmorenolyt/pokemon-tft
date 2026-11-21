@@ -120,7 +120,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   los dos tableros lado a lado con **casillas cuadradas** y el banco reducido.
   El **baúl de objetos** ya no son dos tiras laterales: se abre con el botón
   **📦** de la cabecera como panel flotante en forma de **tira vertical**: una sola
-  columna de huecos de 32 px (con scroll si hay muchos objetos), pegada a la
+  columna de huecos de 32 px, sin título ni emoji (solo se ven los iconos),
+  con scroll si hay muchos objetos; pegada a la
   izquierda para no tapar el tablero; si el rival también tiene objetos, su baúl
   sale como otra tira a la derecha. Al tocar un objeto el panel se cierra solo y
   ya puedes tocar el Pokémon para equiparlo.
