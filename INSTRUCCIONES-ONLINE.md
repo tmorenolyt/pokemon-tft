@@ -125,11 +125,14 @@ El juego detecta pantallas pequeñas y cambia solo:
   **⚔️** (se ha quitado de la cabecera).
   La barra de acciones va centrada y mantiene visible la barra de XP.
 - **Cartas del tablero**: se ven las barras de **vida**, **energía** y **definitiva**
-  (esta última solo si el Pokémon lleva Disco Definitivo). Para que quepan, en
-  móvil no se dibujan los iconos de objetos equipados dentro de la carta.
+  (esta última solo si el Pokémon lleva Disco Definitivo).
   Los **iconos de sinergia** (tipo y clase) y la **estrella de nivel** van
-  reducidos (11 y 14 px) y pegados a las esquinas superior izquierda/derecha;
+  reducidos (10 y 14 px) y pegados a las esquinas superior izquierda/derecha;
   en el banco todavía más pequeños (8 y 10 px).
+  Los **objetos equipados** se ven como una columnita de iconos de 9 px en el
+  borde derecho de la carta (debajo de la estrella); en el banco, una tira de
+  7 px abajo a la izquierda. Los huecos vacíos no se dibujan: para equipar se
+  toca el objeto en el baúl y luego el Pokémon.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
   pokéballs, porque en la columna estrecha del móvil no caben los dos.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
