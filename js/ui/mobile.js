@@ -102,6 +102,18 @@
         right.insertBefore(b, right.firstChild);
     }
 
+    // Abrir el desplegable del baúl desde cualquier otro sitio (por ejemplo
+    // al comprar un objeto en la tienda). En escritorio no hace nada: el
+    // botón 📦 solo existe en móvil.
+    function abrirBaul() {
+        const btn = document.getElementById('mobBaulBtn');
+        if (!btn) return false;
+        document.body.classList.add('mob-baul-open');
+        btn.classList.add('activo');
+        return true;
+    }
+    window.abrirBaulMovil = abrirBaul;
+
     // Al tocar un objeto del baúl se cierra el desplegable para poder
     // tocar el Pokémon y equiparlo (flujo tocar-objeto → tocar-Pokémon).
     document.addEventListener('click', (e) => {
@@ -188,5 +200,5 @@
     });
     window.addEventListener('orientationchange', () => setTimeout(actualizarClases, 250));
 
-    window.mobileUI = { actualizarClases, intentarHorizontal };
+    window.mobileUI = { actualizarClases, intentarHorizontal, abrirBaul };
 })();

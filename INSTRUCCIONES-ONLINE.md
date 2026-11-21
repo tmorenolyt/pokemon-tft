@@ -125,6 +125,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   izquierda para no tapar el tablero; si el rival también tiene objetos, su baúl
   sale como otra tira a la derecha. Al tocar un objeto el panel se cierra solo y
   ya puedes tocar el Pokémon para equiparlo.
+  Al **comprar un objeto** en la tienda, la tira se **abre sola** para que veas
+  lo que acabas de conseguir (solo en móvil).
 - **Ranking**: oculto; se abre con el botón **🏆** de la cabecera en **dos
   columnas**, así se ven los 8 rivales sin hacer scroll. Cada fila lleva su
   **posición** (1, 2, 3…) a la izquierda y el **nivel** como mini insignia en la
@@ -157,6 +159,9 @@ El juego detecta pantallas pequeñas y cambia solo:
   Las **cartas** se adaptan a la pantalla (sin alto fijo ni proporción 4:5): se
   reparten en la fila, se centran y el sprite, la moneda y el nombre van
   compactos, así no quedan huecos raros.
+  En la **tienda de OBJETOS** las 3 cartas van en una sola fila y **entran
+  completas sin scroll** (antes eran 4:5 de 200 px y el botón ✅ GRATIS quedaba
+  cortado); el cartel de la ronda también es compacto.
 - **Atajos de teclado** (`C`, `E`, `B`, `R`, `1`-`4`, `D`…): se ocultan en móvil,
   porque en táctil no sirven.
 - **Pokédex**: la lista va en rejilla compacta (4 filas completas, se desplaza con
@@ -217,6 +222,9 @@ protegido solo por `ACCESS_KEY`.
 
 ## Cambios recientes (online 1v1)
 
+- **Baúl automático en móvil**: al comprar un objeto en la tienda, la tira del
+  baúl (📦) se abre sola para enseñar el objeto recién comprado. Además, al
+  cerrarse la tienda desde la compra ya se quita la clase `tienda-abierta`.
 - **Tienda de objetos fiable**: si al terminar la ronda quedaba abierta la tienda de
   Pokémon, ahora se cambia automáticamente a la tienda de OBJETOS cuando toca
   (antes se quedaba la de Pokémon y nunca aparecían los objetos). Además, al recibir

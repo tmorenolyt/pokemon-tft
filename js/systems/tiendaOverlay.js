@@ -172,11 +172,12 @@ if (!usarModoObjetos && tienda && tienda.some(p => p && p.shiny)) {
 
         // Banner: título + info de la ronda de objetos (sin fondo azul)
         const banner = document.createElement('div');
+        banner.className = 'objeto-banner';
         banner.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 10px; color: #fbbf24; font-size: 0.9rem;';
         banner.innerHTML = `
-            <div style="font-size: 1.45rem; margin-bottom: 6px; font-weight: 800;">🎁 ¡Ronda de OBJETOS!</div>
-            <div style="font-size: 0.8rem; color: #93c5fd;">Elige 1 objeto GRATIS para tu equipo</div>
-            <div style="font-size: 0.68rem; color: #6b8aaa; margin-top: 5px;">(Solo puedes comprar 1 objeto por ronda)</div>
+            <div class="objeto-banner-title" style="font-size: 1.45rem; margin-bottom: 6px; font-weight: 800;">🎁 ¡Ronda de OBJETOS!</div>
+            <div class="objeto-banner-sub" style="font-size: 0.8rem; color: #93c5fd;">Elige 1 objeto GRATIS para tu equipo</div>
+            <div class="objeto-banner-note" style="font-size: 0.68rem; color: #6b8aaa; margin-top: 5px;">(Solo puedes comprar 1 objeto por ronda)</div>
         `;
         grid.appendChild(banner);
 
@@ -645,6 +646,9 @@ function comprarObjetoDesdeTienda(nombreObjeto) {
         modoTiendaObjetos = false;
         document.body.style.overflow = '';
         document.body.classList.remove('modo-objetos');
+        // Al cerrar desde la compra también hay que quitar esta clase, si no
+        // la barra de acciones se queda con el fondo sólido de "tienda abierta".
+        document.body.classList.remove('tienda-abierta');
 
         // 🆕 FIX: NO resetear objetoCompradoEstaRonda ni vaciar
         //    objetosEnTienda aquí. La ronda sigue en curso: si el
@@ -658,6 +662,13 @@ function comprarObjetoDesdeTienda(nombreObjeto) {
 
         addConsoleMessage(`🛒 ¡Objeto comprado! Abre la tienda de Pokémon cuando quieras.`, 'shop');
         renderizar();
+
+        // 📱 En móvil, abrir solo la tira del baúl para que se vea el objeto
+        //    recién comprado sin tener que pulsar 📦 (en escritorio no
+        //    existe el botón y la función no hace nada).
+        if (typeof window.abrirBaulMovil === 'function') {
+            setTimeout(() => window.abrirBaulMovil(), 150);
+        }
     }, 400);
 }
 
