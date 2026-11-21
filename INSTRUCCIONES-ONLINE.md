@@ -125,8 +125,9 @@ El juego detecta pantallas pequeñas y cambia solo:
   izquierda para no tapar el tablero; si el rival también tiene objetos, su baúl
   sale como otra tira a la derecha. Al tocar un objeto el panel se cierra solo y
   ya puedes tocar el Pokémon para equiparlo.
-  Al **comprar un objeto** en la tienda, la tira se **abre sola** para que veas
-  lo que acabas de conseguir (solo en móvil).
+  La tira se **abre sola** cada vez que **entra un objeto en el baúl** (al
+  comprarlo, al vender un Pokémon con objetos o al mover uno con objetos al
+  banco), para que veas lo que tienes (solo en móvil).
 - **Ranking**: oculto; se abre con el botón **🏆** de la cabecera en **dos
   columnas**, así se ven los 8 rivales sin hacer scroll. Cada fila lleva su
   **posición** (1, 2, 3…) a la izquierda y el **nivel** como mini insignia en la
@@ -150,10 +151,13 @@ El juego detecta pantallas pequeñas y cambia solo:
   se dibujan: para equipar se toca el objeto en el baúl y luego el Pokémon.
 - **Escala de sprites**: se fija desde móvil (antes se colaban los tamaños de
   escritorio y algunos Pokémon se salían de la casilla): **30 px** en el tablero
-  (máx. ~39 con su escala propia) y **22 px** en el banco, con los iconos de
+  (máx. ~39 con su escala propia) y **26 px** en el banco, con los iconos de
   sinergia (7 px) y la estrella (8 px) en miniatura.
 - **Banco**: se muestra el contador compacto (p. ej. `3/7`) en vez de las 6
-  pokéballs, porque en la columna estrecha del móvil no caben los dos.
+  pokéballs, porque en la columna estrecha del móvil no caben los dos. El
+  contador va **arriba a la derecha** y las cartas son **algo más altas**
+  (29 px en vez de 23), con el sprite un poco más grande y **desplazado hacia
+  abajo** dentro de la carta.
 - **Tienda**: ocupa toda la pantalla y se puede desplazar con el dedo. Arriba a la
   izquierda se ve tu **oro actual** y arriba a la derecha hay una **✕** para cerrarla.
   Las **cartas** se adaptan a la pantalla (sin alto fijo ni proporción 4:5): se
@@ -222,9 +226,11 @@ protegido solo por `ACCESS_KEY`.
 
 ## Cambios recientes (online 1v1)
 
-- **Baúl automático en móvil**: al comprar un objeto en la tienda, la tira del
-  baúl (📦) se abre sola para enseñar el objeto recién comprado. Además, al
-  cerrarse la tienda desde la compra ya se quita la clase `tienda-abierta`.
+- **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
+  en la tienda, venta de un Pokémon con objetos o paso de un Pokémon con objetos
+  al banco) la tira (📦) se abre sola para enseñarlo; no se abre durante un
+  combate ni encima de la tienda. Además, al cerrarse la tienda desde la compra
+  ya se quita la clase `tienda-abierta`.
 - **Tienda de objetos fiable**: si al terminar la ronda quedaba abierta la tienda de
   Pokémon, ahora se cambia automáticamente a la tienda de OBJETOS cuando toca
   (antes se quedaba la de Pokémon y nunca aparecían los objetos). Además, al recibir

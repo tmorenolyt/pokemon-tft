@@ -108,6 +108,10 @@
     function abrirBaul() {
         const btn = document.getElementById('mobBaulBtn');
         if (!btn) return false;
+        // No abrir encima de la tienda ni en mitad de un combate.
+        const tienda = document.getElementById('tiendaOverlay');
+        if (tienda && getComputedStyle(tienda).display !== 'none') return false;
+        if (typeof combatiendo !== 'undefined' && combatiendo) return false;
         document.body.classList.add('mob-baul-open');
         btn.classList.add('activo');
         return true;

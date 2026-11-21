@@ -862,30 +862,47 @@
     #juegoContainer .objetos-vertical-label { display: none !important; }
     #juegoContainer .player-info-stat img { width: 14px !important; height: 14px !important; }
 
-    /* Banco compacto */
+    /* Banco compacto: cabecera mínima para que las cartas crezcan */
     #juegoContainer .bank-container { padding: 2px !important; border-radius: 8px !important; }
     #juegoContainer .bank-header {
-        padding: 0 3px 2px !important;
-        margin-bottom: 2px !important;
-        justify-content: center !important;
-        gap: 2px !important;
-        overflow: hidden !important;
+        padding: 0 3px 0 0 !important;
+        margin-bottom: 0 !important;
+        height: 14px !important;
+        min-height: 0 !important;   /* arena.css fija min-height: 26px */
+        flex: 0 0 auto !important;
+        align-items: flex-start !important;
+        /* El contador va a la derecha (antes estaba centrado) */
+        justify-content: flex-end !important;
+        gap: 0 !important;
+        overflow: visible !important;
     }
     /* Las 6 pokéballs + el contador no caben juntos en 120px: se ocultan las
-       bolas (decorativas) y queda el contador compacto y centrado. */
+       bolas (decorativas) y queda el contador compacto. */
     #juegoContainer .bank-capsule { display: none !important; }
-    #juegoContainer .bank-header .big-counter { font-size: 0.62rem !important; line-height: 1 !important; }
-    #juegoContainer .bank-header .big-counter .max { font-size: 0.62rem !important; margin-left: 1px !important; }
+    #juegoContainer .bank-header .big-counter {
+        font-size: 0.6rem !important;
+        line-height: 1 !important;
+        margin-top: -2px !important;   /* un pelín más arriba */
+    }
+    #juegoContainer .bank-header .big-counter .max { font-size: 0.6rem !important; margin-left: 1px !important; }
     #juegoContainer .bank-grid {
         grid-template-columns: repeat(4, 1fr) !important;
+        /* Cartas algo más altas que antes (23 px → 29 px) */
+        grid-template-rows: repeat(2, 29px) !important;
         gap: 2px !important;
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
     }
     #juegoContainer .bank-cell {
         min-height: 0 !important;
+        /* arena-horizontal fija aspect-ratio 1/1.05: así la carta se queda
+           cuadrada y no aprovecha el alto. Lo soltamos para que llene la fila. */
+        aspect-ratio: auto !important;
+        height: 100% !important;
         border-radius: 4px !important;
         padding: 1px !important;
+        overflow: hidden !important;
     }
-    #juegoContainer .bank-cell .unit-sprite { width: 24px !important; height: 24px !important; }
     #juegoContainer .bank-cell .cost-badge { font-size: 0.5rem !important; }
 
     /* Baúl de objetos (tiras laterales) */
@@ -1014,11 +1031,12 @@
     }
     html body #juegoContainer #banquilloGrid .bank-cell .unit-sprite,
     html body #juegoContainer #enemyBanquilloGrid .bank-cell .unit-sprite {
-        width: 22px !important;
-        height: 22px !important;
-        max-width: 22px !important;
-        max-height: 22px !important;
-        margin: 0 !important;
+        width: 26px !important;
+        height: 26px !important;
+        max-width: 26px !important;
+        max-height: 26px !important;
+        /* Un poco hacia abajo dentro de la carta */
+        margin: 2px 0 0 0 !important;
         object-fit: contain;
     }
     /* En el banco la casilla es de 27 px: iconos y estrella más pequeños */

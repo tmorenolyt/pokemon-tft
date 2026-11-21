@@ -232,6 +232,15 @@ function aplicarObjeto(unidad, objetoNombre) {
 // ===== DEVOLVER OBJETOS AL BAÚL =====
 // ============================================================
 
+// 📱 En móvil, cuando un objeto entra en el baúl (compra, venta, paso al
+// banco…) se abre la tira vertical para que el jugador vea lo que tiene.
+// En escritorio no hace nada: window.abrirBaulMovil solo existe en móvil.
+function avisarObjetosAlBaul() {
+    if (typeof window.abrirBaulMovil === 'function') {
+        setTimeout(() => window.abrirBaulMovil(), 150);
+    }
+}
+
 function devolverObjetosAlBaul(unidad) {
     if (!unidad || !unidad.objetos || unidad.objetos.length === 0) return false;
     
@@ -250,6 +259,7 @@ function devolverObjetosAlBaul(unidad) {
     if (objetosDevueltos > 0) {
         addConsoleMessage(`📦 ${objetosDevueltos} objetos devueltos al baúl`, 'move');
         actualizarBadgeBaul();
+        avisarObjetosAlBaul();
     }
     return objetosDevueltos > 0;
 }
@@ -276,6 +286,7 @@ function devolverObjetosAlBaulVenta(unidad) {
     if (objetosDevueltos > 0) {
         addConsoleMessage(`📦 ${objetosDevueltos} objetos devueltos al baúl (venta)`, 'sell');
         actualizarBadgeBaul();
+        avisarObjetosAlBaul();
     }
     return objetosDevueltos > 0;
 }
@@ -340,6 +351,7 @@ function autoDevolverObjetosAlBaul(unidad, lado = 'jugador') {
         if (typeof actualizarObjetosVerticales === 'function') {
             actualizarObjetosVerticales();
         }
+        if (devueltos > 0) avisarObjetosAlBaul();
     }
 
     return devueltos;
