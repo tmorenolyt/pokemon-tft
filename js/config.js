@@ -161,12 +161,20 @@ function _extensionSprite(spriteId, esShiny) {
     return CONFIG.SPRITE_EXTENSION_PREFERIDA;
 }
 
+// Modo rendimiento: usa PNG estáticos (assets/sprites/pokemon/static) en vez
+// de GIF animados. Decodificar 10 GIF a la vez es lo que provoca los tirones
+// en móvil; el PNG se decodifica una vez y no consume CPU por frame.
+window.SPRITES_ESTATICOS = false;
+
 function getSpriteUrl(spriteId, nombre, esShiny = false) {
     let idFinal = spriteId;
     if (nombre === "Vulpix") idFinal = 10103;
     else if (nombre === "Ninetales") idFinal = 10104;
 
     const carpeta = esShiny ? 'shiny/' : '';
+    if (window.SPRITES_ESTATICOS) {
+        return `${CONFIG.SPRITE_BASE_URL}static/${carpeta}${idFinal}.png`;
+    }
     return `${CONFIG.SPRITE_BASE_URL}${carpeta}${idFinal}.${_extensionSprite(idFinal, esShiny)}`;
 }
 

@@ -508,7 +508,7 @@ function crearCartaTienda(p, idx) {
             <div class="shop-card-key" title="Atajo: ${idx + 1}">${idx + 1}</div>
             <div class="unit-traits-left">${traitsHtml}</div>
             ${starsHtml}
-            <img class="unit-sprite ${esShiny ? 'shiny' : ''}" src="${spriteUrl}" alt="${p.nombre}${esShiny ? ' ✨' : ''}" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none'">
+            <img decoding="async" class="unit-sprite ${esShiny ? 'shiny' : ''}" src="${spriteUrl}" alt="${p.nombre}${esShiny ? ' ✨' : ''}" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none'">
             <div class="unit-cost">
                 ${monedaImg}
                 <span class="cost-value">${p.coste}</span>

@@ -1897,3 +1897,45 @@
         height: 6px !important;
     }
 }
+
+/* ============================================================
+   ⚡ RENDIMIENTO EN COMBATE (móvil)
+   Los paneles con backdrop-filter (blur) y los drop-shadow de los
+   sprites se repintan en cada frame mientras las unidades se mueven.
+   En móvil se quitan SOLO durante el combate: el aspecto fuera de
+   combate no cambia y se recortan tirones.
+   ============================================================ */
+@media (max-width: 1100px) {
+    body.combatiendo * {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+    body.combatiendo .unit-sprite:not(.frozen):not(.burn):not(.quemado),
+    body.combatiendo .unit-traits-left {
+        filter: none !important;
+    }
+}
+
+/* ============================================================
+   ⚡ GRÁFICOS LIGEROS (opción manual en Ajustes)
+   Para móviles que aún den tirones: sin blur, sin sombras y sin
+   filtros de sprites/iconos. Se guarda en localStorage.
+   ============================================================ */
+body.graficos-ligeros *,
+body.graficos-ligeros *::before,
+body.graficos-ligeros *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+body.graficos-ligeros .unit-sprite:not(.frozen):not(.burn):not(.quemado),
+body.graficos-ligeros .unit-traits-left,
+body.graficos-ligeros .unit-traits-left .tipo-icon,
+body.graficos-ligeros .unit-traits-left .clase-icon,
+body.graficos-ligeros .trait-icon,
+body.graficos-ligeros .logo-icon,
+body.graficos-ligeros .mode-icon,
+body.graficos-ligeros .character-image {
+    filter: none !important;
+}

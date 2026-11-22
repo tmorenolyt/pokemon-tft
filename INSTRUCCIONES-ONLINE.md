@@ -473,3 +473,15 @@ protegido solo por `ACCESS_KEY`.
   para **Compartir → Añadir a pantalla de inicio**, que abre el juego sin
   barras. El `sw.js` es mínimo y **no cachea nada**: solo permite “Instalar
   app” en Android sin afectar a los deploys.
+- **Lag en móvil (sprites GIF)**: la causa principal eran los **GIF animados**
+  (10-14 decodificando a la vez). Medido con CPU 6× más lenta: tareas largas
+  **18 → 14** por 8 s y el peor tirón **129 → 81 ms**; además cada PNG estático
+  pesa **3-6 KB** frente a ~150 KB del GIF. Ahora, en móvil, durante el combate
+  se usan **PNG estáticos** en tablero y banco (se restauran los GIF al acabar),
+  y los paneles pierden el `backdrop-filter` mientras se pelea.
+- **Modo rendimiento (Ajustes)**: desactiva blur, sombras y filtros y usa PNG
+  estáticos también fuera del combate. Por defecto **OFF**; actívalo si tu móvil
+  sigue dando tirones. Se guarda en `localStorage`.
+- Los PNG estáticos están en `assets/sprites/pokemon/static/` (normal y shiny),
+  generados a partir del primer frame de cada GIF. Si añades sprites nuevos, hay
+  que regenerarlos (Pillow) para que el modo rendimiento los tenga.

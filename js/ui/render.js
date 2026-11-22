@@ -175,7 +175,7 @@ function renderSpriteHtml(unidad, clasesExtra = '', ladoTablero = 'player') {
         onerrorAttr = ` onerror="${onerrorChain}"`;
     }
 
-    return `<img class="${clases}" src="${src}" alt="${unidad.pokemon.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escala}; --sprite-offset-x: ${offsetX}; --sprite-flip: ${flip}"${onerrorAttr}>`;
+    return `<img decoding="async" class="${clases}" src="${src}" alt="${unidad.pokemon.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escala}; --sprite-offset-x: ${offsetX}; --sprite-flip: ${flip}"${onerrorAttr}>`;
 }
 
 function renderEstrellasHtml(nivel) {
@@ -608,7 +608,7 @@ function renderizarTienda() {
 
         const monedaImg = `<img src="assets/icons/moneda.png" alt="💰" draggable="false" style="width:16px;height:16px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(251,191,36,0.3));display:inline-block;vertical-align:middle;">`;
         card.innerHTML = `
-            <img class="unit-sprite ${esShiny ? 'shiny' : ''}" src="${spriteUrl}" alt="${p.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none'">
+            <img decoding="async" class="unit-sprite ${esShiny ? 'shiny' : ''}" src="${spriteUrl}" alt="${p.nombre}${esShiny ? ' ✨' : ''}" draggable="false" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none'">
             <div class="unit-cost">${monedaImg}<span class="cost-value">${p.coste}</span></div>
             <div class="unit-name ${esShiny ? 'shiny-name' : ''}">${p.nombre}</div>
             <div class="unit-traits-left">${renderTraitsHtml(p)}</div>

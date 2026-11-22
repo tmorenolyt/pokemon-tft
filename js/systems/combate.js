@@ -453,6 +453,8 @@ function bloquearEstadoCombate() {
     enemyCombatiendo = true;
     document.getElementById("btnCombatirFijo").disabled = true;
     document.body.classList.add('combatiendo');
+    // 🎞️ En móvil, sprites estáticos mientras dura el combate (menos CPU)
+    if (window.spritesCombate) window.spritesCombate.estaticos();
     const btnPost = document.getElementById('btnPostCombate');
     if (btnPost) {
         btnPost.disabled = false;
@@ -473,6 +475,7 @@ function liberarEstadoCombate() {
     enemyCombatiendo = false;
     document.getElementById('btnCombatirFijo').disabled = false;
     document.body.classList.remove('combatiendo');
+    if (window.spritesCombate) window.spritesCombate.restaurar();
     const btnPost = document.getElementById('btnPostCombate');
     if (btnPost) {
         btnPost.disabled = false;
@@ -2847,6 +2850,7 @@ ronda = fase;
         if (!window._finRondaEnCurso) {
             document.getElementById("btnCombatirFijo").disabled = false;
             document.body.classList.remove('combatiendo');
+            if (window.spritesCombate) window.spritesCombate.restaurar();
         }
 
         metronomoGlobalStacks = 0;
