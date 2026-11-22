@@ -1442,3 +1442,210 @@
     /* La tienda se puede desplazar con el dedo */
     #tiendaOverlay .tienda-modal, #rankingTorneo { -webkit-overflow-scrolling: touch; }
 }
+
+/* ============================================================
+   📱 CARTA DE POKÉMON (DATOS) + CARTA DE SINERGIA EN MÓVIL
+   Compacto para pantallas de poca altura (horizontal).
+   ============================================================ */
+@media (max-height: 700px) and (max-width: 1100px) {
+
+    /* ---------- DATOS DE UN POKÉMON ---------- */
+    #cartaPanel {
+        padding: 5px !important;
+        align-items: flex-start !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #cartaPanel .carta-contenido {
+        width: calc(100vw - 10px) !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 10px) !important;
+        padding: 8px 10px !important;
+        gap: 7px !important;
+        border-radius: 14px !important;
+        border-width: 1px !important;
+    }
+
+    /* Cabecera fija: la X de cerrar siempre visible al hacer scroll */
+    #cartaPanel .carta-header {
+        margin: -8px -10px 0 -10px !important;
+        padding: 6px 10px !important;
+        position: sticky !important;
+        top: -8px !important;
+        z-index: 6 !important;
+        background: linear-gradient(180deg, #16203a 0%, #131a2b 100%) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #cartaPanel .carta-nombre { font-size: 1.05rem !important; }
+
+    #cartaPanel .carta-coste {
+        font-size: 0.8rem !important;
+        padding: 2px 8px !important;
+    }
+    #cartaPanel .carta-coste img { width: 17px !important; height: 17px !important; }
+
+    #cartaPanel .carta-cerrar {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
+    }
+
+    #cartaPanel .carta-tipos-clase { gap: 5px !important; }
+
+    #cartaPanel .carta-tipo,
+    #cartaPanel .carta-clase-integrada {
+        font-size: 0.56rem !important;
+        padding: 2px 7px !important;
+        border-radius: 6px !important;
+    }
+    #cartaPanel .carta-tipo img,
+    #cartaPanel .carta-clase-integrada img { width: 11px !important; height: 11px !important; }
+
+    /* Stats: en pantallas anchas, UNA sola fila de 8 (ahorra media pantalla) */
+    #cartaPanel .carta-stats {
+        gap: 4px !important;
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    }
+
+    #cartaPanel .carta-stat {
+        padding: 4px 2px !important;
+        border-radius: 6px !important;
+    }
+
+    #cartaPanel .carta-stat .stat-icon { font-size: 0.66rem !important; margin-bottom: 0 !important; }
+    #cartaPanel .carta-stat .stat-value { font-size: 0.7rem !important; }
+    #cartaPanel .carta-stat .stat-label { font-size: 0.36rem !important; margin-top: 1px !important; letter-spacing: 0 !important; }
+
+    /* En pantallas estrechas (móvil pequeño) se vuelve a 4 columnas */
+    @media (max-width: 620px) {
+        #cartaPanel .carta-stats { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+        #cartaPanel .carta-stat .stat-value { font-size: 0.78rem !important; }
+        #cartaPanel .carta-stat .stat-label { font-size: 0.42rem !important; }
+    }
+
+    /* Movimientos */
+    #cartaPanel .moves-section {
+        padding: 7px !important;
+        gap: 6px !important;
+        border-radius: 10px !important;
+    }
+
+    #cartaPanel .move-tabs { gap: 4px !important; padding: 3px !important; }
+    #cartaPanel .move-tab { font-size: 0.58rem !important; padding: 4px !important; }
+
+    #cartaPanel .move-content {
+        padding: 7px !important;
+        gap: 5px !important;
+        border-radius: 8px !important;
+    }
+
+    #cartaPanel .move-header { gap: 6px !important; }
+    #cartaPanel .move-name { font-size: 0.72rem !important; }
+    #cartaPanel .move-icon,
+    #cartaPanel .move-icon img { width: 16px !important; height: 16px !important; }
+    #cartaPanel .move-tag { font-size: 0.5rem !important; padding: 1px 5px !important; }
+    #cartaPanel .move-desc {
+        font-size: 0.6rem !important;
+        line-height: 1.3 !important;
+        padding: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    #cartaPanel .ulti-desc { font-size: 0.58rem !important; line-height: 1.3 !important; padding: 6px !important; }
+    #cartaPanel .ulti-name { font-size: 0.75rem !important; }
+    #cartaPanel .ulti-content { padding-right: 56px !important; }
+
+    /* Objetos equipados */
+    #cartaPanel .carta-objetos { gap: 5px !important; margin-top: 0 !important; }
+    #cartaPanel .carta-objeto-item {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 6px !important;
+        border-width: 1px !important;
+    }
+    #cartaPanel .carta-objeto-item .objeto-icon,
+    #cartaPanel .carta-objeto-item img { width: 22px !important; height: 22px !important; }
+
+    /* ---------- CARTA DE SINERGIA ---------- */
+    .sinergia-modal {
+        max-width: calc(100vw - 10px) !important;
+        width: calc(100vw - 10px) !important;
+        max-height: calc(100dvh - 10px) !important;
+        border-radius: 12px !important;
+        border-width: 1px !important;
+    }
+
+    .sinergia-modal-header {
+        padding: 6px 10px !important;
+        gap: 8px !important;
+    }
+
+    .sinergia-modal-titulo { gap: 7px !important; }
+
+    .sinergia-modal-titulo .sinergia-modal-icono,
+    .sinergia-modal-titulo .sinergia-modal-icono img {
+        width: 26px !important;
+        height: 26px !important;
+    }
+
+    .sinergia-modal-nombre { font-size: 0.9rem !important; }
+
+    .sinergia-modal-lado-enemigo { font-size: 0.5rem !important; padding: 1px 5px !important; }
+
+    .sinergia-modal-cerrar {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .sinergia-modal-body {
+        padding: 8px 10px 10px 10px !important;
+        gap: 7px !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* La descripción ya no se corta: crece y hace scroll si hace falta */
+    .sinergia-modal-descripcion {
+        font-size: 0.62rem !important;
+        line-height: 1.3 !important;
+        padding: 6px 9px !important;
+        max-height: 78px !important;
+        border-left-width: 2px !important;
+    }
+    .sinergia-modal-descripcion p { margin: 0 0 3px 0 !important; }
+
+    .sinergia-modal-seccion-titulo {
+        font-size: 0.6rem !important;
+        padding-bottom: 2px !important;
+        margin-top: 0 !important;
+    }
+
+    .sinergia-modal-grid {
+        grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)) !important;
+        gap: 4px !important;
+        align-content: start !important;
+    }
+
+    .sinergia-modal-card {
+        min-height: 66px !important;
+        padding: 3px 3px 2px 3px !important;
+        border-radius: 6px !important;
+        gap: 1px !important;
+    }
+    .sinergia-modal-card img { width: 34px !important; height: 34px !important; }
+    .sinergia-modal-pokemon-nombre { font-size: 0.44rem !important; }
+    .sinergia-modal-coste { font-size: 0.42rem !important; padding: 0 4px !important; }
+
+    .sinergia-modal-niveles { gap: 3px !important; }
+
+    .sinergia-modal-nivel {
+        padding: 4px 7px !important;
+        font-size: 0.6rem !important;
+        gap: 7px !important;
+        border-left-width: 2px !important;
+    }
+    .sinergia-modal-nivel-num { font-size: 0.6rem !important; min-width: 34px !important; }
+    .sinergia-modal-nivel-desc { line-height: 1.25 !important; }
+    .sinergia-modal-nivel-check { font-size: 0.6rem !important; min-width: 14px !important; }
+}

@@ -1565,9 +1565,12 @@ function abrirCarta(tipo, indice) {
                 <h2 class="carta-nombre">${nombreMostrar}</h2>
                 ${estrellasHtml}
             </div>
-            <div class="carta-coste">
-                <img src="assets/icons/moneda.png" alt="💰" draggable="false" style="width:24px;height:24px;object-fit:contain;">
-                ${costeNum}
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div class="carta-coste">
+                    <img src="assets/icons/moneda.png" alt="💰" draggable="false" style="width:24px;height:24px;object-fit:contain;">
+                    ${costeNum}
+                </div>
+                <button class="carta-cerrar" onclick="cerrarCarta()" title="Cerrar (Esc)">✕</button>
             </div>
         </div>
     `;

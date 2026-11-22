@@ -267,6 +267,13 @@ protegido solo por `ACCESS_KEY`.
 - **Objetos equipados en el resumen final**: cada Pokémon del "EQUIPO FINAL"
   muestra ahora sus **objetos equipados** como mini-iconos bajo la carta
   (jugador y rivales), con su nombre al pasar el ratón.
+- **Móvil: carta de datos y carta de sinergia mejoradas**: la ficha del
+  Pokémon en horizontal usa ahora **todo el ancho**, con cabecera fija (y una
+  **X para cerrar** siempre visible), stats en **una sola fila de 8** en
+  pantallas ≥620 px (4 columnas en móviles pequeños), tipos y objetos más
+  compactos y los movimientos con letra legible. La carta de sinergia también
+  es más compacta: descripción completa sin cortes, rejilla de Pokémon y
+  niveles más pequeños. El escritorio no cambia (solo gana el botón X).
 - **Todas las sinergias en el resumen final**: antes solo salían **3** (se
   cortaba con `slice(0,3)`), así que sinergias como **Normal** desaparecían.
   Ahora aparecen **todas**, tanto tipos como clases, con salto de línea si no
