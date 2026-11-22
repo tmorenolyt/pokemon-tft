@@ -1,6 +1,13 @@
 // ============================================================
 // SISTEMA DE TORNEO - RIVALES SIMULADOS + RANKING DE VIDA
 // ============================================================
+
+// Escapa el nombre del jugador antes de meterlo en innerHTML.
+function escaparHtmlTorneo(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+}
 // 🆕 v6 — ECONOMÍA REAL DE NIVEL:
 //   - El rival sube de nivel PAGANDO el coste exacto de CONFIG.COSTES_NIVEL.
 //   - No hay subida gratis por fórmula ni por victorias.
@@ -1522,7 +1529,7 @@ function actualizarRankingTorneo() {
                     <span class="ranking-nivel" title="Nivel ${r.nivel}">${r.nivel}</span>
                 </div>
                 <div class="ranking-info">
-                    <div class="ranking-nombre">${r.nombre}</div>
+                    <div class="ranking-nombre">${escaparHtmlTorneo(r.nombre)}</div>
                     <div class="ranking-hp-row">
                         <span class="ranking-hp-valor">${Math.max(0, r.vida)}</span>
                         <div class="ranking-hp-bar">
@@ -2064,7 +2071,7 @@ function mostrarPantallaResultadosFinales() {
             <div class="info-entrenador">
                 <img src="assets/avatars/${jugador.carpeta}/${jugador.avatar}.webp" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%236b8aaa\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
                 <div style="display:flex; flex-direction:column;">
-                    <span class="nombre">${jugador.nombre}</span>
+                    <span class="nombre">${escaparHtmlTorneo(jugador.nombre)}</span>
                 </div>
             </div>
             <div class="equipo-final">

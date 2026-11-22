@@ -1117,6 +1117,7 @@
     </div>
 
     <script src="js/data/spritesDisponibles.js"></script>  <!-- 🆕 manifiesto de sprites -->
+    <script src="js/data/criasDisponibles.js"></script>     <!-- 🆕 gritos existentes -->
     <script src="js/config.js"></script>
     <script src="js/data/sinergias.js"></script>
     <script src="js/data/objetos.js"></script>
@@ -1147,7 +1148,17 @@
     <script src="js/systems/ultis-registro-3.js"></script>
     <script src="js/systems/nuevaVerde.js"></script>
     <script src="js/systems/pve.js"></script>                <!-- 🆕 PvE (antes de combate.js) -->
+    <!-- ⚔️ Combate partido por responsabilidades (antes de combate.js) -->
+    <script src="js/systems/combate/navegacion.js"></script>
+    <script src="js/systems/combate/estado.js"></script>
+    <script src="js/systems/combate/hud.js"></script>
+    <script src="js/systems/combate/combatir.js"></script>
     <script src="js/systems/combate.js"></script>
+    <!-- 🤖 IA enemiga partida por responsabilidades (antes de enemigo.js) -->
+    <script src="js/systems/enemigo/evaluacion.js"></script>
+    <script src="js/systems/enemigo/tablero.js"></script>
+    <script src="js/systems/enemigo/objetos.js"></script>
+    <script src="js/systems/enemigo/compras.js"></script>
     <script src="js/systems/enemigo.js"></script>
     <script src="js/systems/tiendaOverlay.js"></script>
 
@@ -1170,6 +1181,12 @@
     <script src="js/ui/wakeLock.js"></script>   <!-- 🔆 pantalla encendida en móvil -->
     <script src="js/ui/fullscreen.js"></script>  <!-- ⛶ pantalla completa en móvil -->
     <script src="js/ui/rendimiento.js"></script>  <!-- ⚡ gráficos ligeros -->
+    <!-- 🎮 main.js partido por responsabilidades (antes de main.js) -->
+    <script src="js/main/audio.js"></script>
+    <script src="js/main/ronda.js"></script>
+    <script src="js/main/rivales.js"></script>
+    <script src="js/main/carta.js"></script>
+    <script src="js/main/postcombate.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ui/tutorial1j.js"></script>
      <!-- <script src="js/audioGestor.js"></script> -->

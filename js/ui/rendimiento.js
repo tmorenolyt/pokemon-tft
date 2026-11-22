@@ -101,17 +101,18 @@
         estaticos: function () {
             if (!esMovil() || window.SPRITES_ESTATICOS) return;
             try {
-                document.querySelectorAll(
-                    '#playerBoard .unit-sprite, #enemigoBoard .unit-sprite, ' +
-                    '#banquilloGrid .unit-sprite, #enemyBanquilloGrid .unit-sprite'
-                ).forEach(convertirASpriteEstatico);
+                // Todos los sprites del documento: incluye tablero, banco y los
+                // que quedan ocultos en la tienda/carta (también consumen CPU).
+                document.querySelectorAll('.unit-sprite').forEach(convertirASpriteEstatico);
             } catch (e) { }
         },
         restaurar: function () {
             try {
+                const estatico = window.SPRITES_ESTATICOS;
                 document.querySelectorAll('.unit-sprite[data-src-animado]').forEach(function (img) {
                     img.onerror = null;
-                    img.src = img.dataset.srcAnimado;
+                    // Si el modo rendimiento está ON, se queda el PNG estático.
+                    if (!estatico) img.src = img.dataset.srcAnimado;
                     delete img.dataset.srcAnimado;
                 });
             } catch (e) { }

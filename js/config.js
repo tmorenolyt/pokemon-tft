@@ -282,13 +282,9 @@ function getEstrellasUrl(nivel) {
     return `${CONFIG.ICON_BASE_URL}estrellas/rank3.png`;
 }
 
-function getPokemonPorNombre(nombre) {
-    return TODOS_POKEMONS.find(p => p.nombre === nombre) || null;
-}
-
-function getPokemonPorCoste(coste) {
-    return POKEMONS.filter(p => p.coste === coste);
-}
+// getPokemonPorNombre / getPokemonPorCoste viven en js/data/pokemon.js
+// (antes estaban duplicadas aquí; se eliminó la copia para no tener dos
+// definiciones idénticas y evitar confusión al buscar quién las define).
 
 function getFamiliaEvolutiva(pokemon) {
     if (!pokemon) return null;

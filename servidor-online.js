@@ -9,6 +9,12 @@ const path = require('path');
 const zlib = require('zlib');
 
 const ROOT = __dirname;
+
+// Nombre de jugador: sin caracteres de control y con tope de longitud
+function nombreSeguro(v) {
+    var limpio = String(v == null ? '' : v).split('').filter(function (c) { var n = c.charCodeAt(0); return n >= 32 && n !== 127; }).join('');
+    return limpio.trim().slice(0, 24) || 'Jugador';
+}
 const PORT = process.env.PORT || 8000;
 // 🔒 Acceso privado opcional: si defines ACCESS_KEY en el entorno (Render),
 //    solo entra quien tenga el enlace con ?clave=...
@@ -418,8 +424,9 @@ function loginPage(res, mensaje, modo) {
 const COMPRIMIBLES = new Set(['.html', '.css', '.js', '.json', '.svg', '.txt']);
 const gzipCache = new Map(); // fp -> { mtimeMs, size, gz }
 
-function cacheHeaderFor(ext) {
+function cacheHeaderFor(ext, fp) {
     if (ext === '.html') return 'no-store';
+    if (path.basename(fp || '').toLowerCase() === 'sw.js') return 'no-cache';
     if (ext === '.js' || ext === '.css') return 'public, max-age=604800';
     return 'public, max-age=604800'; // imágenes, audio, fuentes
 }
@@ -439,7 +446,7 @@ function serveStatic(req, res, pathname) {
     if (rel === '/') rel = '/index.html';
     if (rel === '/online' || rel === '/online/') rel = '/online.html';
     const fp = path.normalize(path.join(ROOT, rel));
-    if (!fp.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }
+    if (fp !== ROOT && !fp.startsWith(ROOT + path.sep)) { res.writeHead(403); res.end('Forbidden'); return; }
     fs.readFile(fp, (err, buf) => {
         if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('404'); return; }
         const ext = path.extname(fp).toLowerCase();
@@ -457,8 +464,11 @@ function serveStatic(req, res, pathname) {
         }
         const base = {
             'Content-Type': MIME[ext] || 'application/octet-stream',
-            'Cache-Control': cacheHeaderFor(ext),
-            'Vary': 'Accept-Encoding'
+            'Cache-Control': cacheHeaderFor(ext, fp),
+            'Vary': 'Accept-Encoding',
+            'X-Content-Type-Options': 'nosniff',
+            'Referrer-Policy': 'no-referrer',
+            'X-Frame-Options': 'SAMEORIGIN'
         };
         const aceptaGzip = /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''));
         if (COMPRIMIBLES.has(ext) && aceptaGzip && buf.length > 1024) {
@@ -587,9 +597,9 @@ const server = http.createServer((req, res) => {
             }
             if (!room.players[pid]) {
                 const now = Date.now();
-                room.players[pid] = { name: body.name || 'Jugador', ready: false, team: null, joinedAt: now, lastSeen: now, round: null };
+                room.players[pid] = { name: nombreSeguro(body.name), ready: false, team: null, joinedAt: now, lastSeen: now, round: null };
             } else {
-                if (body.name) room.players[pid].name = body.name;
+                if (body.name) room.players[pid].name = nombreSeguro(body.name);
                 room.players[pid].lastSeen = Date.now();
                 if (!room.players[pid].joinedAt) room.players[pid].joinedAt = Date.now();
             }
@@ -728,12 +738,12 @@ const server = http.createServer((req, res) => {
             if (!pid) { send(res, { ok: false, error: 'pid' }, 400); return; }
             if (!room.players[pid]) {
                 const now = Date.now();
-                room.players[pid] = { name: body.name || 'Jugador', ready: false, team: null, joinedAt: now, lastSeen: now, round: null };
+                room.players[pid] = { name: nombreSeguro(body.name), ready: false, team: null, joinedAt: now, lastSeen: now, round: null };
             }
             const pl = room.players[pid];
             pl.lastSeen = Date.now();
             if (!pl.joinedAt) pl.joinedAt = Date.now();
-            if (body.name) pl.name = body.name;
+            if (body.name) pl.name = nombreSeguro(body.name);
             if (body.avatar) pl.avatar = body.avatar;
             if (typeof body.hp === 'number') pl.hp = body.hp;
             if (typeof body.nivel === 'number') pl.nivel = body.nivel;

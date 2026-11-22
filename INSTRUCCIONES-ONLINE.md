@@ -485,3 +485,24 @@ protegido solo por `ACCESS_KEY`.
 - Los PNG estáticos están en `assets/sprites/pokemon/static/` (normal y shiny),
   generados a partir del primer frame de cada GIF. Si añades sprites nuevos, hay
   que regenerarlos (Pillow) para que el modo rendimiento los tenga.
+- **IA enemiga modular**: `js/systems/enemigo.js` baja de 4.349 a ~886 líneas.
+  Se ha dividido en `js/systems/enemigo/evaluacion.js` (estrategia, evaluación y
+  ventas), `tablero.js` (movimiento y posicionamiento), `objetos.js` (equipar y
+  comprar objetos) y `compras.js` (compras, fusiones y rerolls). Los módulos se
+  cargan **antes** de `enemigo.js`; las 44 funciones se movieron sin cambiar una
+  línea (verificado por comparación de AST) y el comportamiento en 8 rondas fue
+  idéntico al de la versión anterior.
+- **Combate modular**: `js/systems/combate.js` baja de 2.892 a ~190 líneas.
+  Dividido en `combate/navegacion.js` (geometría, movimiento y objetivo),
+  `combate/estado.js` (bloquear/restaurar), `combate/hud.js` (barras, stats,
+  veneno/regeneración y pantalla final) y `combate/combatir.js` (bucle
+  principal). Los 37 funciones se movieron sin cambios (verificado por AST) y
+  una batalla real de 5v5 termina sin excepciones ni errores.
+- **main.js modular**: baja de 2.778 a ~849 líneas. Dividido en
+  `main/audio.js`, `main/ronda.js`, `main/rivales.js`, `main/carta.js` y
+  `main/postcombate.js`. Los 71 funciones se movieron sin cambios (AST) y se
+  probaron: abrir/cerrar carta, vender (oro 10→19), combate real y fin de ronda
+  (fase 5→6, tienda abierta), sin excepciones.
+- **Gritos sin 404**: `js/data/criasDisponibles.js` lista los 79 `.ogg` que
+  existen; los monstruos PvE sin grito (190/752/834/895) usan un sonido
+  sintetizado. Regenerar con `node tools/generar-crias.js`.
