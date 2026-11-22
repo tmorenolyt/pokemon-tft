@@ -118,6 +118,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   muestran dos tarjetas gemelas lado a lado (sin ilustración) con el VS en medio.
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas** y el banco reducido.
+  La **barra de acciones** llega a los dos bordes (antes dejaba una franja
+  vacía a la derecha).
   El **baúl de objetos** ya no son dos tiras laterales: se abre con el botón
   **📦** de la cabecera como panel flotante en forma de **tira vertical**: una sola
   columna de huecos de 32 px, sin título ni emoji (solo se ven los iconos),
@@ -244,9 +246,10 @@ protegido solo por `ACCESS_KEY`.
   seguir. A la izquierda asoma el **retrato grande del rival** enmarcado con
   sombra roja, y el texto se coloca a su derecha. El color del nombre cambia
   según el estado (verde/amarillo/rojo/gris). En **móvil** es la misma barra
-  pero compacta: ancho completo menos 6 px por lado, justo encima de la barra de
-  acciones, retrato de **90 px** y letra algo menor. Además el diálogo ya no se
-  sale por el borde derecho: se recoloca con el ancho real del texto.
+  pero compacta: **mismo ancho que la barra de acciones** (4 px por lado) y
+  **4 px encima** de ella, retrato de **90 px** y letra algo menor. Además el
+  diálogo ya no se sale por el borde derecho: se recoloca con el ancho real del
+  texto.
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
   en la tienda, venta de un Pokémon con objetos, paso de un Pokémon con objetos
   al banco o al conseguir el **Disco Definitivo** de nivel 5 y 8) la tira (📦) se

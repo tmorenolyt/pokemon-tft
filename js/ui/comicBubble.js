@@ -232,6 +232,19 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
     };
     recolocarBocadillo();
 
+    // 📐 Pegarla justo encima de la barra de acciones (PC y móvil), con un
+    //    margen mínimo de 4 px. Así queda centrada con ella y sin huecos raros.
+    try {
+        const barraAcciones = document.querySelector('.action-bar');
+        if (barraAcciones) {
+            const rb = barraAcciones.getBoundingClientRect();
+            if (rb.height > 0) {
+                bubble.style.top = 'auto';
+                bubble.style.bottom = Math.max(8, Math.round(window.innerHeight - rb.top + 4)) + 'px';
+            }
+        }
+    } catch (e) { /* sin barra de acciones */ }
+
     _comicBubbleElement = bubble;
     _comicBubbleElementPadre = document.body;
 

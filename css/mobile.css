@@ -1093,6 +1093,9 @@
         bottom: 4px !important;
         transform: none !important;
         width: auto !important;
+        /* Sin el tope de 100vw-32px: así llega a los dos bordes y no queda
+           una franja vacía a la derecha */
+        max-width: none !important;
         height: 48px !important;
         padding: 3px 6px !important;
         gap: 4px !important;
