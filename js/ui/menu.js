@@ -488,11 +488,15 @@ function initMenu() {
     document.getElementById('btnVolverMenu')?.addEventListener('click', volverAlMenu);
 
     document.getElementById('btnModoCreativo')?.addEventListener('click', () => {
+        // ⛶ Pantalla completa (dentro del gesto de usuario)
+        if (typeof window.activarPantallaCompleta === 'function') window.activarPantallaCompleta();
         window.modoDosJugadores = false;
         window.turnoJugador = 1;
         if (typeof window.actualizarInterfazTurno === 'function') window.actualizarInterfazTurno();
         if (menu) menu.style.display = 'none';
         if (juego) juego.style.display = 'block';
+        // 🔆 Evitar que la pantalla del móvil se apague durante la partida
+        if (typeof window.activarPantallaSiempre === 'function') window.activarPantallaSiempre();
         if (typeof init === 'function') init();
         setTimeout(() => { if (typeof initModoCreativo === 'function') initModoCreativo(); }, 500);
     });
@@ -608,6 +612,9 @@ function initMenu() {
         btnJugar.addEventListener('click', function (e) {
             e.preventDefault();
 
+            // ⛶ Pantalla completa (debe pedirse dentro del gesto de usuario)
+            if (typeof window.activarPantallaCompleta === 'function') window.activarPantallaCompleta();
+
             const esTutorial1j = (window._iniciarTutorial1j === true && modoMenuSeleccionado === '1j');
             window._iniciarTutorial1j = false;
 
@@ -630,6 +637,9 @@ function initMenu() {
 
             if (menu) menu.style.display = 'none';
             if (juego) juego.style.display = 'block';
+
+            // 🔆 Evitar que la pantalla del móvil se apague durante la partida
+            if (typeof window.activarPantallaSiempre === 'function') window.activarPantallaSiempre();
 
             if (es2P) {
                 window.modoDosJugadores = true;

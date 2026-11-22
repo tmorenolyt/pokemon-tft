@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f0c29" />
+    <meta name="theme-color" content="#0a0f22" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pokémon TFT" />
     <title>Pokémon TFT - Sinergias Rework</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1093,6 +1098,11 @@
 
                 <div class="ajustes-separador"></div>
 
+                <!-- Pantalla completa -->
+                <button class="ajustes-btn" id="btnPantallaCompleta" type="button">
+                    ⛶ Pantalla completa
+                </button>
+
                 <!-- Botones -->
                 <button class="ajustes-btn ajustes-btn-peligro" id="btnVolverMenuAjustes">
                     🏠 Volver al menú principal
@@ -1152,6 +1162,8 @@
     <script src="js/creative/creativePanel.js"></script>
 
     <script src="js/ui/previewSubirNivel.js"></script>
+    <script src="js/ui/wakeLock.js"></script>   <!-- 🔆 pantalla encendida en móvil -->
+    <script src="js/ui/fullscreen.js"></script>  <!-- ⛶ pantalla completa en móvil -->
     <script src="js/main.js"></script>
     <script src="js/ui/tutorial1j.js"></script>
      <!-- <script src="js/audioGestor.js"></script> -->

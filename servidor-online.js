@@ -42,6 +42,7 @@ const MIME = {
     '.css': 'text/css; charset=utf-8', '.json': 'application/json',
     '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
     '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon',
+    '.webmanifest': 'application/manifest+json',
     '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg',
     '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf'
 };

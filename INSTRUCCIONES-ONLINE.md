@@ -456,3 +456,20 @@ protegido solo por `ACCESS_KEY`.
   estrella a 7 px en las esquinas, y la Poké Ball de los huecos vacíos a 18 px.
   Aplica solo a móvil horizontal (≤1100 px de ancho y ≤560 px de alto), así que
   tablet y escritorio no cambian.
+- **Pantalla siempre encendida en móvil** (`js/ui/wakeLock.js`): al pulsar JUGAR
+  (o al primer toque dentro de la partida) se pide un **Screen Wake Lock**, así
+  el móvil no apaga la pantalla por inactividad durante los combates. Si la
+  pestaña se oculta o el navegador lo libera, se vuelve a pedir al volver; se
+  suelta al cerrar/recargar. Requiere **HTTPS** (Render ya lo es) y navegador
+  compatible (Chrome/Edge Android 84+, Safari iOS 16.4+). Si el móvil sigue
+  bloqueándose, revisa **Ajustes → Pantalla → Tiempo de espera** y el **ahorro
+  de energía** de Chrome; bloquear el teléfono a mano o cambiar de app sí pausa
+  la partida (comportamiento normal del navegador).
+- **Pantalla completa en móvil**: `manifest.webmanifest` con
+  `display: fullscreen` y `orientation: landscape`, más los metas de iOS
+  (`apple-mobile-web-app-capable`). Al pulsar JUGAR se pide la **Fullscreen
+  API** (Android/Chrome) y se bloquea horizontal; si se sale, hay un botón
+  **⛶ Pantalla completa** en Ajustes. En iPhone (sin API) se muestra un aviso
+  para **Compartir → Añadir a pantalla de inicio**, que abre el juego sin
+  barras. El `sw.js` es mínimo y **no cachea nada**: solo permite “Instalar
+  app” en Android sin afectar a los deploys.
