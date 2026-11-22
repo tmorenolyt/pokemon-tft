@@ -148,13 +148,26 @@ window.tirarDadoShiny = tirarDadoShiny;
 // 🖼️ SPRITES - AHORA CON PARÁMETRO esShiny
 // ============================================================
 
+// Extensión real del sprite según el manifiesto (js/data/spritesDisponibles.js).
+// Sin manifiesto cae al comportamiento antiguo (gif y cadena onerror).
+function _extensionSprite(spriteId, esShiny) {
+    try {
+        const m = window.SPRITE_FORMATOS;
+        if (m) {
+            const f = esShiny ? (m.shiny && m.shiny[spriteId]) : (m.normal && m.normal[spriteId]);
+            if (f) return f;
+        }
+    } catch (e) { }
+    return CONFIG.SPRITE_EXTENSION_PREFERIDA;
+}
+
 function getSpriteUrl(spriteId, nombre, esShiny = false) {
     let idFinal = spriteId;
     if (nombre === "Vulpix") idFinal = 10103;
     else if (nombre === "Ninetales") idFinal = 10104;
 
     const carpeta = esShiny ? 'shiny/' : '';
-    return `${CONFIG.SPRITE_BASE_URL}${carpeta}${idFinal}.${CONFIG.SPRITE_EXTENSION_PREFERIDA}`;
+    return `${CONFIG.SPRITE_BASE_URL}${carpeta}${idFinal}.${_extensionSprite(idFinal, esShiny)}`;
 }
 
 function getSpriteUrlFallback(spriteId, nombre, esShiny = false) {
@@ -223,19 +236,29 @@ function _probarFormatoSprite(spriteId, esShiny) {
 
 function precargarSprites() {
     if (typeof document === 'undefined') return;
-    if (typeof TODOS_POKEMONS === 'undefined') return;
 
+    // ✅ Con el manifiesto basta con rellenar la caché: 0 peticiones.
+    // Antes se descargaban TODOS los sprites (~5,2 MB) solo para saber si
+    // cada uno era .gif o .png, y eso se notaba muchísimo en móvil.
+    const man = window.SPRITE_FORMATOS;
+    if (man) {
+        for (const id in (man.normal || {})) {
+            SPRITE_FORMATO_CACHE[claveSprite(id, false)] = man.normal[id];
+        }
+        for (const id in (man.shiny || {})) {
+            SPRITE_FORMATO_CACHE[claveSprite(id, true)] = man.shiny[id];
+        }
+        return;
+    }
+
+    // Respaldo (sin manifiesto): comportamiento antiguo, solo para no romper.
+    if (typeof TODOS_POKEMONS === 'undefined') return;
     const spriteIds = new Set();
     for (let p of TODOS_POKEMONS) {
         if (p.spriteId) spriteIds.add(p.spriteId);
     }
-
     for (let id of spriteIds) {
         _probarFormatoSprite(id, false);
-    }
-
-    if (spriteIds.size > 0) {
-        console.log(`🎬 Precargando y resolviendo formato de ${spriteIds.size} sprite(s)`);
     }
 }
 

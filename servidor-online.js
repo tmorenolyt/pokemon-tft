@@ -6,6 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 const ROOT = __dirname;
 const PORT = process.env.PORT || 8000;
@@ -404,6 +405,34 @@ function loginPage(res, mensaje, modo) {
     res.end(html);
 }
 
+// ============================================================
+// 📦 CACHÉ Y COMPRESIÓN DE ESTÁTICOS
+// Antes todo iba con `no-store`: cada visita descargaba ~22 MB
+// otra vez (fondos, sprites, JS...). Ahora:
+//   · HTML  -> no-store (para que los cambios se vean al recargar)
+//   · JS/CSS -> 10 min (recarga normal ya no los baja; un deploy se ve pronto)
+//   · imágenes/sonidos/fuentes -> 7 días
+//   · JS/CSS/HTML/SVG/JSON -> gzip (2,1 MB de JS -> ~500 KB)
+// ============================================================
+const COMPRIMIBLES = new Set(['.html', '.css', '.js', '.json', '.svg', '.txt']);
+const gzipCache = new Map(); // fp -> { mtimeMs, size, gz }
+
+function cacheHeaderFor(ext) {
+    if (ext === '.html') return 'no-store';
+    if (ext === '.js' || ext === '.css') return 'public, max-age=600';
+    return 'public, max-age=604800'; // imágenes, audio, fuentes
+}
+
+function gzipDeCache(fp, buf) {
+    let mtimeMs = 0;
+    try { mtimeMs = fs.statSync(fp).mtimeMs; } catch (e) { }
+    const hit = gzipCache.get(fp);
+    if (hit && hit.mtimeMs === mtimeMs && hit.size === buf.length) return hit.gz;
+    const gz = zlib.gzipSync(buf, { level: 6 });
+    gzipCache.set(fp, { mtimeMs, size: buf.length, gz });
+    return gz;
+}
+
 function serveStatic(req, res, pathname) {
     let rel = decodeURIComponent(pathname);
     if (rel === '/') rel = '/index.html';
@@ -412,7 +441,22 @@ function serveStatic(req, res, pathname) {
     if (!fp.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }
     fs.readFile(fp, (err, buf) => {
         if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('404'); return; }
-        res.writeHead(200, { 'Content-Type': MIME[path.extname(fp).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-store, no-cache, must-revalidate' });
+        const ext = path.extname(fp).toLowerCase();
+        const base = {
+            'Content-Type': MIME[ext] || 'application/octet-stream',
+            'Cache-Control': cacheHeaderFor(ext),
+            'Vary': 'Accept-Encoding'
+        };
+        const aceptaGzip = /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''));
+        if (COMPRIMIBLES.has(ext) && aceptaGzip && buf.length > 1024) {
+            const gz = gzipDeCache(fp, buf);
+            res.writeHead(200, { ...base, 'Content-Encoding': 'gzip', 'Content-Length': gz.length });
+            if (req.method === 'HEAD') { res.end(); return; }
+            res.end(gz);
+            return;
+        }
+        res.writeHead(200, { ...base, 'Content-Length': buf.length });
+        if (req.method === 'HEAD') { res.end(); return; }
         res.end(buf);
     });
 }

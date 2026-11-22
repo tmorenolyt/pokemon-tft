@@ -1781,3 +1781,65 @@
     #rankingTorneo .ranking-item { gap: 5px !important; }
     #rankingTorneo .ranking-nombre { font-size: .6rem !important; }
 }
+
+/* ============================================================
+   📐 BANCO COMPACTO A ≤2000px (100 % de zoom)
+   Usa la MISMA especificidad que arena-horizontal.css para ganarle.
+   A 2133px (90 % de zoom) no aplica.
+   ============================================================ */
+@media (max-width: 2000px) {
+    html body .bank-cell .unit-sprite,
+    html body #banquilloGrid .bank-cell .unit-sprite,
+    html body #enemyBanquilloGrid .bank-cell .unit-sprite {
+        width: 38px !important;
+        height: 38px !important;
+        margin-top: -1px !important;
+        object-fit: contain !important;
+    }
+
+    .bank-cell .unit-name {
+        font-size: 0.44rem !important;
+        margin-top: 3px !important;
+    }
+
+    .bank-cell .unit-traits-left .tipo-icon,
+    .bank-cell .unit-traits-left .clase-icon {
+        width: 9px !important;
+        height: 9px !important;
+    }
+
+    .bank-cell .unit-stars-right img {
+        height: 10px !important;
+        width: auto !important;
+    }
+
+    #banquilloGrid .bank-cell,
+    #enemyBanquilloGrid .bank-cell {
+        padding: 1px !important;
+        height: 72px !important;
+    }
+
+    .bank-grid { gap: 4px !important; }
+}
+
+/* ============================================================
+   📐 BARRA DE ACCIONES + TABLERO A ≤2000px (100 % de zoom)
+   - La barra baja un poco (menos aire arriba).
+   - El tablero se limita en alto para que NUNCA pise la barra
+     en ventanas anchas y bajas (1920×900/960).
+   A 2133px (90 %) no se aplica.
+   ============================================================ */
+@media (max-width: 2000px) and (min-width: 1101px) {
+    .action-bar {
+        bottom: 12px !important;
+    }
+
+    /* Las casillas tienen aspect-ratio: el tablero crece en alto según su ancho.
+       Limitamos el ancho para que su alto quepa por encima de la barra.
+       212 = cabecera + holgura sobre la barra (con 266 sobraba mucho hueco
+       en ventanas de 900 px de alto y las cartas se veían pequeñas). */
+    html body #playerBoard,
+    html body #enemigoBoard {
+        max-width: min(510px, calc((100dvh - 212px) * 0.678)) !important;
+    }
+}

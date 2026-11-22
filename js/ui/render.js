@@ -1127,7 +1127,7 @@ function actualizarInfoJugador() {
     if (playerNameEl) playerNameEl.textContent = nombreMostrar;
 
         if (playerAvatarEl) {
-        const srcNuevo = `assets/avatars/${carpetaMostrar}/${avatarMostrar}.png`;
+        const srcNuevo = `assets/avatars/${carpetaMostrar}/${avatarMostrar}.webp`;
         const imgActual = playerAvatarEl.querySelector('img');
         if (!imgActual) {
             const img = document.createElement('img');
@@ -1291,7 +1291,7 @@ function actualizarInfoEnemigo() {
         const enemyAvatarEl = document.getElementById("enemyAvatar");
         if (enemyNameEl) enemyNameEl.textContent = ident.nombre;
         if (enemyAvatarEl) {
-            const srcNuevo = `assets/avatars/${ident.carpeta}/${ident.avatar}.png`;
+            const srcNuevo = `assets/avatars/${ident.carpeta}/${ident.avatar}.webp`;
             const imgActual = enemyAvatarEl.querySelector('img');
             if (!imgActual) {
                 const img = document.createElement('img');

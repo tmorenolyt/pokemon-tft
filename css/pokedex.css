@@ -515,7 +515,7 @@
             rgba(11, 16, 32, 0.72) 0%,
             rgba(19, 26, 53, 0.78) 50%,
             rgba(10, 15, 34, 0.82) 100%),
-        url('../assets/backgrounds/arena.png') center center / cover no-repeat fixed,
+        url('../assets/backgrounds/arena2.webp') center center / cover no-repeat fixed,
         radial-gradient(ellipse at 20% 0%, rgba(120, 90, 220, 0.45) 0%, transparent 55%),
         radial-gradient(ellipse at 90% 20%, rgba(255, 90, 160, 0.30) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 100%, rgba(40, 90, 180, 0.40) 0%, transparent 60%),

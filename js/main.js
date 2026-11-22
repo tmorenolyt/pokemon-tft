@@ -573,6 +573,15 @@ function playSonidoMovimiento(nombreMovimiento, volumen = 0.4) {
         return;
     }
 
+    // Lista real de archivos (js/data/sonidosMovimientos.js). Si el sonido no
+    // existe —p. ej. el id de una ULTIMATE, que no tiene mp3— usamos el
+    // sintetizado en vez de provocar dos 404 (mp3 + ogg) en cada lanzamiento.
+    const sonidosReales = window.SONIDOS_MOVIMIENTOS_DISPONIBLES;
+    if (sonidosReales && !sonidosReales.has(idSonido)) {
+        usarFallbackSonidoMovimiento(idSonido, volumen);
+        return;
+    }
+
     const urlMp3 = CONFIG.SOUND_BASE_URL + 'movimientos/' + idSonido + '.mp3';
     const urlOgg = CONFIG.SOUND_BASE_URL + 'movimientos/' + idSonido + '.ogg';
 
@@ -1113,7 +1122,7 @@ function asignarRivalAleatorioInmediato() {
             if (enemyAvatarEl) {
                 enemyAvatarEl.innerHTML = '';
                 const img = document.createElement('img');
-                img.src = `assets/avatars/rivales/${rivalActual.avatar}.png`;
+                img.src = `assets/avatars/rivales/${rivalActual.avatar}.webp`;
                 img.alt = rivalActual.nombre;
                 img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
                 enemyAvatarEl.appendChild(img);
@@ -1216,7 +1225,7 @@ function asignarRivalAleatorioInmediato() {
         if (enemyAvatarEl) {
             enemyAvatarEl.innerHTML = '';
             const img = document.createElement('img');
-            img.src = `assets/avatars/rivales/${rivalElegido.avatar}.png`;
+            img.src = `assets/avatars/rivales/${rivalElegido.avatar}.webp`;
             img.alt = rivalElegido.nombre;
             img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
             enemyAvatarEl.appendChild(img);
@@ -1358,7 +1367,7 @@ window.generarEquipoPlaceholderRival = generarEquipoPlaceholderRival;
 function aplicarTerrenoActual(rival) {
     // 🆕 MODO CREATIVO: siempre el mismo fondo, sin cambios
     if (window.modoCreativo === true) {
-        document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/terreno-creativo.png')`);
+        document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/terreno-creativo.webp')`);
         const arena = document.querySelector('.arena-row');
         if (arena) arena.style.backgroundImage = 'none';
         return;
@@ -1376,16 +1385,16 @@ function aplicarTerrenoActual(rival) {
         tipoPrincipal = 'salvaje';
     }
 
-    const terrenosDisponibles = ['fuego', 'agua', 'planta', 'electrico', 'psiquico', 'siniestro', 'hada', 'fantasma', 'lucha', 'veneno', 'hielo', 'dragon', 'roca', 'normal', 'volador', 'acero', 'eevee', 'salvaje'];
+    const terrenosDisponibles = ['fuego', 'agua', 'planta', 'electrico', 'psiquico', 'siniestro', 'hada', 'fantasma', 'lucha', 'veneno', 'hielo', 'dragon', 'roca', 'volador', 'acero', 'eevee', 'salvaje'];
 
     let urlFinal;
     let nombreLog;
 
     if (terrenosDisponibles.includes(tipoPrincipal)) {
-        urlFinal = `url('../assets/backgrounds/terreno-${tipoPrincipal}.png')`;
+        urlFinal = `url('../assets/backgrounds/terreno-${tipoPrincipal}.webp')`;
         nombreLog = tipoPrincipal;
     } else {
-        urlFinal = `url('../assets/backgrounds/terreno.png')`;
+        urlFinal = `url('../assets/backgrounds/terreno.webp')`;
         nombreLog = 'default';
     }
 
@@ -2299,8 +2308,8 @@ function reiniciarJuego() {
 
         if (!document.body.style.getPropertyValue('--terreno-actual')) {
         const terrenoInicial = (window.modoCreativo === true)
-            ? `url('../assets/backgrounds/terreno-creativo.png')`
-            : `url('../assets/backgrounds/terreno.png')`;
+            ? `url('../assets/backgrounds/terreno-creativo.webp')`
+            : `url('../assets/backgrounds/terreno.webp')`;
         document.body.style.setProperty('--terreno-actual', terrenoInicial);
     }
 
@@ -2601,8 +2610,8 @@ function init() {
 
         if (!document.body.style.getPropertyValue('--terreno-actual')) {
         const terrenoInicial = (window.modoCreativo === true)
-            ? `url('../assets/backgrounds/terreno-creativo.png')`
-            : `url('../assets/backgrounds/terreno.png')`;
+            ? `url('../assets/backgrounds/terreno-creativo.webp')`
+            : `url('../assets/backgrounds/terreno.webp')`;
         document.body.style.setProperty('--terreno-actual', terrenoInicial);
     }
 

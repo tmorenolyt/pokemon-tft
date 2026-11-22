@@ -294,7 +294,7 @@
                         <!-- JUGADOR 1 -->
                         <div class="player-panel j1" id="panelJ1" style="max-width: 600px;">
                             <div class="character-image-container" style="flex: 0 0 200px;">
-                                <img src="assets/avatars/personajes/rojofull.png" alt="Rojo" class="character-image" id="characterImage1" style="max-height: 320px;">
+                                <img src="assets/avatars/personajes/rojofull.webp" alt="Rojo" class="character-image" id="characterImage1" style="max-height: 320px;">
                             </div>
 
                             <div class="panel-content">
@@ -307,7 +307,7 @@
                                 </div>
 
                                 <div class="avatar-display" id="avatarDisplayWrapper1">
-                                    <img src="assets/avatars/jugador/rojo.png" alt="Avatar" id="avatarDisplay1" onerror="this.style.display='none'">
+                                    <img src="assets/avatars/jugador/rojo.webp" alt="Avatar" id="avatarDisplay1" onerror="this.style.display='none'">
                                 </div>
 
                                 <div class="input-group">
@@ -334,7 +334,7 @@
                         <!-- JUGADOR 2 -->
                         <div class="player-panel j2 oculto" id="panelJ2" style="max-width: 600px;">
                             <div class="character-image-container" style="flex: 0 0 200px;">
-                                <img src="assets/avatars/personajes/azulfull.png" alt="Azul" class="character-image" id="characterImage2" style="max-height: 320px;" onerror="this.src='assets/avatars/personajes/rojofull.png'">
+                                <img src="assets/avatars/personajes/azulfull.webp" alt="Azul" class="character-image" id="characterImage2" style="max-height: 320px;" onerror="this.src='assets/avatars/personajes/rojofull.png'">
                             </div>
 
                             <div class="panel-content">
@@ -347,7 +347,7 @@
                                 </div>
 
                                 <div class="avatar-display" id="avatarDisplayWrapper2">
-                                    <img src="assets/avatars/jugador/azul.png" alt="Avatar" id="avatarDisplay2" onerror="this.style.display='none'">
+                                    <img src="assets/avatars/jugador/azul.webp" alt="Avatar" id="avatarDisplay2" onerror="this.style.display='none'">
                                 </div>
 
                                 <div class="input-group">
@@ -1101,7 +1101,8 @@
         </div>
     </div>
 
-        <script src="js/config.js"></script>
+    <script src="js/data/spritesDisponibles.js"></script>  <!-- 🆕 manifiesto de sprites -->
+    <script src="js/config.js"></script>
     <script src="js/data/sinergias.js"></script>
     <script src="js/data/objetos.js"></script>
     <script src="js/data/objetosRecomendados.js"></script>
@@ -1113,6 +1114,7 @@
     <script src="js/data/movimientoIcons.js"></script>
     <script src="js/data/spriteScale.js"></script>
     <script src="js/data/monstruosPvE.js"></script>          <!-- 🆕 PvE -->
+    <script src="js/data/sonidosMovimientos.js"></script>    <!-- 🆕 evita 404 de sonidos -->
 
     <script src="js/classes/Unidad.js"></script>
 

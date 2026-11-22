@@ -329,6 +329,11 @@ protegido solo por `ACCESS_KEY`.
   tienes **2 copias de nivel 1★** de ese Pokémon. Antes contaba copias por
   nombre sin mirar el nivel, así que con dos Leafeon **2★** (tablero + banco)
   la tienda marcaba un Leafeon como fusión y no era cierto.
+- **Ranking sin solapes (100 % de zoom)**: en pantallas de **≤2000 px de ancho**
+  el ranking se coloca **debajo del panel del jugador** y se hace **más estrecho
+  (166 px, filas compactas)** para que **no pise ni el baúl ni el banco**. A
+  **2133 px** (1920×1080 al **90 % de zoom**) se queda como estaba: arriba a la
+  izquierda y a 240 px.
 - **Ranking siempre por posición**: la lista del ranking ya **no se reordena
   por emparejamientos**; va siempre de 1º a último (vivos primero, luego por
   vida) y el rival de la ronda aparece **con el recuadro marcado** (marco
@@ -382,3 +387,54 @@ protegido solo por `ACCESS_KEY`.
   conectados, nick, ronda, nivel, HP y tiempo jugado, refrescado cada 2,5 s.
 - **Versión visible** en el menú: `v0.2.0 · <commit>` debajo del perfil, con aviso
   `🆕 ACTUALIZADO` cuando cambia el commit desplegado.
+- **Escritorio a 100 % de zoom**: la barra de acciones baja a 12 px del borde
+  (antes 30) y el tablero se limita en ancho según el alto de la ventana, de modo
+  que **nunca pisa las casillas** aunque la ventana sea baja (900-1000 px de alto).
+  La separación queda en ~19 px. A 90 % de zoom (≥2001 px) no cambia nada.
+- **Ranking más grande a 100 % (1920 px)**: en 1920 el panel del jugador empieza
+  en x≈172, así que a la izquierda hay una columna libre. Allí el ranking sube a
+  su altura normal (118 px en vez de 262) y crece: filas de 46 px (antes 32),
+  avatar de 36 px (antes 24) y nombre a 12 px (antes 9). Sigue sin tocar el panel
+  del jugador ni el baúl (18 px de margen). Por debajo de 1915 px se mantiene la
+  versión compacta para no invadir el panel.
+- **Sin barra horizontal en el ranking (100 %)**: el panel tenía `overflow-y: auto`,
+  lo que activaba también el scroll horizontal cuando aparecían los ticks ✅/❌,
+  el ⚔️ del rival, el 🔥 de racha o el daño flotante (que entra deslizándose).
+  Ahora usa `overflow-x: clip` y el ⚔️/🔥 se dibujan dentro del panel.
+- **Tienda de objetos ajustada a 100 %**: el panel usaba `56vh` fijo, y en
+  ventanas de 900-950 px de alto el contenido no cabía: la fila del botón
+  **Reroll** se salía por debajo del borde. Ahora el alto se calcula según el
+  espacio real hasta la barra de acciones (`alto barra - 124 px`), así entra
+  todo el contenido (panel de 564 px, igual que al 90 %). Probado a
+  1920×1080/950/900, 1600×900, 1366×768 y 1280×720.
+
+## ⚡ Rendimiento (P0)
+
+- **Caché y compresión** (`servidor-online.js`): HTML `no-store`, JS/CSS
+  `max-age=600` y imágenes/audio/fuentes `max-age=604800`. Además gzip para
+  HTML/CSS/JS/JSON/SVG (con caché en memoria). Antes todo iba con `no-store`:
+  **cada visita descargaba 22 MB otra vez**. Ahora la segunda carga es **0 KB**.
+  Ojo: tras un deploy, los amigos pueden tardar hasta 10 min en ver el JS nuevo
+  (Ctrl+Shift+F5 lo fuerza).
+- **Fondos en WebP**: los 5 fondos del menú pasan de **13,8 MB a 0,5 MB**
+  (0,25 MB en móvil, con variantes de 900 px), y cada terreno de **~3,4 MB a
+  ~0,18 MB**. Los PNG originales se quedan en `assets/` como respaldo.
+- **Avatares en WebP**: los 37 avatares (8 jugador, 8 personajes y 21 rivales)
+  pasan de **2,6 MB a 0,5 MB** (de 40-180 KB a 5-34 KB cada uno). El selector,
+  el perfil y el ranking usan ya `.webp`; se mantiene `rojofull.png` como
+  respaldo en el `onerror` del avatar de J2.
+- **Sin precarga masiva de sprites**: `js/data/spritesDisponibles.js` guarda el
+  formato real (gif/png) de cada sprite, así el juego ya no descarga los 83
+  sprites (**5,2 MB**) al arrancar solo para averiguarlo. Regenerar al añadir
+  sprites: `node tools/generar-sprites.js`.
+- **Sin 404 de sonidos**: `js/data/sonidosMovimientos.js` lista los mp3 que
+  existen; si una ULTIMATE no tiene archivo se usa el sonido sintetizado en vez
+  de pedir `.mp3` y `.ogg` (dos 404 por lanzamiento). Regenerar al añadir
+  sonidos: `node tools/generar-sonidos.js`.
+- **Resultado medido (móvil 844×390)**: menú **22,4 MB / 163 peticiones →
+  1,1 MB / 90 peticiones**; escritorio 1920×1080 → **1,36 MB**. Recarga: **0 KB**.
+  De ese 1,1 MB, 572 KB son imágenes WebP, 424 KB JS (gzip) y el resto HTML/CSS.
+- **Referencias rotas corregidas**: `terreno-normal.png` (no existía: ahora usa
+  el terreno por defecto) y `arena.png` de la Pokédex (→ `arena2.webp`).
+- **Consola limpia**: se evita el CORS de `/api/version` al abrir `index.html`
+  con doble clic (`file://`) y el aviso de `audioGestor.js` en cada combate.

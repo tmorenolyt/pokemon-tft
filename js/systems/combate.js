@@ -1258,8 +1258,8 @@ async function combatir() {
                 if (typeof pausarMusicaPreparacion === 'function') {
             pausarMusicaPreparacion();
         } else if (typeof pausarFondoPreparacion === 'function') {
+            // audioGestor.js ya no se usa (está comentado en index.html).
             pausarFondoPreparacion();
-            console.warn('⚠️ audioGestor.js no cargado, usando pausarFondoPreparacion() directamente');
         }
         if (typeof reproducirMusicaCombate === 'function') {
             reproducirMusicaCombate();

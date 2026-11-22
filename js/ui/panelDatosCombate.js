@@ -207,7 +207,7 @@ function renderizarPanelDatosCombate() {
 
     const avatarJugadorEl = document.getElementById('panelDatosAvatarJugador');
     if (avatarJugadorEl) {
-        const srcJugador = `assets/avatars/${carpetaPlayer}/${avatarMostrar}.png`;
+        const srcJugador = `assets/avatars/${carpetaPlayer}/${avatarMostrar}.webp`;
         if (!avatarJugadorEl.querySelector('img')) {
             avatarJugadorEl.innerHTML = '';
             const img = document.createElement('img');
@@ -229,7 +229,7 @@ function renderizarPanelDatosCombate() {
     const avatarEnemigoEl = document.getElementById('panelDatosAvatarEnemigo');
     if (avatarEnemigoEl) {
         if (avatarEnemigo) {
-            const srcEnemigo = `assets/avatars/${carpetaEnemigo}/${avatarEnemigo}.png`;
+            const srcEnemigo = `assets/avatars/${carpetaEnemigo}/${avatarEnemigo}.webp`;
             if (!avatarEnemigoEl.querySelector('img')) {
                 avatarEnemigoEl.innerHTML = '';
                 const img = document.createElement('img');

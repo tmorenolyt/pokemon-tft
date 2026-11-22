@@ -27,14 +27,14 @@ const COLORES_BORDE = [
 
 // ===== LISTA DE AVATARES DISPONIBLES =====
 const AVATARES_JUGADOR = [
-    { id: "rojo",      nombre: "Rojo",      emoji: "🧢", archivo: "rojo.png" },
-    { id: "azul",      nombre: "Azul",      emoji: "👕", archivo: "azul.png" },
-    { id: "verde",     nombre: "Verde",     emoji: "🌿", archivo: "verde.png" },
-    { id: "amarillo",  nombre: "Amarillo",  emoji: "⚡", archivo: "amarillo.png" },
-    { id: "oro",       nombre: "Oro",       emoji: "🏆", archivo: "oro.png" },
-    { id: "plata",     nombre: "Plata",     emoji: "🥈", archivo: "plata.png" },
-    { id: "cristal",   nombre: "Cristal",   emoji: "💎", archivo: "cristal.png" },
-    { id: "rubi",      nombre: "Rubí",      emoji: "🔴", archivo: "rubi.png" }
+    { id: "rojo",      nombre: "Rojo",      emoji: "🧢", archivo: "rojo.webp" },
+    { id: "azul",      nombre: "Azul",      emoji: "👕", archivo: "azul.webp" },
+    { id: "verde",     nombre: "Verde",     emoji: "🌿", archivo: "verde.webp" },
+    { id: "amarillo",  nombre: "Amarillo",  emoji: "⚡", archivo: "amarillo.webp" },
+    { id: "oro",       nombre: "Oro",       emoji: "🏆", archivo: "oro.webp" },
+    { id: "plata",     nombre: "Plata",     emoji: "🥈", archivo: "plata.webp" },
+    { id: "cristal",   nombre: "Cristal",   emoji: "💎", archivo: "cristal.webp" },
+    { id: "rubi",      nombre: "Rubí",      emoji: "🔴", archivo: "rubi.webp" }
 ];
 
 // ============================================================
@@ -235,7 +235,7 @@ function construirAvatarGridEn(containerId, avatarSeleccionado, onSelect) {
             const characterImg = document.getElementById(characterImgId);
             if (characterImg) {
                 const nombreSinExtension = avatar.archivo.replace('.png', '');
-                characterImg.src = `assets/avatars/personajes/${nombreSinExtension}full.png`;
+                characterImg.src = `assets/avatars/personajes/${nombreSinExtension}full.webp`;
                 characterImg.alt = avatar.nombre;
             }
 
@@ -418,6 +418,13 @@ function initVersionBadge() {
     el.dataset.iniciado = '1';
 
     async function refrescar() {
+        // Abriendo index.html con doble clic (file://) no hay servidor: el fetch
+        // a /api/version provocaba errores CORS en consola. Ahí no se consulta.
+        if (location.protocol === 'file:') {
+            el.textContent = 'v0.2.0 · local';
+            el.title = 'Abierto como archivo local: la versión del servidor no está disponible.';
+            return;
+        }
         try {
             const r = await fetch('/api/version', { cache: 'no-store' });
             const d = await r.json();

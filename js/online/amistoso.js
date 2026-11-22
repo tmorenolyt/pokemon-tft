@@ -363,7 +363,7 @@
                 <div class="${clases}" title="${_esc(p.nombre)}${estrellita}">
                     <div class="ranking-pos">${i + 1}</div>
                     <div class="ranking-avatar-wrap">
-                        <img class="ranking-avatar" src="assets/avatars/${carpeta}/${p.avatar}.png" onerror="this.style.display='none'">
+                        <img class="ranking-avatar" src="assets/avatars/${carpeta}/${p.avatar}.webp" onerror="this.style.display='none'">
                         <span class="ranking-nivel">${p.nivel || 1}</span>
                     </div>
                     <div class="ranking-info">
@@ -503,7 +503,7 @@
                 fila.innerHTML = `
                     <div class="rango-badge pos-${p.pos}">${rango}</div>
                     <div class="info-entrenador">
-                        <img src="assets/avatars/${p.tipo === 'humano' ? 'jugador' : 'rivales'}/${p.avatar}.png" onerror="this.style.display='none'">
+                        <img src="assets/avatars/${p.tipo === 'humano' ? 'jugador' : 'rivales'}/${p.avatar}.webp" onerror="this.style.display='none'">
                         <div style="display:flex; flex-direction:column;">
                             <span class="nombre">${_esc(p.nombre)}${p.tipo === 'ia' ? ' 🤖' : ''}</span>
                         </div>
@@ -674,7 +674,7 @@
                 fila.innerHTML = `
                     <div class="rango-badge pos-${pos}">${rangoHtml}</div>
                     <div class="info-entrenador">
-                        <img src="assets/avatars/jugador/${jugador.avatar}.png" onerror="this.style.display='none'">
+                        <img src="assets/avatars/jugador/${jugador.avatar}.webp" onerror="this.style.display='none'">
                         <div style="display:flex; flex-direction:column;">
                             <span class="nombre">${_esc(jugador.nombre)}</span>
                         </div>
@@ -759,7 +759,7 @@
     function pintarAvatarEnemigo(av) {
         const ea = document.getElementById('enemyAvatar');
         if (!ea || !av) return;
-        const src = 'assets/avatars/jugador/' + av + '.png';
+        const src = 'assets/avatars/jugador/' + av + '.webp';
         const img = ea.querySelector('img');
         if (img && img.getAttribute('src') === src) return;
         ea.innerHTML = '';

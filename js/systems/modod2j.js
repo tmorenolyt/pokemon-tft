@@ -351,7 +351,7 @@ function mostrarCartelTurno() {
         const num = (typeof turnoJugador === 'number' && (turnoJugador === 1 || turnoJugador === 2)) ? turnoJugador : 1;
         const ident = _identidadJugador('player');
         const nombre = (typeof _nombreJugador === 'function') ? _nombreJugador(num) : (ident.nombre || `Jugador ${num}`);
-        const avatar = `assets/avatars/${ident.carpeta || 'jugador'}/${ident.avatar || 'rojo'}.png`;
+        const avatar = `assets/avatars/${ident.carpeta || 'jugador'}/${ident.avatar || 'rojo'}.webp`;
         // 👥 Color por jugador: J1 cian, J2 rojo.
         const claseTurno = (num === 2) ? 'turno turno-rojo' : 'turno';
 

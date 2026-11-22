@@ -1494,7 +1494,7 @@ function actualizarRankingTorneo() {
         const danoHtml = r.danoRonda ? `<div class="ranking-dano">-${r.danoRonda}</div>` : '';
 
         const carpeta = r.esJugador ? 'jugador' : 'rivales';
-        const srcAvatar = `assets/avatars/${carpeta}/${r.avatar}.png`;
+        const srcAvatar = `assets/avatars/${carpeta}/${r.avatar}.webp`;
         const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b8aaa'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
         const tituloPotencial = (!r.esJugador && r.potencial)
@@ -1708,7 +1708,7 @@ function abrirInspeccionRival(nombreRival) {
     if (enemyAvatarEl) {
         enemyAvatarEl.innerHTML = '';
         const img = document.createElement('img');
-        img.src = `assets/avatars/rivales/${rivalData.avatar}.png`;
+        img.src = `assets/avatars/rivales/${rivalData.avatar}.webp`;
         img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
         enemyAvatarEl.appendChild(img);
     }
@@ -1793,7 +1793,7 @@ function cerrarEspia() {
     if (enemyAvatarEl && window.rivalActual) {
         enemyAvatarEl.innerHTML = '';
         const img = document.createElement('img');
-        img.src = `assets/avatars/rivales/${window.rivalActual.avatar}.png`;
+        img.src = `assets/avatars/rivales/${window.rivalActual.avatar}.webp`;
         img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
         enemyAvatarEl.appendChild(img);
     }
@@ -2062,7 +2062,7 @@ function mostrarPantallaResultadosFinales() {
         fila.innerHTML = `
             <div class="rango-badge pos-${pos}">${rangoHtml}</div>
             <div class="info-entrenador">
-                <img src="assets/avatars/${jugador.carpeta}/${jugador.avatar}.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%236b8aaa\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
+                <img src="assets/avatars/${jugador.carpeta}/${jugador.avatar}.webp" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%236b8aaa\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
                 <div style="display:flex; flex-direction:column;">
                     <span class="nombre">${jugador.nombre}</span>
                 </div>

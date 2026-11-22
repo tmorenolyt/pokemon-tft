@@ -331,7 +331,17 @@ function posicionarTienda() {
     modal.style.width = width + 'px';
     modal.style.maxWidth = 'none';
     modal.style.margin = '0';
-    modal.style.maxHeight = '56vh';
+
+    // 📐 Alto disponible real: desde el padding superior del overlay (100 px)
+    // hasta justo encima de la barra de acciones. Antes era 56vh fijo y en
+    // ventanas de 900-950 px (100 % de zoom) la tienda de objetos no cabía:
+    // la fila del botón Reroll se salía por debajo del panel y se cortaba.
+    const barraAcciones = document.querySelector('.action-bar');
+    const barraTop = barraAcciones && barraAcciones.getBoundingClientRect().height > 0
+        ? barraAcciones.getBoundingClientRect().top
+        : window.innerHeight - 90;
+    const altoDisponible = Math.floor(barraTop - 100 - 24);
+    modal.style.maxHeight = Math.max(360, altoDisponible) + 'px';
 }
 
 // ============================================================

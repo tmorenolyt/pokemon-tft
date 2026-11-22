@@ -71,7 +71,7 @@ body {
     width: 100%;
     max-width: 100%;
 
-    --terreno-actual: url('../assets/backgrounds/terreno.png');
+    --terreno-actual: url('../assets/backgrounds/terreno.webp');
 
     /* 🎨 SOLO la imagen del terreno, sin capas encima */
     background-image: var(--terreno-actual);
@@ -308,25 +308,26 @@ body::before {
     50%      { opacity: 0; }
 }
 
-/* 🆕 Terrenos por rival (se aplican con una clase en el body) */
-body.terreno-agua       { --terreno-actual: url('../assets/backgrounds/terreno-agua.png'); }
-body.terreno-fuego      { --terreno-actual: url('../assets/backgrounds/terreno-fuego.png'); }
-body.terreno-planta     { --terreno-actual: url('../assets/backgrounds/terreno-planta.png'); }
-body.terreno-electrico  { --terreno-actual: url('../assets/backgrounds/terreno-electrico.png'); }
-body.terreno-psiquico   { --terreno-actual: url('../assets/backgrounds/terreno-psiquico.png'); }
-body.terreno-siniestro  { --terreno-actual: url('../assets/backgrounds/terreno-siniestro.png'); }
-body.terreno-hada       { --terreno-actual: url('../assets/backgrounds/terreno-hada.png'); }
-body.terreno-fantasma   { --terreno-actual: url('../assets/backgrounds/terreno-fantasma.png'); }
-body.terreno-lucha      { --terreno-actual: url('../assets/backgrounds/terreno-lucha.png'); }
-body.terreno-veneno     { --terreno-actual: url('../assets/backgrounds/terreno-veneno.png'); }
-body.terreno-hielo      { --terreno-actual: url('../assets/backgrounds/terreno-hielo.png'); }
-body.terreno-dragon     { --terreno-actual: url('../assets/backgrounds/terreno-dragon.png'); }
-body.terreno-roca       { --terreno-actual: url('../assets/backgrounds/terreno-roca.png'); }
-body.terreno-normal     { --terreno-actual: url('../assets/backgrounds/terreno-normal.png'); }
-body.terreno-volador    { --terreno-actual: url('../assets/backgrounds/terreno-volador.png'); }
-body.terreno-acero      { --terreno-actual: url('../assets/backgrounds/terreno-acero.png'); }
-body.terreno-eevee      { --terreno-actual: url('../assets/backgrounds/terreno-eevee.png'); }
-body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-salvaje.png'); }
+/* 🆕 Terrenos por rival (se aplican con una clase en el body)
+   WebP: ~180 KB por fondo en vez de ~3,4 MB (los PNG quedan como respaldo).
+   Nota: terreno-normal no tiene imagen propia → usa el terreno por defecto. */
+body.terreno-agua       { --terreno-actual: url('../assets/backgrounds/terreno-agua.webp'); }
+body.terreno-fuego      { --terreno-actual: url('../assets/backgrounds/terreno-fuego.webp'); }
+body.terreno-planta     { --terreno-actual: url('../assets/backgrounds/terreno-planta.webp'); }
+body.terreno-electrico  { --terreno-actual: url('../assets/backgrounds/terreno-electrico.webp'); }
+body.terreno-psiquico   { --terreno-actual: url('../assets/backgrounds/terreno-psiquico.webp'); }
+body.terreno-siniestro  { --terreno-actual: url('../assets/backgrounds/terreno-siniestro.webp'); }
+body.terreno-hada       { --terreno-actual: url('../assets/backgrounds/terreno-hada.webp'); }
+body.terreno-fantasma   { --terreno-actual: url('../assets/backgrounds/terreno-fantasma.webp'); }
+body.terreno-lucha      { --terreno-actual: url('../assets/backgrounds/terreno-lucha.webp'); }
+body.terreno-veneno     { --terreno-actual: url('../assets/backgrounds/terreno-veneno.webp'); }
+body.terreno-hielo      { --terreno-actual: url('../assets/backgrounds/terreno-hielo.webp'); }
+body.terreno-dragon     { --terreno-actual: url('../assets/backgrounds/terreno-dragon.webp'); }
+body.terreno-roca       { --terreno-actual: url('../assets/backgrounds/terreno-roca.webp'); }
+body.terreno-volador    { --terreno-actual: url('../assets/backgrounds/terreno-volador.webp'); }
+body.terreno-acero      { --terreno-actual: url('../assets/backgrounds/terreno-acero.webp'); }
+body.terreno-eevee      { --terreno-actual: url('../assets/backgrounds/terreno-eevee.webp'); }
+body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-salvaje.webp'); }
 /* ============================================================
    🎭 DIÁLOGO ESTILO PERSONA (PC y móvil)
    ============================================================

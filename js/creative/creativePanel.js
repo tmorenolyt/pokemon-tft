@@ -157,7 +157,7 @@ function conectarEventosPanel() {
                 if (enemyAvatarEl) {
                     enemyAvatarEl.innerHTML = '';
                     const img = document.createElement('img');
-                    img.src = `assets/avatars/rivales/${rivalData.avatar}.png`;
+                    img.src = `assets/avatars/rivales/${rivalData.avatar}.webp`;
                     img.alt = rivalData.nombre;
                     img.onerror = function() { this.style.display = 'none'; enemyAvatarEl.textContent = '👤'; };
                     enemyAvatarEl.appendChild(img);
@@ -885,7 +885,7 @@ function initModoCreativo() {
     if (typeof window.aplicarTerrenoActual === 'function') {
         window.aplicarTerrenoActual(window.rivalActual);
     } else {
-        document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/terreno-creativo.png')`);
+        document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/terreno-creativo.webp')`);
     }
     console.log('🎨 Terreno forzado a creativo (Modo Creativo)');
     

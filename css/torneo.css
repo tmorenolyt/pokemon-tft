@@ -420,6 +420,76 @@ body.modo-espia #playerBoard .board-cell {
 }
 
 /* ============================================================
+   📐 Sin solape: en pantallas donde el ranking chocaría con el
+   panel del jugador (≤2000px), baja justo debajo del panel.
+   A 2133px (1920×1080 al 90% de zoom) no se aplica.
+   ============================================================ */
+@media (max-width: 2000px) {
+    /* Ranking más estrecho para que NO pise el baúl ni el banco del jugador */
+    .ranking-torneo {
+        top: 262px;
+        width: 166px;
+        max-height: calc(100dvh - 276px);
+        /* overflow-y: auto convierte también el eje X en auto, y entonces el
+           ⚔️ del rival, el 🔥 de la racha o el daño flotante (que entra
+           deslizándose) sacaban una barra horizontal. Con clip se corta el
+           sobrante y no aparece barra. */
+        overflow-x: clip;
+        overflow-y: auto;
+        padding: 4px;
+        gap: 4px;
+    }
+
+    .ranking-torneo .ranking-item {
+        gap: 4px;
+        padding: 3px 4px;
+        border-radius: 7px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 13px;
+        font-size: 0.58rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .ranking-torneo .ranking-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .ranking-torneo .ranking-nivel {
+        font-size: 0.4rem;
+        padding: 0 2px;
+        bottom: -3px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.56rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ranking-torneo .ranking-hp-valor {
+        font-size: 0.5rem;
+        min-width: 14px;
+    }
+
+    .ranking-torneo .ranking-hp-bar {
+        height: 4px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        font-size: 0.5rem;
+    }
+}
+
+/* ============================================================
    🎯 RIVAL AL QUE TE VAS A ENFRENTAR (recuadro marcado)
    El ranking SIEMPRE va en orden de posición; solo se resalta
    la fila del próximo rival con un marco dorado y un ⚔️.
@@ -447,4 +517,93 @@ body.modo-espia #playerBoard .board-cell {
 @keyframes pulsoRivalActivo {
     0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.28), inset 0 0 8px rgba(251, 191, 36, 0.10); }
     50%      { box-shadow: 0 0 16px rgba(251, 191, 36, 0.55), inset 0 0 14px rgba(251, 191, 36, 0.20); }
+}
+/* ============================================================
+   📐 RANKING GRANDE A 100 % (1920 px de ancho)
+   En 1920 el panel del jugador empieza en x≈172, así que a la
+   izquierda queda una columna libre: se sube el ranking a la
+   altura normal (118) y se agrandan avatar, nombre y filas.
+   Por debajo de 1915 px el panel invade esa columna y se sigue
+   usando la versión compacta de arriba.
+   ============================================================ */
+@media (min-width: 1915px) and (max-width: 2000px) {
+    .ranking-torneo {
+        top: 118px;
+        max-height: calc(100dvh - 130px);
+        padding: 4px;
+        gap: 4px;
+    }
+
+    .ranking-torneo .ranking-header {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+        padding-bottom: 4px;
+    }
+
+    .ranking-torneo .ranking-item {
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 14px;
+        font-size: 0.7rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap,
+    .ranking-torneo .ranking-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .ranking-torneo .ranking-nivel {
+        width: 16px;
+        height: 16px;
+        font-size: 0.44rem;
+        top: -5px;
+        right: -5px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+    }
+
+    .ranking-torneo .ranking-hp-row { gap: 4px; }
+
+    .ranking-torneo .ranking-hp-valor {
+        font-size: 0.66rem;
+        min-width: 16px;
+    }
+
+    /* La barra se adapta al ancho que queda (antes 70 px fijos y desbordaba) */
+    .ranking-torneo .ranking-hp-bar {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 6px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        width: 18px;
+        height: 18px;
+        font-size: 0.62rem;
+    }
+}
+
+/* ============================================================
+   📐 DECORACIONES DEL RANKING DENTRO DEL PANEL (≤2000px)
+   El ⚔️ del rival y el 🔥 de la racha estaban con right/left
+   negativos: además de salirse, el ⚔️ sacaba barra horizontal.
+   Van al final para ganar a las reglas base (misma especificidad).
+   ============================================================ */
+@media (max-width: 2000px) {
+    .ranking-torneo .ranking-item.pareja-activa::after {
+        right: 2px;
+        top: -6px;
+    }
+
+    .ranking-torneo .ranking-item.racha-alta::before {
+        left: 0;
+    }
 }

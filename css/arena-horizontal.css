@@ -2240,3 +2240,36 @@ body.combatiendo .objetos-equipados:not(:has(> :not(.vacio))) {
     align-items: center;
     transform: translateY(1px);
 }
+/* ============================================================
+   📐 BANCO MÁS COMPACTO EN PANTALLAS ≤2000px (100 % de zoom)
+   Los sprites del banco eran de 58 px en casillas de ~81 px y
+   se veían enormes. A 2133 px (90 % de zoom) no se aplica.
+   ============================================================ */
+@media (max-width: 2000px) {
+    .bank-cell .unit-sprite {
+        width: 44px !important;
+        height: 44px !important;
+        margin-top: -2px;
+    }
+
+    .bank-cell .unit-name {
+        font-size: 0.44rem;
+        margin-top: 3px;
+    }
+
+    .bank-cell .unit-traits-left .tipo-icon,
+    .bank-cell .unit-traits-left .clase-icon {
+        width: 9px !important;
+        height: 9px !important;
+    }
+
+    .bank-cell .unit-stars-right img {
+        height: 10px !important;
+        width: auto !important;
+    }
+
+    #banquilloGrid .bank-cell,
+    #enemyBanquilloGrid .bank-cell {
+        padding: 2px !important;
+    }
+}
