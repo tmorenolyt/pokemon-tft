@@ -104,11 +104,72 @@
         estadoOnline = 'waiting';
         _combateEnCursoLocal = false;
         const hp = (typeof vidaJugador !== 'undefined') ? vidaJugador : null;
-        try { fetch('/api/roundEnd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, hp, won: (window._ultimaVictoriaJugador === true) }) }); } catch (e) { }
+        let vivas = 0;
+        try { vivas = (typeof tablero !== 'undefined' ? tablero : []).filter(u => u && !u.muerto).length; } catch (e) { }
+        try { fetch('/api/roundEnd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, hp, won: (window._ultimaVictoriaJugador === true), vivas }) }); } catch (e) { }
         setStatus('⌛ Esperando a que el rival termine la ronda…');
     }
 
+    // ============================================================
+    // 🤖 EQUIPO DE UNA IA EN EL TORNEO ONLINE (determinista por semilla)
+    // ============================================================
+    function _rng(seed) {
+        let a = (seed || 1) >>> 0;
+        return function () {
+            a |= 0; a = (a + 0x6D2B79F5) | 0;
+            let t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    function construirEquipoIA(nivel, seed) {
+        const rnd = _rng(seed);
+        const pool = (typeof POKEMONS !== 'undefined' && Array.isArray(POKEMONS)) ? POKEMONS.filter(p => p && p.base !== false) : [];
+        if (!pool.length) return [];
+
+        const n = Math.max(1, Math.min(4, 1 + Math.floor((nivel || 2) / 2)));
+        const nivelUnidad = (nivel >= 5) ? 2 : 1;   // a partir de nivel 5 la IA lleva 2★
+        const elegidos = [];
+        const usados = new Set();
+        const costeMax = Math.max(1, Math.min(5, 1 + Math.floor((nivel || 2) / 2)));
+
+        let intentos = 0;
+        while (elegidos.length < n && intentos < 120) {
+            intentos++;
+            const p = pool[Math.floor(rnd() * pool.length)];
+            if (!p || usados.has(p.nombre)) continue;
+            if ((p.coste || 1) > costeMax) continue;
+            usados.add(p.nombre);
+            elegidos.push(p);
+        }
+
+        // Posiciones: melees delante (fila 0), ranged detrás (fila 3)
+        const front = [0, 1, 2, 3];
+        const back = [12, 13, 14, 15];
+        let iF = 0, iB = 0;
+        const snap = [];
+        elegidos.forEach(p => {
+            const esFront = (p.rol === 'frontline');
+            const pos = esFront ? front[iF++ % 4] : back[iB++ % 4];
+            snap.push({ nombre: p.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: [], pos });
+        });
+        return snap;
+    }
+
+    window.construirEquipoIA = construirEquipoIA;
+
     function resolverRonda(msg) {
+        // ✅ Ya ha empezado la partida online (permite el diálogo de ronda)
+        window._rondaOnlineEmpezada = true;
+
+        // 👁️ Espectador: no juega, solo espera (el ranking se va actualizando)
+        if (window._modoSpectador) {
+            _combateEnCursoLocal = false;
+            setStatus('👁️ Eliminado · espectando la partida');
+            return;
+        }
+
         estadoOnline = 'combat';
         _combateEnCursoLocal = true;
         try { const b = document.getElementById('btnCombatirFijo'); if (b) b.disabled = true; } catch (e) { }
@@ -118,7 +179,20 @@
         try { if (typeof cerrarTienda === 'function') cerrarTienda(); } catch (e) { }
         // (En online no forzamos los candados de compra: dejamos que la tienda
         //  se abra normal en ronda 2/objetos. puedeCombatir ya está anulado.)
-        if (msg.roundType === 'pvp') {
+        // 🏆 ¿Contra quién juegas esta ronda? (torneo de 8)
+        const asig = (msg.asignaciones && msg.asignaciones[pid]) ? msg.asignaciones[pid] : null;
+
+        if (msg.roundType !== 'pve' && asig && asig.tipo === 'ia') {
+            // 🤖 Contra una IA del torneo: carga su equipo y pelea en vivo
+            const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1);
+            cargarEnemigo(equipoIA);
+            try {
+                window.rivalActual = { nombre: asig.nombre, avatar: asig.avatar, esMonstruo: false };
+                const nEl = document.getElementById('enemyName'); if (nEl) nEl.textContent = asig.nombre;
+                if (typeof renderizar === 'function') renderizar();
+            } catch (e) { }
+            setStatus('⚔️ Combate contra ' + asig.nombre + ' (IA)');
+        } else if (msg.roundType === 'pvp') {
             cargarEnemigo((msg.boards && msg.boards[otro]) || []);
             setStatus('⚔️ Combate contra ' + (amigo && amigo.name ? amigo.name : 'tu amigo'));
         } else {
@@ -140,15 +214,50 @@
 
     // ---------- SSE ----------
     function conectar() {
+        // Partida online nueva: hasta que se resuelva la 1ª ronda no hay diálogos
+        window._rondaOnlineEmpezada = false;
+
         // Entrar a la sala (dispara el reinicio de marcador de partida en el servidor)
         try { fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, name: nombreActual() }) }); } catch (e) { }
         if (es) es.close();
+
+        // 🎬 Al entrar en la partida online: mensaje de la ronda 1 al segundo
+        try {
+            setTimeout(() => {
+                try {
+                    if (window._dialogoIntroOnlineMostrado) return;
+                    window._dialogoIntroOnlineMostrado = true;
+                    const cfg = (typeof MONSTRUOS_PVE !== 'undefined') ? MONSTRUOS_PVE[1] : null;
+                    if (cfg && cfg.descripcion && typeof mostrarConsejoJugadorPvE === 'function') {
+                        window._rondaOnlineEmpezada = true;   // ya se está jugando
+                        mostrarConsejoJugadorPvE(cfg.descripcion, 6000);
+                    }
+                } catch (e) { }
+            }, 1000);
+        } catch (e) { }
+
         es = new EventSource('/api/events?room=' + encodeURIComponent(sala) + '&pid=' + encodeURIComponent(pid));
         es.onmessage = (ev) => {
             let msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
             if (msg.type === 'state') {
                 const otros = (msg.players || []).filter(p => p.pid !== pid);
                 amigo = otros[0] || null; window._amigo = amigo;
+
+                // 🏆 Torneo online (2 humanos + 6 IA): pintar ranking de 8
+                window._torneoOnline = msg.torneo || null;
+                try { pintarRankingTorneoOnline(msg.torneo); } catch (e) { }
+
+                // 👁️ ¿Estoy eliminado? → modo espectador
+                try {
+                    const yo = msg.torneo && (msg.torneo.participantes || []).find(p => p.id === pid);
+                    const eliminado = !!(yo && yo.eliminado);
+                    window._modoSpectador = eliminado;
+                    if (eliminado !== window._modoEspectadorActivo) {
+                        window._modoEspectadorActivo = eliminado;
+                        aplicarModoEspectador(eliminado);
+                    }
+                } catch (e) { }
+
                 actualizarPanel();
                 // Mostrar el tablero del amigo en vivo SOLO en rondas PvP (en PvE va el monstruo)
                 if (estadoOnline === 'prep' && !esPvERonda() && amigo && Array.isArray(amigo.board) && amigo.board.length) {
@@ -158,6 +267,11 @@
                         cargarEnemigo(amigo.board); // actualiza el rival al comprar/mover
                     }
                 }
+            } else if (msg.type === 'torneoFin') {
+                try { mostrarFinTorneoOnline(msg.posiciones); } catch (e) { }
+            } else if (msg.type === 'torneoReset') {
+                // 🔄 El rival (o tú) ha pedido revancha → recargar y volver a la sala
+                try { location.reload(); } catch (e) { }
             } else if (msg.type === 'resolve') {
                 resolverRonda(msg);
             } else if (msg.type === 'nextRound') {
@@ -213,6 +327,211 @@
         setInterval(actualizarPanel, 1200);
     }
     function setStatus(t) { const s = document.getElementById('amistosoStatus'); if (s) s.textContent = t; }
+
+    // ============================================================
+    // 🏆 RANKING DEL TORNEO ONLINE (2 humanos + 6 IA = 8)
+    // ============================================================
+    function pintarRankingTorneoOnline(torneo) {
+        const panel = document.getElementById('rankingTorneo');
+        if (!panel) return;
+        if (!torneo || !Array.isArray(torneo.participantes)) { panel.style.display = 'none'; return; }
+
+        const vivos = torneo.participantes.filter(p => !p.eliminado).sort((a, b) => b.hp - a.hp);
+        const muertos = torneo.participantes.filter(p => p.eliminado).sort((a, b) => b.hp - a.hp);
+        const lista = vivos.concat(muertos);
+        const maxHp = torneo.maxHp || 50;
+
+        const miPar = (torneo.parejas || []).find(par => Array.isArray(par) && par.includes(pid));
+        const rivalId = miPar ? miPar.find(x => x !== pid) : null;
+
+        let html = '<div class="ranking-header">🏆 RANKING <span style="font-size:.6rem;color:#8fb0d6;">R' + (torneo.ronda || 1) + '</span></div>';
+
+        lista.forEach((p, i) => {
+            const esYo = p.id === pid;
+            const esRival = p.id === rivalId;
+            const clases = ['ranking-item', esYo ? 'jugador' : '', p.eliminado ? 'eliminado' : '', esRival ? 'pareja-activa' : ''].join(' ');
+            const pct = Math.max(0, Math.min(100, (Math.max(0, p.hp) / maxHp) * 100));
+            const carpeta = (p.tipo === 'humano') ? 'jugador' : 'rivales';
+            const estrellita = (p.tipo === 'ia') ? ' 🤖' : '';
+            html += `
+                <div class="${clases}" title="${_esc(p.nombre)}${estrellita}">
+                    <div class="ranking-pos">${i + 1}</div>
+                    <div class="ranking-avatar-wrap">
+                        <img class="ranking-avatar" src="assets/avatars/${carpeta}/${p.avatar}.png" onerror="this.style.display='none'">
+                        <span class="ranking-nivel">${p.nivel || 1}</span>
+                    </div>
+                    <div class="ranking-info">
+                        <div class="ranking-nombre">${_esc(p.nombre)}${estrellita}</div>
+                        <div class="ranking-hp-row">
+                            <span class="ranking-hp-valor">${Math.max(0, p.hp)}</span>
+                            <div class="ranking-hp-bar"><div class="ranking-hp-fill" style="width:${pct}%"></div></div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        panel.innerHTML = html;
+        panel.style.display = '';
+    }
+    window.pintarRankingTorneoOnline = pintarRankingTorneoOnline;
+
+    // ============================================================
+    // 👁️ MODO ESPECTADOR + FIN DE TORNEO (opción A)
+    // ============================================================
+    function aplicarModoEspectador(on) {
+        try {
+            let b = document.getElementById('spectatorBanner');
+            if (on) {
+                if (!b) {
+                    b = document.createElement('div');
+                    b.id = 'spectatorBanner';
+                    b.style.cssText = 'position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:100400;background:rgba(80,10,20,.95);border:1px solid #ef4444;border-radius:12px;padding:8px 16px;color:#ffe3e6;font-weight:800;font-family:Inter,system-ui,sans-serif;font-size:.8rem;box-shadow:0 8px 24px rgba(0,0,0,.5);';
+                    b.textContent = '💀 Eliminado · modo espectador';
+                    document.body.appendChild(b);
+                }
+                const btn = document.getElementById('btnCombatirFijo');
+                if (btn) { btn.disabled = true; btn.style.opacity = '.45'; }
+                window.puedeCombatir = function () { return false; };
+
+                // 📱 En móvil, abrir el ranking desplegable para poder seguirlo
+                try {
+                    if (window.matchMedia('(max-height: 700px) and (max-width: 1100px)').matches) {
+                        document.body.classList.add('mob-ranking-open');
+                    }
+                } catch (e) { }
+            } else {
+                if (b) b.remove();
+            }
+        } catch (e) { }
+    }
+
+    // Sinergias (tipos + clases) a partir de un equipo del resumen
+    function _sinergiasDeEquipo(equipo) {
+        const tipos = {}, clases = {};
+        (equipo || []).forEach(it => {
+            const d = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(it.nombre) : null;
+            (it.tipos || (d && d.tipos) || []).forEach(t => tipos[t] = (tipos[t] || 0) + 1);
+            const cl = it.clase || (d && d.clase) || '';
+            if (cl) clases[cl] = (clases[cl] || 0) + 1;
+        });
+        const out = {};
+        Object.keys(tipos).forEach(t => { if (tipos[t] >= 2) out[t] = { nivel: tipos[t], esClase: false }; });
+        Object.keys(clases).forEach(c => { if (clases[c] >= 2) out[c] = { nivel: clases[c], esClase: true }; });
+        return out;
+    }
+
+    // 🏆 Pantalla final del torneo online: igual que la del 1J
+    //    (posición · entrenador · equipo con estrellas y objetos · sinergias)
+    function mostrarFinTorneoOnline(posiciones) {
+        try {
+            const overlay = document.getElementById('pantallaResultadosFinales');
+            const lista = document.getElementById('resultadosLista');
+            const titulo = document.getElementById('resultadosTitulo');
+            const tiempoEl = document.getElementById('resultadosTiempo');
+            if (!overlay || !lista) return;
+
+            if (titulo) { titulo.textContent = '🏆 TORNEO FINALIZADO'; titulo.style.color = '#fbbf24'; }
+            if (tiempoEl) tiempoEl.textContent = '';
+
+            // Limpiar cosas que molestarían encima del resumen
+            try { const b = document.getElementById('spectatorBanner'); if (b) b.remove(); } catch (e) { }
+            try { document.body.classList.remove('mob-ranking-open'); } catch (e) { }
+            try { if (typeof cerrarComicBubble === 'function') cerrarComicBubble(true); } catch (e) { }
+            try { document.querySelectorAll('.comic-bubble').forEach(el => el.remove()); } catch (e) { }
+
+            lista.innerHTML = '';
+
+            (posiciones || []).forEach(p => {
+                const fila = document.createElement('div');
+                fila.className = `fila-resultado pos-${p.pos} ${p.id === pid ? 'es-jugador' : ''}`;
+
+                let rango = String(p.pos);
+                if (p.pos === 1) rango = '🥇';
+                else if (p.pos === 2) rango = '🥈';
+                else if (p.pos === 3) rango = '🥉';
+
+                // Equipo: los humanos mandan su tablero; las IA se generan con su semilla
+                const equipo = (p.tipo === 'humano')
+                    ? (Array.isArray(p.board) ? p.board : [])
+                    : construirEquipoIA(p.nivel || 2, p.seed || 1);
+
+                let equipoHtml = '';
+                equipo.forEach(it => {
+                    const d = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(it.nombre) : null;
+                    if (!d) return;
+                    const sprite = (typeof getSpriteUrl === 'function') ? getSpriteUrl(it.spriteId || d.spriteId, it.nombre) : '';
+                    const estrellas = (typeof getEstrellasUrl === 'function') ? getEstrellasUrl(it.nivel || 1) : '';
+
+                    const objetos = Array.isArray(it.objetos) ? it.objetos : [];
+                    let objetosHtml = '';
+                    if (objetos.length) {
+                        const iconos = objetos.map(nombreObj => {
+                            const od = (typeof OBJETOS !== 'undefined') ? OBJETOS[nombreObj] : null;
+                            const src = (od && od.emoji && String(od.emoji).includes('.png')) ? od.emoji : null;
+                            return src
+                                ? `<img class="objeto-final-icon" src="${src}" alt="${_esc(nombreObj)}" title="${_esc(nombreObj)}" draggable="false" onerror="this.style.display='none'">`
+                                : `<span class="objeto-final-emoji" title="${_esc(nombreObj)}">📦</span>`;
+                        }).join('');
+                        objetosHtml = `<div class="objetos-final">${iconos}</div>`;
+                    }
+
+                    equipoHtml += `<div class="unidad-final" title="${_esc(it.nombre)}">
+                        <img src="${sprite}" onerror="this.style.display='none'">
+                        ${estrellas ? `<img class="estrellas-final" src="${estrellas}">` : ''}
+                        ${objetosHtml}
+                    </div>`;
+                });
+                if (!equipoHtml) equipoHtml = `<span style="font-size:.7rem;color:#6b8aaa;font-style:italic;">Sin equipo</span>`;
+
+                // Sinergias (todas)
+                const sin = _sinergiasDeEquipo(equipo);
+                let sinergiasHtml = '';
+                Object.keys(sin).map(k => ({ nombre: k, nivel: sin[k].nivel, esClase: sin[k].esClase }))
+                    .sort((a, b) => b.nivel - a.nivel)
+                    .forEach(s => {
+                        let icono = '';
+                        try { icono = s.esClase ? getIconoClase(s.nombre) : getIconoTipo(s.nombre); } catch (e) { icono = ''; }
+                        sinergiasHtml += `<div class="sinergia-icono-final" title="${_esc(s.nombre)}">${icono}<span class="lvl">${s.nivel}</span></div>`;
+                    });
+
+                fila.innerHTML = `
+                    <div class="rango-badge pos-${p.pos}">${rango}</div>
+                    <div class="info-entrenador">
+                        <img src="assets/avatars/${p.tipo === 'humano' ? 'jugador' : 'rivales'}/${p.avatar}.png" onerror="this.style.display='none'">
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="nombre">${_esc(p.nombre)}${p.tipo === 'ia' ? ' 🤖' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="equipo-final">${equipoHtml}</div>
+                    <div class="sinergias-final">${sinergiasHtml}</div>
+                `;
+                lista.appendChild(fila);
+            });
+
+            // 🔄 Botón de revancha (reinicia el torneo en la misma sala)
+            try {
+                const footer = overlay.querySelector('.resultados-footer');
+                if (footer && !document.getElementById('btnRevanchaOnline')) {
+                    const br = document.createElement('button');
+                    br.id = 'btnRevanchaOnline';
+                    br.textContent = '🔄 REVANCHA';
+                    br.onclick = function () {
+                        try {
+                            br.disabled = true;
+                            br.textContent = '⏳ Reiniciando…';
+                            fetch('/api/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala }) });
+                        } catch (e) { }
+                    };
+                    footer.appendChild(br);
+                }
+            } catch (e) { }
+
+            overlay.style.display = 'flex';
+        } catch (e) { }
+    }
+
+    window.aplicarModoEspectador = aplicarModoEspectador;
+    window.mostrarFinTorneoOnline = mostrarFinTorneoOnline;
 
     function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
@@ -456,7 +775,9 @@
     }
 
     function actualizarPanel() {
-        const rk = document.getElementById('rankingTorneo'); if (rk) rk.style.display = 'none';
+        // 🏆 El ranking del torneo online se pinta desde el estado del servidor
+        const rk = document.getElementById('rankingTorneo');
+        if (rk && !window._torneoOnline) rk.style.display = 'none';
         refrescarBaulPropio();
         // Online: el baúl enemigo no debe tener objetos (no hay IA rival)
         try { if (window._modoOnline && typeof enemyBaulObjetos !== 'undefined' && Array.isArray(enemyBaulObjetos) && enemyBaulObjetos.length > 0) { enemyBaulObjetos = []; if (typeof renderizar === 'function') renderizar(); } } catch (e) { }

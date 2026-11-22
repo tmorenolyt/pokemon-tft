@@ -1647,3 +1647,137 @@
     .sinergia-modal-nivel-desc { line-height: 1.25 !important; }
     .sinergia-modal-nivel-check { font-size: 0.6rem !important; min-width: 14px !important; }
 }
+
+/* ============================================================
+   📱 PANTALLA FINAL DEL TORNEO EN MÓVIL (horizontal)
+   Compacta las 4 columnas para que quepan las 8 posiciones.
+   ============================================================ */
+@media (max-height: 700px) and (max-width: 1100px) {
+
+    .resultados-overlay {
+        padding: 5px !important;
+    }
+
+    .resultados-modal {
+        max-width: none !important;
+        max-height: calc(100dvh - 10px) !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+        border-radius: 14px !important;
+        border-width: 1px !important;
+    }
+
+    .resultados-header {
+        padding-bottom: 4px !important;
+    }
+
+    .resultados-titulo {
+        font-size: 1.05rem !important;
+        letter-spacing: 1px !important;
+    }
+
+    .resultados-tiempo { font-size: .7rem !important; }
+
+    /* Las etiquetas de columna roban sitio: fuera en móvil */
+    .resultados-columnas { display: none !important; }
+
+    .resultados-lista {
+        gap: 4px !important;
+        padding-right: 2px !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .fila-resultado {
+        gap: 6px !important;
+        padding: 4px 8px !important;
+        border-radius: 10px !important;
+    }
+
+    .rango-badge {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: .8rem !important;
+        border-radius: 7px !important;
+    }
+
+    .info-entrenador {
+        width: 92px !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .info-entrenador img {
+        width: 24px !important;
+        height: 24px !important;
+        border-width: 1px !important;
+    }
+
+    .info-entrenador .nombre {
+        font-size: .6rem !important;
+        max-width: 62px !important;
+    }
+
+    .equipo-final {
+        gap: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    .unidad-final {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 6px !important;
+    }
+
+    .unidad-final img { width: 28px !important; height: 28px !important; }
+
+    .unidad-final .estrellas-final {
+        height: 11px !important;
+        top: -4px !important;
+        right: -4px !important;
+    }
+
+    .unidad-final .objetos-final {
+        bottom: -6px !important;
+        gap: 1px !important;
+        padding: 0 2px !important;
+        border-radius: 4px !important;
+    }
+
+    .unidad-final .objeto-final-icon { width: 9px !important; height: 9px !important; }
+
+    .sinergias-final {
+        width: 96px !important;
+        gap: 2px !important;
+    }
+
+    .sinergia-icono-final {
+        padding: 1px 2px !important;
+        border-radius: 4px !important;
+    }
+
+    .sinergia-icono-final img { width: 12px !important; height: 12px !important; }
+
+    .sinergia-icono-final .lvl { font-size: .4rem !important; margin-top: 0 !important; }
+
+    .resultados-footer {
+        padding-top: 4px !important;
+    }
+
+    .resultados-footer .btn-action,
+    .resultados-footer button {
+        padding: 6px 12px !important;
+        font-size: .7rem !important;
+    }
+
+    /* 👁️ Cartel de espectador en móvil */
+    #spectatorBanner {
+        top: 44px !important;
+        font-size: .68rem !important;
+        padding: 5px 10px !important;
+        border-radius: 10px !important;
+    }
+
+    /* El ranking desplegable en móvil, algo más compacto */
+    #rankingTorneo .ranking-item { gap: 5px !important; }
+    #rankingTorneo .ranking-nombre { font-size: .6rem !important; }
+}

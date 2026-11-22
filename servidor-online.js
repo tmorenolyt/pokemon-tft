@@ -61,8 +61,206 @@ function roomState(room) {
             oro: (typeof p.oro === 'number' ? p.oro : null),
             ready: !!p.ready, board: p.board || null
         })),
-        started: room.started, seed: room.seed, results: room.results
+        started: room.started, seed: room.seed, results: room.results,
+        torneo: room.torneo || null
     };
+}
+
+// ============================================================
+// 🏆 TORNEO ONLINE (2 humanos + 6 IA)
+// ============================================================
+const IA_TORNEO = [
+    { nombre: 'Misty', avatar: 'misty' },
+    { nombre: 'Rojo', avatar: 'rojo' },
+    { nombre: 'Lorelei', avatar: 'lorelei' },
+    { nombre: 'Lance', avatar: 'lance' },
+    { nombre: 'Erika', avatar: 'erika' },
+    { nombre: 'Bruno', avatar: 'bruno' }
+];
+
+function _esRondaPvETorneo(r) {
+    return (r === 1) || (r >= 6 && (r - 6) % 6 === 0);
+}
+
+function _danoBaseTorneo(r) {
+    if (r >= 21) return 7;
+    if (r >= 20) return 5;
+    if (r >= 13) return 4;
+    if (r >= 10) return 3;
+    return 2;
+}
+
+function crearTorneoOnline(room) {
+    const partes = [];
+    Object.entries(room.players).forEach(([pid, p]) => {
+        partes.push({
+            id: pid, tipo: 'humano',
+            nombre: p.name || 'Jugador', avatar: p.avatar || 'rojo',
+            hp: (typeof p.hp === 'number' ? p.hp : 50),
+            nivel: (typeof p.nivel === 'number' ? p.nivel : 1),
+            victorias: 0, derrotas: 0, eliminado: false
+        });
+    });
+    IA_TORNEO.forEach((ia, i) => {
+        partes.push({
+            id: 'ia' + (i + 1), tipo: 'ia',
+            nombre: ia.nombre, avatar: ia.avatar,
+            hp: 50, nivel: 2, victorias: 0, derrotas: 0, eliminado: false,
+            seed: Math.floor(Math.random() * 1e9) + 1   // equipo estable de esta IA
+        });
+    });
+    room.torneo = {
+        ronda: room.round || 1,
+        maxHp: 50,
+        participantes: partes,
+        parejas: [],
+        resultados: []
+    };
+    emparejarTorneoOnline(room);
+    return room.torneo;
+}
+
+function emparejarTorneoOnline(room) {
+    const t = room.torneo;
+    if (!t) return;
+
+    // 🎲 Fase 2: se emparejan TODOS los vivos (humanos e IA) al azar.
+    //    Así a veces te toca tu amigo y otras una IA del torneo.
+    const vivos = t.participantes.filter(p => !p.eliminado);
+    for (let i = vivos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [vivos[i], vivos[j]] = [vivos[j], vivos[i]];
+    }
+
+    const parejas = [];
+    for (let i = 0; i + 1 < vivos.length; i += 2) {
+        parejas.push([vivos[i].id, vivos[i + 1].id]);
+    }
+
+    const enPareja = new Set(parejas.flat());
+    t.sueltos = vivos.filter(p => !enPareja.has(p.id)).map(p => p.id);
+    t.parejas = parejas;
+
+    // Semilla por pareja (equipo de IA determinista si hace falta)
+    t.seeds = t.seeds || {};
+    parejas.forEach(par => {
+        const k = par.join('|');
+        if (!t.seeds[k]) t.seeds[k] = Math.floor(Math.random() * 1e9) + 1;
+    });
+
+    // Rival de cada participante
+    t.rivales = {};
+    parejas.forEach(par => {
+        t.rivales[par[0]] = par[1];
+        t.rivales[par[1]] = par[0];
+    });
+}
+
+function simularTorneoOnline(room, rondaJugada) {
+    const t = room.torneo;
+    if (!t) return;
+    const r = (typeof rondaJugada === 'number') ? rondaJugada : t.ronda;
+    const mapa = new Map(t.participantes.map(p => [p.id, p]));
+    const pve = _esRondaPvETorneo(r);
+
+    // HP de los humanos: la que ha reportado el cliente
+    t.participantes.forEach(p => {
+        if (p.tipo !== 'humano') return;
+        const pl = room.players[p.id];
+        if (pl && typeof pl.hp === 'number') p.hp = pl.hp;
+        if (p.hp <= 0) marcarEliminadoTorneo(t, p);
+    });
+
+    // IA vs IA (en PvE no se pegan entre ellas)
+    if (!pve) {
+        t.parejas.forEach(par => {
+            const a = mapa.get(par[0]), b = mapa.get(par[1]);
+            if (!a || !b || a.eliminado || b.eliminado) return;
+            if (a.tipo === 'humano' || b.tipo === 'humano') return;
+
+            const pa = a.nivel * 100 + a.victorias * 50 + a.derrotas * 20;
+            const pb = b.nivel * 100 + b.victorias * 50 + b.derrotas * 20;
+            const ganaA = Math.random() < (pa / (pa + pb || 1));
+            const gan = ganaA ? a : b;
+            const per = ganaA ? b : a;
+            const vivas = 1 + Math.floor(Math.random() * 4);
+            const dano = Math.min(20, _danoBaseTorneo(r) + vivas);
+            per.hp = Math.max(0, per.hp - dano);
+            gan.victorias++;
+            per.derrotas++;
+            if (per.hp <= 0) marcarEliminadoTorneo(t, per);
+            t.resultados.push({ ronda: r, ganador: gan.nombre, perdedor: per.nombre, dano });
+        });
+    } else {
+        // PvE: todos se enfrentan al monstruo, no hay daño entre rivales
+        t.resultados.push({ ronda: r, pve: true });
+    }
+
+    // Suben de nivel con las rondas
+    t.participantes.forEach(p => {
+        if (p.tipo !== 'ia' || p.eliminado) return;
+        p.nivel = Math.min(8, 2 + Math.floor(r / 4));
+    });
+
+    t.ronda = r + 1;
+    emparejarTorneoOnline(room);
+}
+
+// ¿Está eliminado este humano? (modo espectador)
+function _humanoEliminado(room, pid) {
+    const t = room.torneo;
+    if (!t) return false;
+    const p = (t.participantes || []).find(x => x.id === pid);
+    return !!(p && p.eliminado);
+}
+
+// Marca a alguien como eliminado guardando el orden de caída
+function marcarEliminadoTorneo(t, p) {
+    if (!t || !p || p.eliminado) return;
+    p.eliminado = true;
+    t._contadorElim = (t._contadorElim || 0) + 1;
+    p.orden = t._contadorElim;
+}
+
+// Si los dos humanos han caído → fin del torneo (opción A)
+function finalizarTorneoSiProcede(room) {
+    const t = room.torneo;
+    if (!t || t.finalizado) return;
+    const vivosHumanos = (t.participantes || []).filter(p => p.tipo === 'humano' && !p.eliminado);
+    if (vivosHumanos.length > 0) return;
+
+    t.finalizado = true;
+    const vivos = (t.participantes || []).filter(p => !p.eliminado).sort((a, b) => b.hp - a.hp);
+    const caidos = (t.participantes || []).filter(p => p.eliminado).sort((a, b) => (b.orden || 0) - (a.orden || 0));
+    const orden = vivos.concat(caidos);
+    t.posiciones = orden.map((p, i) => {
+        const pl = room.players[p.id] || null;
+        return {
+            pos: i + 1, id: p.id, nombre: p.nombre, tipo: p.tipo, avatar: p.avatar,
+            hp: Math.max(0, p.hp),
+            nivel: p.nivel || 1,
+            seed: p.seed || 0,                 // semilla estable del equipo de IA
+            board: (p.tipo === 'humano' && pl && Array.isArray(pl.board)) ? pl.board : null
+        };
+    });
+
+    broadcast(room, { type: 'torneoFin', torneo: t, posiciones: t.posiciones });
+}
+
+// Daño que un humano hace a la IA contra la que ha ganado
+function aplicarVictoriaHumanoSobreIA(room, pid, ronda, vivas) {
+    const t = room.torneo;
+    if (!t || !t.rivales) return;
+    if (_esRondaPvETorneo(ronda)) return;   // en PvE los rivales no reciben daño
+    const rid = t.rivales[pid];
+    const rv = (t.participantes || []).find(p => p.id === rid);
+    if (!rv || rv.tipo !== 'ia') return;
+    const v = Math.max(1, parseInt(vivas, 10) || 1);
+    const dano = Math.min(20, _danoBaseTorneo(ronda) + v);
+    rv.hp = Math.max(0, rv.hp - dano);
+    rv.derrotas = (rv.derrotas || 0) + 1;
+    if (rv.hp <= 0) marcarEliminadoTorneo(t, rv);
+    t.resultados.push({ ronda: ronda, ganador: 'humano', perdedor: rv.nombre, dano });
 }
 function send(res, obj, code) {
     try { res.writeHead(code || 200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); }
@@ -319,6 +517,7 @@ const server = http.createServer((req, res) => {
                 room.done = {};
                 room.matchHp = {};
                 room._won = {};
+                room.torneo = null;   // 🏆 partida nueva → torneo nuevo
                 Object.values(room.players).forEach(pl => { pl.ready = false; });
             }
             if (!room.players[pid]) {
@@ -329,6 +528,13 @@ const server = http.createServer((req, res) => {
                 room.players[pid].lastSeen = Date.now();
                 if (!room.players[pid].joinedAt) room.players[pid].joinedAt = Date.now();
             }
+
+            // 🏆 En cuanto están los 2 en la sala ya hay torneo (ranking visible
+            //    durante la preparación, sin esperar al primer COMBATIR)
+            if (Object.keys(room.players).length >= 2 && !room.torneo) {
+                try { crearTorneoOnline(room); } catch (e) { }
+            }
+
             broadcast(room, { type: 'state', ...roomState(room) });
             send(res, { ok: true, room: String(body.room || '').toUpperCase(), ...roomState(room) });
         });
@@ -344,15 +550,51 @@ const server = http.createServer((req, res) => {
             if (Array.isArray(body.team)) room.players[pid].board = body.team;
             room.players[pid].ready = true;
             room.players[pid].lastSeen = Date.now();
+
+            // 🏆 Torneo online: crear si falta y refrescar emparejamiento de la ronda
+            if (Object.keys(room.players).length >= 2) {
+                if (!room.torneo) {
+                    crearTorneoOnline(room);
+                } else {
+                    // (ya existe desde que entró el 2º jugador)
+                    if (room.torneo.ronda !== (room.round || 1)) room.torneo.ronda = room.round || 1;
+                    if (!room.torneo.parejas || room.torneo.parejas.length === 0) emparejarTorneoOnline(room);
+                }
+            }
+
             broadcast(room, { type: 'state', ...roomState(room) });
             const pids = Object.keys(room.players);
-            if (pids.length >= 2 && pids.every(x => room.players[x].ready) && room.phase === 'prep') {
+            // 👁️ Los eliminados ya no bloquean la ronda (modo espectador)
+            const pidsActivos = pids.filter(x => !_humanoEliminado(room, x));
+            if (pids.length >= 2 && pidsActivos.length > 0 && pidsActivos.every(x => room.players[x].ready) && room.phase === 'prep') {
                 room.phase = 'combat';
                 const r = room.round || 1;
                 const pve = (r === 1 || (r >= 6 && (r - 6) % 6 === 0));
                 room._roundType = pve ? 'pve' : 'pvp';
                 const boards = {}; pids.forEach(x => boards[x] = room.players[x].board || []);
-                broadcast(room, { type: 'resolve', round: r, roundType: pve ? 'pve' : 'pvp', boards, players: pids });
+
+                // 🏆 ¿Contra quién juega cada humano? (rival del torneo)
+                const asignaciones = {};
+                try {
+                    if (room.torneo && room.torneo.rivales) {
+                        pids.forEach(hpid => {
+                            const rid = room.torneo.rivales[hpid];
+                            const rv = (room.torneo.participantes || []).find(p => p.id === rid);
+                            if (!rv) return;
+                            let seed = 1;
+                            try {
+                                const par = (room.torneo.parejas || []).find(x => x.includes(hpid) && x.includes(rid)) || [hpid, rid];
+                                seed = (room.torneo.seeds || {})[par.join('|')] || 1;
+                            } catch (e) { }
+                            asignaciones[hpid] = {
+                                tipo: rv.tipo, rivalId: rv.id, nombre: rv.nombre, avatar: rv.avatar,
+                                nivel: rv.nivel || 2, seed
+                            };
+                        });
+                    }
+                } catch (e) { }
+
+                broadcast(room, { type: 'resolve', round: r, roundType: pve ? 'pve' : 'pvp', boards, players: pids, asignaciones });
             }
             send(res, { ok: true });
         });
@@ -368,8 +610,25 @@ const server = http.createServer((req, res) => {
             if (typeof body.hp === 'number') room.players[pid].hp = body.hp;
             room.done = room.done || {}; room.done[pid] = true;
             room._won = room._won || {}; room._won[pid] = (body.won === true);
+            room._vivas = room._vivas || {}; room._vivas[pid] = (typeof body.vivas === 'number') ? body.vivas : 1;
             const pids = Object.keys(room.players);
-            if (pids.length >= 2 && pids.every(x => room.done[x]) && room.phase === 'combat') {
+            const pidsActivos = pids.filter(x => !_humanoEliminado(room, x));
+            if (pids.length >= 2 && pidsActivos.length > 0 && pidsActivos.every(x => room.done[x]) && room.phase === 'combat') {
+                // 🏆 Daño de los humanos a las IA del torneo (si ganaron)
+                try {
+                    Object.keys(room.players).forEach(hpid => {
+                        if (room._won[hpid] === true) {
+                            aplicarVictoriaHumanoSobreIA(room, hpid, room.round || 1, room._vivas[hpid] || 1);
+                        }
+                    });
+                } catch (e) { }
+
+                // 🏆 Cerrar la ronda del torneo (IA vs IA, HP de los humanos)
+                try { simularTorneoOnline(room, room.round || 1); } catch (e) { }
+
+                // 🏆 ¿Se han quedado los dos humanos fuera? → fin (opción A)
+                try { finalizarTorneoSiProcede(room); } catch (e) { }
+
                 room.done = {};
                 room.matchHp = room.matchHp || {};
                 // HP = la que reporta cada cliente (el juego YA aplicó el daño; no restar otra vez)
@@ -440,7 +699,11 @@ const server = http.createServer((req, res) => {
         readBody(req, body => {
             const room = getRoom(body.room);
             room.started = false; room.seed = null; room.results = {};
-            Object.values(room.players).forEach(pl => { pl.ready = false; pl.team = null; });
+            room.torneo = null;
+            room.round = 1; room.phase = 'prep';
+            room.done = {}; room.matchHp = {}; room._won = {}; room._vivas = {};
+            Object.values(room.players).forEach(pl => { pl.ready = false; pl.team = null; pl.hp = null; pl.board = null; });
+            broadcast(room, { type: 'torneoReset' });
             broadcast(room, { type: 'state', ...roomState(room) });
             send(res, { ok: true });
         });

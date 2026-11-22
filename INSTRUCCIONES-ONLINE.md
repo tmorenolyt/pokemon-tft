@@ -267,6 +267,47 @@ protegido solo por `ACCESS_KEY`.
 - **Objetos equipados en el resumen final**: cada Pokémon del "EQUIPO FINAL"
   muestra ahora sus **objetos equipados** como mini-iconos bajo la carta
   (jugador y rivales), con su nombre al pasar el ratón.
+- **Diálogo de ronda solo cuando toca**: el bocadillo del jugador con la
+  descripción del monstruo ("Dos Aipom salvajes bloquean el camino…") ya **no
+  aparece en el menú antes de darle a JUGAR**, ni en online antes de que empiece
+  la primera ronda. Se muestra **1 segundo después de darle a jugar**: en 1J al
+  empezar la partida (≈1,1 s desde que aparece el monstruo) y en online 1 s
+  después de entrar en la sala/partida.
+- **🏆 Torneo ONLINE (fase 3): modo espectador + fin de torneo (opción A)**: si
+  te eliminan (0 HP) **no se corta la partida**: aparece el cartel **"💀
+  Eliminado · modo espectador"**, se te desactiva COMBATIR y sigues viendo
+  **el ranking de los 8 en vivo** y **el tablero de tu amigo** durante la
+  preparación. Las rondas ya **no esperan al eliminado** para avanzar. Si caen
+  los dos humanos, el torneo termina y **ambos ven la pantalla final con las 8
+  posiciones** (1º la IA que quede con más HP, y el resto por orden de caída).
+  Esa pantalla final usa **el mismo formato que el torneo 1J**: rango con
+  medallas, entrenador, **equipo con sprites, estrellas y objetos equipados** y
+  **sinergias** de cada participante (los humanos con su tablero real; las IA
+  con su equipo generado por semilla). En **móvil horizontal** ese resumen se
+  compacta para que entren las **8 posiciones** de una vez (sin etiquetas de
+  columna, sprites de 32 px con estrellas y objetos, sinergias de 12 px), y el
+  **modo espectador** abre solo el ranking desplegable para poder seguir la
+  partida desde el móvil. Además hay un botón **🔄 REVANCHA** en ese resumen:
+  pide al servidor `/api/reset`, se reinicia el torneo **en la misma sala** y
+  **los dos clientes vuelven solos** a la preparación (se recargan).
+- **🏆 Torneo ONLINE (fase 2)**: el emparejamiento ya **mezcla a todos los
+  vivos** (2 humanos + IA), así que hay rondas en las que **te toca una IA**.
+  Cuando eso pasa, el servidor te manda el rival, su nivel y una semilla, y tu
+  cliente **genera su equipo** (determinista con la semilla) y lo carga en el
+  tablero enemigo: el combate se juega **en vivo**, igual que en el modo 1J.
+  Si ganas, la IA **pierde HP** (tabla por rondas + tus unidades vivas); si
+  pierdes, lo pierdes tú. Las IA vs IA se siguen simulando en el servidor y en
+  las rondas **PvE** los rivales no se pegan entre ellos.
+- **🏆 Torneo ONLINE (fase 1)**: el modo online ya no es solo un 1v1: el
+  servidor crea un **torneo de 8** por sala con **los 2 jugadores humanos y 6
+  rivales IA** (Misty, Rojo, Lorelei, Lance, Erika y Bruno, 50 HP cada uno).
+  Cada ronda empareja a los participantes, las **IA pelean entre sí** (simulado
+  en el servidor con la tabla de daño por rondas) y los dos jugadores ven el
+  **ranking de los 8** en su pantalla, con tu rival marcado y las IA con 🤖.
+  Las rondas **PvE (1, 6, 12, 18…)** también están contempladas (nadie se pega
+  entre sí en esas rondas). De momento los dos humanos siguen jugando su 1v1
+  como antes; los combates **contra las IA** llegan en la fase 2, y después las
+  eliminaciones y la pantalla final de 8.
 - **Móvil: carta de datos y carta de sinergia mejoradas**: la ficha del
   Pokémon en horizontal queda **centrada** (600 px máx., con margen a los
   lados, ya no pegada a los bordes), con **cabecera fija**, **X para cerrar**

@@ -1182,3 +1182,39 @@ body.celebrando .btn-abrir-tienda {
 #turnoOverlay .combat-resultado-monedas.turno-nombre-rojo {
     color: #ffffff;
 }
+/* ============================================================
+   🔄 BOTÓN DE REVANCHA (torneo online)
+   ============================================================ */
+#btnRevanchaOnline {
+    margin-left: 10px;
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #4dd4f7, #2aa7d9);
+    color: #05202e;
+    font-weight: 900;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(77, 212, 247, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#btnRevanchaOnline:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(77, 212, 247, 0.5);
+}
+
+#btnRevanchaOnline:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+@media (max-height: 700px) and (max-width: 1100px) {
+    #btnRevanchaOnline {
+        padding: 7px 14px !important;
+        font-size: 0.72rem !important;
+        margin-left: 6px !important;
+    }
+}

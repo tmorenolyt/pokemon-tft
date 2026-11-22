@@ -86,8 +86,8 @@ function _intentarMostrarDialogoPvE() {
 
     // Margen para que la tienda post-ronda llegue a abrirse: si nunca se abrió
     // el diálogo sale pasados unos segundos igualmente. En la ronda 1 no hay
-    // tienda nunca, así que el margen es más corto (1,5 s).
-    const MS_ESPERA_TIENDA = (pend.ronda === 1) ? 1500 : 3500;
+    // tienda nunca, así que el mensaje sale al segundo de empezar.
+    const MS_ESPERA_TIENDA = (pend.ronda === 1) ? 900 : 3500;
     if (!window._dialogoPvEVioTienda &&
         (Date.now() - (window._dialogoPvEInicio || 0)) < MS_ESPERA_TIENDA) {
         return false;
@@ -120,7 +120,7 @@ function _vigilarDialogoPvE() {
             return;
         }
         try { _intentarMostrarDialogoPvE(); } catch (e) { }
-    }, 400);
+    }, 250);
 }
 
 // ============================================================
@@ -266,10 +266,21 @@ function spawnearMonstruoPvE(ronda) {
 
     // 7) 💬 Tu personaje dice la descripción de la ronda, pero SOLO cuando
     //    la tienda de la ronda esté cerrada (en la 1 no hay tienda y sale ya).
+    //    ⛔ Nunca en el menú (antes de darle a JUGAR) ni en online antes de
+    //       que empiece la primera ronda.
+    let _juegoVisible = true;
+    try {
+        const _m = document.getElementById('menuPrincipal');
+        _juegoVisible = !_m || getComputedStyle(_m).display === 'none';
+    } catch (e) { }
+    const _onlineListo = (window._modoOnline !== true) || (window._rondaOnlineEmpezada === true);
+
     if (typeof mostrarConsejoJugadorPvE === 'function'
         && window.modoDosJugadores !== true
         && window._consejoPvEMostrado !== r
-        && config.descripcion) {
+        && config.descripcion
+        && _juegoVisible
+        && _onlineListo) {
         window._consejoPvEMostrado = r;
         window._dialogoPvEPendiente = { frase: config.descripcion, ronda: r };
         window._dialogoPvEInicio = Date.now();

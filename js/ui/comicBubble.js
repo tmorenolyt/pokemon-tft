@@ -409,6 +409,13 @@ function mostrarConsejoJugadorPvE(frase, duracionMs = 6000) {
     if (window.modoDosJugadores) return; // 👥 Sin bocadillos en 2 jugadores
     if (window.modoCreativo) return;
     if (!frase) return;
+
+    // ⛔ No en el menú (antes de darle a JUGAR) ni en online antes de la 1ª ronda
+    try {
+        const m = document.getElementById('menuPrincipal');
+        if (m && getComputedStyle(m).display !== 'none') return;
+    } catch (e) { }
+    if (window._modoOnline === true && window._rondaOnlineEmpezada !== true) return;
     if (typeof mostrarComicBubble !== 'function') return;
 
     const panel = document.getElementById('playerInfoPanel');
