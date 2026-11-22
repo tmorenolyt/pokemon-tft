@@ -241,6 +241,12 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
             if (rb.height > 0) {
                 bubble.style.top = 'auto';
                 bubble.style.bottom = Math.max(8, Math.round(window.innerHeight - rb.top + 4)) + 'px';
+                // 📱 En móvil la barra se ajusta al contenido: el diálogo toma
+                //    su mismo ancho para quedar justo encima, a juego.
+                if (window.matchMedia('(pointer: coarse), (max-height: 560px)').matches) {
+                    bubble.style.width = Math.round(rb.width) + 'px';
+                    bubble.style.maxWidth = Math.round(rb.width) + 'px';
+                }
             }
         }
     } catch (e) { /* sin barra de acciones */ }

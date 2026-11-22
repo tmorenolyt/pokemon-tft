@@ -192,7 +192,7 @@ body::before {
     border: 2px solid #1a1a1a !important;
     font-size: 1rem !important;
     font-weight: 600 !important;
-    max-width: 320px !important;
+    max-width: 320px;
     min-width: 140px !important;
     box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.7) !important;
     pointer-events: auto !important;
@@ -347,8 +347,8 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
         /* Centrado y un poco más ancho que la barra de acciones */
         left: 50% !important;
         right: auto !important;
-        width: min(1060px, calc(100vw - 32px)) !important;
-        max-width: min(1060px, calc(100vw - 32px)) !important;
+        width: min(1060px, calc(100vw - 32px));
+        max-width: min(1060px, calc(100vw - 32px));
         min-width: 0 !important;
         box-sizing: border-box !important;
         min-height: 104px !important;
@@ -497,7 +497,7 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
     .comic-bubble {
         bottom: calc(var(--action-bar-height, 66px) + 6px);
         /* Mismo ancho y centrado que la barra de acciones (4 px por lado) */
-        width: calc(100vw - 8px) !important;
+        width: calc(100vw - 8px);
         max-width: calc(100vw - 8px) !important;
         min-height: 72px !important;
         padding: 8px 14px 15px 10px !important;

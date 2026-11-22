@@ -118,8 +118,8 @@ El juego detecta pantallas pequeñas y cambia solo:
   muestran dos tarjetas gemelas lado a lado (sin ilustración) con el VS en medio.
 - **Paisaje**: todo cabe en una pantalla. Cabecera y barra de acciones compactas,
   los dos tableros lado a lado con **casillas cuadradas** y el banco reducido.
-  La **barra de acciones** llega a los dos bordes (antes dejaba una franja
-  vacía a la derecha).
+  La **barra de acciones** se ajusta a su contenido (desde el bloque de NIVEL
+  hasta el botón COMBATIR) y va centrada en la pantalla.
   El **baúl de objetos** ya no son dos tiras laterales: se abre con el botón
   **📦** de la cabecera como panel flotante en forma de **tira vertical**: una sola
   columna de huecos de 32 px, sin título ni emoji (solo se ven los iconos),

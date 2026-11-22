@@ -1088,14 +1088,14 @@
 
     /* -------- BARRA DE ACCIONES -------- */
     #juegoContainer .action-bar {
-        left: 4px !important;
-        right: 4px !important;
+        /* Se ajusta al contenido: desde el bloque de NIVEL hasta el botón
+           COMBATIR, y queda centrada en la pantalla */
+        left: 50% !important;
+        right: auto !important;
         bottom: 4px !important;
-        transform: none !important;
-        width: auto !important;
-        /* Sin el tope de 100vw-32px: así llega a los dos bordes y no queda
-           una franja vacía a la derecha */
-        max-width: none !important;
+        transform: translateX(-50%) !important;
+        width: max-content !important;
+        max-width: calc(100vw - 8px) !important;
         height: 48px !important;
         padding: 3px 6px !important;
         gap: 4px !important;
