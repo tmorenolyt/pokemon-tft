@@ -246,8 +246,8 @@ protegido solo por `ACCESS_KEY`.
   seguir. A la izquierda asoma el **retrato grande del rival** enmarcado con
   sombra roja, y el texto se coloca a su derecha. El color del nombre cambia
   según el estado (verde/amarillo/rojo/gris). En **móvil** es la misma barra
-  pero compacta: **mismo ancho que la barra de acciones** (4 px por lado) y
-  **4 px encima** de ella, retrato de **90 px** y letra algo menor. Además el
+  pero compacta: **mismo ancho que la barra de acciones** y **pegada** encima
+  de ella, con retrato de **90 px** y letra algo menor. Además el
   diálogo ya no se sale por el borde derecho: se recoloca con el ancho real del
   texto.
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra

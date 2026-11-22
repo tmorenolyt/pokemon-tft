@@ -499,8 +499,8 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
         /* Mismo ancho y centrado que la barra de acciones (4 px por lado) */
         width: calc(100vw - 8px);
         max-width: calc(100vw - 8px) !important;
-        min-height: 72px !important;
-        padding: 8px 14px 15px 10px !important;
+        min-height: 70px !important;
+        padding: 8px 14px 11px 10px !important;
     }
 
     .comic-bubble.con-retrato { padding-left: 100px !important; }
