@@ -155,6 +155,21 @@ function spawnearMonstruoPvE(ronda) {
         renderizar();
     }
 
+    // 7) 💬 Tu personaje dice la descripción de la ronda (solo 1 vez)
+    if (typeof mostrarConsejoJugadorPvE === 'function'
+        && window.modoDosJugadores !== true
+        && window._consejoPvEMostrado !== r
+        && config.descripcion) {
+        window._consejoPvEMostrado = r;
+        setTimeout(() => {
+            try {
+                // Nunca encima de un combate en curso
+                if (typeof combatiendo !== 'undefined' && combatiendo) return;
+                mostrarConsejoJugadorPvE(config.descripcion, 6500);
+            } catch (e) { /* sin diálogo */ }
+        }, 1200);
+    }
+
     console.log(`✅ Monstruo spawneado. window.enRondaPvE = ${window.enRondaPvE}`);
     return config;
 }
@@ -172,6 +187,9 @@ function limpiarMonstruoPvE() {
     // 🆕 FIX: usar el booleano, NO la función
     window.enRondaPvE = false;
     window.monstruoActual = null;
+
+    // Permite que el consejo vuelva a salir en la próxima ronda PvE
+    window._consejoPvEMostrado = null;
 }
 
 // ============================================================

@@ -247,10 +247,17 @@ protegido solo por `ACCESS_KEY`.
   sombra roja, y el texto se coloca a su derecha. El color del nombre cambia
   según el estado (verde/amarillo/rojo/gris). En **móvil** es la misma barra
   pero compacta: **mismo ancho que la barra de acciones** y colocada **encima
-  de ella** (la cubre mientras dura el diálogo; se cierra al tocarla), con
-  retrato de **90 px** y letra algo menor. Además el
+  de ella** y **la tapa entera** mientras dura (solo asoman ~2 px de la barra
+  abajo; se cierra al tocarla), con retrato de **90 px** y letra algo menor. Además el
   diálogo ya no se sale por el borde derecho: se recoloca con el ancho real del
   texto.
+- **Diálogo del jugador en rondas PvE**: al empezar cada ronda PvE (1, 6,
+  12, 18…) tu **propio personaje** (tu avatar y tu nombre) aparece en la barra
+  de diálogo estilo Persona y dice **literalmente la descripción del monstruo**
+  de esa ronda, p. ej. «Dos Aipom salvajes bloquean el camino.». Sale **una vez
+  por ronda** (1,2 s después de spawnear el monstruo), nunca durante un combate
+  ni en 2 jugadores. Las frases se editan en `js/data/monstruosPvE.js`, campo
+  **`descripcion`** de cada ronda.
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
   en la tienda, venta de un Pokémon con objetos, paso de un Pokémon con objetos
   al banco o al conseguir el **Disco Definitivo** de nivel 5 y 8) la tira (📦) se

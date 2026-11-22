@@ -242,9 +242,10 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
                 const esMovil = window.matchMedia('(pointer: coarse), (max-height: 560px)').matches;
                 bubble.style.top = 'auto';
                 if (esMovil) {
-                    // 📱 En móvil se coloca ENCIMA de la barra de acciones, pegada
-                    //    al borde inferior de la pantalla (la barra queda detrás).
-                    bubble.style.bottom = '0px';
+                    // 📱 En móvil se coloca ENCIMA de la barra de acciones y la
+                    //    tapa (deja solo 2 px visibles abajo), como en Persona:
+                    //    el diálogo se cierra al tocarlo y dura 2-4 s.
+                    bubble.style.bottom = Math.max(0, Math.round(window.innerHeight - rb.bottom + 2)) + 'px';
                     bubble.style.width = Math.round(rb.width) + 'px';
                     bubble.style.maxWidth = Math.round(rb.width) + 'px';
                 } else {
@@ -388,6 +389,30 @@ function mostrarReaccionJugador(victoriaJugador) {
     }, 1500);
 }
 
+// ============================================================
+// 💬 CONSEJO DEL JUGADOR EN RONDAS PvE
+// ============================================================
+// Antes de luchar contra un monstruo, tu propio personaje (tu avatar
+// y tu nombre) dice la descripción de la ronda PvE.
+// La frase es la descripción de la ronda: MONSTRUOS_PVE[ronda].descripcion.
+// ============================================================
+function mostrarConsejoJugadorPvE(frase, duracionMs = 6000) {
+    if (window.modoDosJugadores) return; // 👥 Sin bocadillos en 2 jugadores
+    if (window.modoCreativo) return;
+    if (!frase) return;
+    if (typeof mostrarComicBubble !== 'function') return;
+
+    const panel = document.getElementById('playerInfoPanel');
+    if (!panel) return;
+
+    const ancla = panel.querySelector('.player-info-header') || panel;
+    const nombre = (window.nombreJugador && String(window.nombreJugador).trim())
+        ? String(window.nombreJugador).trim()
+        : 'Entrenador';
+
+    mostrarComicBubble(ancla, frase, duracionMs, null, nombre);
+}
+
 // ===== REACCIÓN AL INICIO DEL COMBATE =====
 function mostrarReaccionInicioCombate() {
     if (window.modoDosJugadores) return; // 👥 Sin bocadillos en 2 jugadores
@@ -421,6 +446,7 @@ window.mostrarComicBubble = mostrarComicBubble;
 window.cerrarComicBubble = cerrarComicBubble;
 window.mostrarReaccionEnemigo = mostrarReaccionEnemigo;
 window.mostrarReaccionJugador = mostrarReaccionJugador;
+window.mostrarConsejoJugadorPvE = mostrarConsejoJugadorPvE;
 window.mostrarReaccionInicioCombate = mostrarReaccionInicioCombate;
 window.mostrarReaccionPensando = mostrarReaccionPensando;
 window.obtenerFraseComic = obtenerFraseComic;
