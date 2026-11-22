@@ -495,7 +495,11 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
    ============================================================ */
 @media (max-height: 560px), (pointer: coarse) {
     .comic-bubble {
-        bottom: calc(var(--action-bar-height, 66px) + 6px);
+        /* Por encima de la barra de acciones (que tiene z-index 100001) */
+        z-index: 100500 !important;
+        bottom: 0;
+        /* Fondo opaco: la barra de acciones no debe transparentarse detrás */
+        background: linear-gradient(180deg, #0b0a0f 0%, #07060a 55%, #030305 100%) !important;
         /* Mismo ancho y centrado que la barra de acciones (4 px por lado) */
         width: calc(100vw - 8px);
         max-width: calc(100vw - 8px) !important;

@@ -240,15 +240,16 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
             const rb = barraAcciones.getBoundingClientRect();
             if (rb.height > 0) {
                 const esMovil = window.matchMedia('(pointer: coarse), (max-height: 560px)').matches;
-                // 📱 En móvil queda pegada a la barra (sin hueco); en PC, 4 px.
-                const hueco = esMovil ? 0 : 4;
                 bubble.style.top = 'auto';
-                bubble.style.bottom = Math.max(0, Math.round(window.innerHeight - rb.top + hueco)) + 'px';
-                // 📱 En móvil la barra se ajusta al contenido: el diálogo toma
-                //    su mismo ancho para quedar justo encima, a juego.
                 if (esMovil) {
+                    // 📱 En móvil se coloca ENCIMA de la barra de acciones, pegada
+                    //    al borde inferior de la pantalla (la barra queda detrás).
+                    bubble.style.bottom = '0px';
                     bubble.style.width = Math.round(rb.width) + 'px';
                     bubble.style.maxWidth = Math.round(rb.width) + 'px';
+                } else {
+                    // 💻 En PC, 4 px de aire por encima de la barra.
+                    bubble.style.bottom = Math.max(0, Math.round(window.innerHeight - rb.top + 4)) + 'px';
                 }
             }
         }
