@@ -438,3 +438,9 @@ protegido solo por `ACCESS_KEY`.
   el terreno por defecto) y `arena.png` de la Pokédex (→ `arena2.webp`).
 - **Consola limpia**: se evita el CORS de `/api/version` al abrir `index.html`
   con doble clic (`file://`) y el aviso de `audioGestor.js` en cada combate.
+- **Bancos de móvil restaurados**: el bloque de “banco compacto” para escritorio
+  a ≤2000px no tenía `min-width`, así que en móvil también forzaba
+  `height: 72px` sobre las cartas de 27px y las dejaba estiradas (27×72).
+  Ahora ese bloque solo aplica a **≥1101px**: en móvil vuelven a **27×29** con
+  4 columnas, sprite e iconos. Verificado a 844×390, 1024×600, 1920×900 y
+  2133×1200 (escritorio 100 % y 90 % sin cambios).

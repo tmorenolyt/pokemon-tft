@@ -1786,8 +1786,10 @@
    📐 BANCO COMPACTO A ≤2000px (100 % de zoom)
    Usa la MISMA especificidad que arena-horizontal.css para ganarle.
    A 2133px (90 % de zoom) no aplica.
+   ⚠️ Solo escritorio/tablet (≥1101px): antes también entraba en móvil
+   y pisaba las cartas de 27×29 con una altura de 72px (bancos rotos).
    ============================================================ */
-@media (max-width: 2000px) {
+@media (min-width: 1101px) and (max-width: 2000px) {
     html body .bank-cell .unit-sprite,
     html body #banquilloGrid .bank-cell .unit-sprite,
     html body #enemyBanquilloGrid .bank-cell .unit-sprite {
