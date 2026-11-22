@@ -507,8 +507,16 @@ const server = http.createServer((req, res) => {
             const pid = String(body.pid || '');
             if (!pid) { send(res, { ok: false, error: 'pid' }, 400); return; }
             if (!room.players[pid] && Object.keys(room.players).length >= 2) {
-                send(res, { ok: false, error: 'sala llena (2 jugadores)' }, 409);
-                return;
+                // 🧹 Limpiar jugadores inactivos (pestaña cerrada / recarga antigua)
+                const ahora = Date.now();
+                Object.keys(room.players).forEach(k => {
+                    const pl = room.players[k];
+                    if (pl && pl.lastSeen && (ahora - pl.lastSeen) > 30000) delete room.players[k];
+                });
+                if (Object.keys(room.players).length >= 2) {
+                    send(res, { ok: false, error: 'sala llena (2 jugadores)' }, 409);
+                    return;
+                }
             }
             // 🆕 Al entrar (si no hay combate en curso) reiniciar el marcador de la partida
             if (room.phase !== 'combat') {

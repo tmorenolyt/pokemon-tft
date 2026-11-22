@@ -9,7 +9,13 @@
 (function () {
     const params = new URLSearchParams(location.search);
     let sala = (params.get('amistoso') || '').trim().toUpperCase();
+    // 🔁 El pid se guarda por pestaña (sessionStorage): así al recargar
+    //    (p. ej. tras la revancha) se mantiene el mismo jugador y no da
+    //    "sala llena". Cada pestaña nueva genera uno distinto.
     let pid = (params.get('pid') || '').trim();
+    if (!pid && sala) {
+        try { pid = (sessionStorage.getItem('pktft_pid_' + sala) || '').trim(); } catch (e) { }
+    }
     let es = null, amigo = null, syncTimer = null;
     let estadoOnline = 'prep'; // prep | waiting | combat | ended
     let origCombatir = null;
@@ -857,6 +863,7 @@
         sala = (salaArg || '').trim().toUpperCase();
         if (!sala) return;
         if (!pid) pid = 'p' + Math.random().toString(36).slice(2, 8);
+        try { sessionStorage.setItem('pktft_pid_' + sala, pid); } catch (e) { }
         window._modoOnline = true;
         // En online el "combate" lo gobierna el handshake (ambos Listo),
         // así que no necesitamos los candados de puedeCombatir (ronda 2 / objetos).
