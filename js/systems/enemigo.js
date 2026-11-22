@@ -1532,7 +1532,7 @@ function intentarSustituirUnidadMalaDelTablero(maxUnits) {
 
     if (!window._rivalPensandoMostradoEstaRonda) {
         if (typeof mostrarReaccionPensando === 'function') {
-            mostrarReaccionPensando(1500);
+            mostrarReaccionPensando(2500);
         }
         window._rivalPensandoMostradoEstaRonda = true;
     }
@@ -1607,7 +1607,10 @@ function intentarSustituirUnidadMalaDelTablero(maxUnits) {
             if (panel) {
                 const ancla = panel.querySelector('.player-info-header') || panel;
                 const frase = obtenerFraseComic('win');
-                mostrarComicBubble(ancla, frase, 1500, 'win');
+                const nomRival = (typeof _nombreRivalComic === 'function')
+                    ? _nombreRivalComic()
+                    : 'Rival';
+                mostrarComicBubble(ancla, frase, 2500, 'win', nomRival);
             }
         }, 400);
     }

@@ -240,8 +240,9 @@ protegido solo por `ACCESS_KEY`.
 - **Diálogo estilo Persona (PC y móvil)**: el bocadillo de los rivales
   (y la reacción del jugador) ya no es una nube: es una **barra de diálogo
   centrada**, **un poco más ancha que la barra de acciones** (1.060 px máx.) y
-  pegada justo encima de ella, con fondo casi
-  negro, **línea roja degradada** arriba, el **nombre en verde**, el texto en
+  apoyada sobre ella (**14 px de solapo**), con fondo casi
+  negro, **línea roja degradada** arriba, el **nombre en verde** (el del rival
+  cuando habla el rival y el tuyo cuando hablas tú), el texto en
   blanco (grande) y un pequeño **▼ rojo parpadeando** para indicar que puedes
   seguir. A la izquierda asoma el **retrato grande del rival** enmarcado con
   sombra roja, y el texto se coloca a su derecha. El color del nombre cambia
@@ -251,6 +252,10 @@ protegido solo por `ACCESS_KEY`.
   abajo; se cierra al tocarla), con retrato de **90 px** y letra algo menor. Además el
   diálogo ya no se sale por el borde derecho: se recoloca con el ancho real del
   texto.
+- **Diálogos del rival un segundo más largos**: las frases del rival duran
+  ahora **1 s más** cada una (al empezar el combate 3 s, al ganar/perder 3,5 s,
+  al pensar y al sustituir unidad 2,5 s), además del tiempo de escritura. Tú
+  puedes cerrarlos antes tocándolos o haciendo clic.
 - **Diálogo del jugador en rondas PvE**: al empezar cada ronda PvE (1, 6,
   12, 18…) tu **propio personaje** (tu avatar y tu nombre) aparece en la barra
   de diálogo estilo Persona y dice **literalmente la descripción del monstruo**

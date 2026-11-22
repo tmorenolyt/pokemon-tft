@@ -249,8 +249,9 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
                     bubble.style.width = Math.round(rb.width) + 'px';
                     bubble.style.maxWidth = Math.round(rb.width) + 'px';
                 } else {
-                    // 💻 En PC, 4 px de aire por encima de la barra.
-                    bubble.style.bottom = Math.max(0, Math.round(window.innerHeight - rb.top + 4)) + 'px';
+                    // 💻 En PC tapa la barra de acciones igual que en móvil
+                    //    (deja solo 2 px de la barra asomando abajo).
+                    bubble.style.bottom = Math.max(0, Math.round(window.innerHeight - rb.bottom + 2)) + 'px';
                 }
             }
         }
@@ -334,6 +335,14 @@ function cerrarComicBubble(inmediato = false) {
     }, 300);
 }
 
+// ===== NOMBRE DEL RIVAL PARA LA BARRA DE DIÁLOGO =====
+// Igual que el nombre del jugador: se muestra en verde encima del texto.
+function _nombreRivalComic(rival = null) {
+    const r = rival || window.rivalActual || null;
+    const nombre = (r && r.nombre) ? String(r.nombre).trim() : '';
+    return nombre || 'Rival';
+}
+
 // ===== MOSTRAR REACCIÓN DEL ENEMIGO =====
 function mostrarReaccionEnemigo(victoriaJugador, rivalParaFrase = null) {
     if (window.modoDosJugadores) return;
@@ -350,7 +359,7 @@ function mostrarReaccionEnemigo(victoriaJugador, rivalParaFrase = null) {
     const situacion = calcularSituacionComic(victoriaJugador);
     const frase = obtenerFraseComic(situacion, { victoriaJugador, rival: rivalCapturado });
 
-    mostrarComicBubble(ancla, frase, 2500, situacion, null);
+    mostrarComicBubble(ancla, frase, 3500, situacion, _nombreRivalComic(rivalCapturado));
 }
 
 // ===== MOSTRAR REACCIÓN DEL JUGADOR =====
@@ -421,14 +430,14 @@ function mostrarReaccionInicioCombate() {
 
     const ancla = panel.querySelector('.player-info-header') || panel;
     const frase = obtenerFraseComic('start');
-    mostrarComicBubble(ancla, frase, 2000, 'start');
+    mostrarComicBubble(ancla, frase, 3000, 'start', _nombreRivalComic());
 }
 
 // ============================================================
 // 🆕 MOSTRAR REACCIÓN "PENSANDO"
 // ============================================================
 
-function mostrarReaccionPensando(duracionMs = 1800) {
+function mostrarReaccionPensando(duracionMs = 2800) {
     if (window.modoCreativo) return;
     if (window.modoDosJugadores) return; // 👥 Sin bocadillos en 2 jugadores
 
@@ -438,11 +447,12 @@ function mostrarReaccionPensando(duracionMs = 1800) {
     const ancla = panel.querySelector('.player-info-header') || panel;
     const frase = obtenerFraseComic('thinking');
 
-    mostrarComicBubble(ancla, frase, duracionMs, 'thinking');
+    mostrarComicBubble(ancla, frase, duracionMs, 'thinking', _nombreRivalComic());
 }
 
 // ===== EXPONER GLOBALMENTE =====
 window.mostrarComicBubble = mostrarComicBubble;
+window._nombreRivalComic = _nombreRivalComic;
 window.cerrarComicBubble = cerrarComicBubble;
 window.mostrarReaccionEnemigo = mostrarReaccionEnemigo;
 window.mostrarReaccionJugador = mostrarReaccionJugador;

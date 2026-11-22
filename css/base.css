@@ -342,8 +342,10 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
 
     .comic-bubble {
         top: auto !important;
-        /* El JS la pega justo encima de la barra de acciones */
-        bottom: calc(var(--action-bar-height, 72px) + 30px);
+        /* Por encima de la barra de acciones (que tiene z-index 100001) */
+        z-index: 100500 !important;
+        /* Tape la barra de acciones (el JS recalcula la posición exacta) */
+        bottom: 28px;
         /* Centrado y un poco más ancho que la barra de acciones */
         left: 50% !important;
         right: auto !important;
