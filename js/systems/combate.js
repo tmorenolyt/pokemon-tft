@@ -2765,7 +2765,11 @@ ronda = fase;
                     && typeof esRondaPvE === 'function'
                     && esRondaPvE(fase));
         if (esPvEProximaRonda) {
-            if (typeof spawnearMonstruoPvE === 'function') {
+            // 🕒 El panel del rival anterior y sus Pokémon se quedan 2 s más
+            //    en pantalla; después aparece el monstruo.
+            if (typeof spawnearMonstruoPvEConRetraso === 'function') {
+                spawnearMonstruoPvEConRetraso(fase, 2000);
+            } else if (typeof spawnearMonstruoPvE === 'function') {
                 spawnearMonstruoPvE(fase);
             }
         } else {

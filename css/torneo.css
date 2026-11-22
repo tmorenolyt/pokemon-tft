@@ -419,9 +419,32 @@ body.modo-espia #playerBoard .board-cell {
     to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* 🆕 Separador visual de pareja en el ranking */
-.ranking-torneo .ranking-item.inicio-pareja {
-    margin-top: 8px;
-    border-top: 1px dashed rgba(251, 191, 36, 0.4);
-    padding-top: 6px;
+/* ============================================================
+   🎯 RIVAL AL QUE TE VAS A ENFRENTAR (recuadro marcado)
+   El ranking SIEMPRE va en orden de posición; solo se resalta
+   la fila del próximo rival con un marco dorado y un ⚔️.
+   ============================================================ */
+.ranking-torneo .ranking-item.pareja-activa {
+    border: 1px solid rgba(251, 191, 36, 0.85) !important;
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0.02) 100%) !important;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.35), inset 0 0 10px rgba(251, 191, 36, 0.12);
+    animation: pulsoRivalActivo 1.8s ease-in-out infinite;
+}
+
+.ranking-torneo .ranking-item.pareja-activa:hover {
+    border-color: rgba(251, 191, 36, 1) !important;
+}
+
+.ranking-torneo .ranking-item.pareja-activa::after {
+    content: '⚔️';
+    position: absolute;
+    top: -7px;
+    right: -6px;
+    font-size: 0.8rem;
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
+}
+
+@keyframes pulsoRivalActivo {
+    0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.28), inset 0 0 8px rgba(251, 191, 36, 0.10); }
+    50%      { box-shadow: 0 0 16px rgba(251, 191, 36, 0.55), inset 0 0 14px rgba(251, 191, 36, 0.20); }
 }

@@ -339,7 +339,7 @@
                 let sinergiasHtml = '';
                 const sin = sinergiasDe(jugador.equipo);
                 Object.keys(sin).map(key => ({ nombre: key, nivel: sin[key].nivel, esClase: sin[key].esClase }))
-                    .sort((a, b) => b.nivel - a.nivel).slice(0, 3)
+                    .sort((a, b) => b.nivel - a.nivel)
                     .forEach(function (s) {
                         let icono = '';
                         try { icono = s.esClase ? getIconoClase(s.nombre) : getIconoTipo(s.nombre); } catch (e) { icono = ''; }
@@ -352,7 +352,6 @@
                         <img src="assets/avatars/jugador/${jugador.avatar}.png" onerror="this.style.display='none'">
                         <div style="display:flex; flex-direction:column;">
                             <span class="nombre">${_esc(jugador.nombre)}</span>
-                            <span class="hp">❤️ ${(typeof jugador.hp === 'number') ? Math.max(0, jugador.hp) : '-'} HP</span>
                         </div>
                     </div>
                     <div class="equipo-final">${equipoHtml}</div>

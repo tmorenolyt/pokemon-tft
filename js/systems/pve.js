@@ -24,9 +24,19 @@
 
 function esRondaPvE(ronda) {
     const r = (typeof ronda === 'number') ? ronda : fase;
-    if (r === 1) return true;
-    if (r >= 6 && (r - 6) % 6 === 0) return true;
-    return false;
+    const esRondaDeFormula = (r === 1) || (r >= 6 && (r - 6) % 6 === 0);
+    if (!esRondaDeFormula) return false;
+
+    // ⚠️ Si la ronda NO tiene monstruo configurado (p. ej. 24, 30, 36…, de
+    //    MONSTRUOS_PVE solo existen 1, 6, 12 y 18), NO es una ronda PvE real:
+    //    se juega como ronda PvP normal. Antes se consideraba PvE y por eso
+    //    en la ronda 24 se podía perder sin que te quitaran HP (el daño PvE
+    //    es 0) y sin monstruo con el que pelear.
+    if (typeof MONSTRUOS_PVE !== 'undefined' && MONSTRUOS_PVE && !MONSTRUOS_PVE[r]) {
+        return false;
+    }
+
+    return true;
 }
 
 // ============================================================
@@ -34,6 +44,105 @@ function esRondaPvE(ronda) {
 // ============================================================
 window.enRondaPvE = false;
 window.monstruoActual = null;
+
+// ============================================================
+// 💬 DIÁLOGO DE LA RONDA PvE (espera a que la tienda esté cerrada)
+// ============================================================
+// En las rondas 6, 12 y 18 la ronda siguiente empieza con la tienda
+// ABIERTA (tienda post-ronda), así que el diálogo se quedaba debajo
+// del overlay. Ahora se guarda como "pendiente" y sale en cuanto el
+// jugador cierra la tienda (o enseguida si no hay tienda, como en la 1).
+// ============================================================
+window._dialogoPvEPendiente = null;
+window._dialogoPvEInicio = 0;        // cuándo se generó el pendiente (ms)
+window._dialogoPvEVioTienda = false; // ¿se llegó a abrir la tienda de la ronda?
+
+function _tiendaEstaAbierta() {
+    if (typeof tiendaAbierta !== 'undefined' && tiendaAbierta) return true;
+    const ov = document.getElementById('tiendaOverlay');
+    return !!(ov && (ov.classList.contains('visible') || ov.style.display === 'flex'));
+}
+
+function _intentarMostrarDialogoPvE() {
+    const pend = window._dialogoPvEPendiente;
+    if (!pend) return false;
+
+    // Si el combate ya ha empezado, el diálogo de la ronda se descarta
+    if (typeof combatiendo !== 'undefined' && combatiendo) {
+        window._dialogoPvEPendiente = null;
+        return false;
+    }
+
+    // Pantalla de victoria/derrota abierta o celebración de fin de ronda: esperar
+    const ovCombate = document.getElementById('combatOverlay');
+    if (ovCombate && ovCombate.classList.contains('active')) return false;
+    if (window._celebrandoFinRonda === true) return false;
+
+    // Tienda abierta: esperar (saldrá al cerrarla)
+    if (_tiendaEstaAbierta()) {
+        window._dialogoPvEVioTienda = true;
+        return false;
+    }
+
+    // Margen para que la tienda post-ronda llegue a abrirse: si nunca se abrió
+    // el diálogo sale pasados unos segundos igualmente. En la ronda 1 no hay
+    // tienda nunca, así que el margen es más corto (1,5 s).
+    const MS_ESPERA_TIENDA = (pend.ronda === 1) ? 1500 : 3500;
+    if (!window._dialogoPvEVioTienda &&
+        (Date.now() - (window._dialogoPvEInicio || 0)) < MS_ESPERA_TIENDA) {
+        return false;
+    }
+
+    if (typeof mostrarConsejoJugadorPvE !== 'function') return false;
+
+    window._dialogoPvEPendiente = null;
+    mostrarConsejoJugadorPvE(pend.frase, 6500);
+    return true;
+}
+
+// Vigila la ronda hasta que la tienda se cierre (máx. 3 min)
+function _vigilarDialogoPvE() {
+    if (window._dialogoPvEInterval) {
+        clearInterval(window._dialogoPvEInterval);
+        window._dialogoPvEInterval = null;
+    }
+    const t0 = Date.now();
+    window._dialogoPvEInterval = setInterval(() => {
+        if (!window._dialogoPvEPendiente) {
+            clearInterval(window._dialogoPvEInterval);
+            window._dialogoPvEInterval = null;
+            return;
+        }
+        if (Date.now() - t0 > 180000) {
+            window._dialogoPvEPendiente = null;
+            clearInterval(window._dialogoPvEInterval);
+            window._dialogoPvEInterval = null;
+            return;
+        }
+        try { _intentarMostrarDialogoPvE(); } catch (e) { }
+    }, 400);
+}
+
+// ============================================================
+// SPAWN CON RETRASO
+// ============================================================
+// Al entrar en una ronda PvE, el rival anterior (su panel y sus Pokémon)
+// se queda unos segundos en pantalla y luego aparece el monstruo.
+// ============================================================
+window._spawnPvEPendiente = null;
+
+function spawnearMonstruoPvEConRetraso(ronda, ms = 2000) {
+    const r = (typeof ronda === 'number') ? ronda : fase;
+    if (window._spawnPvEPendiente) {
+        clearTimeout(window._spawnPvEPendiente);
+        window._spawnPvEPendiente = null;
+    }
+    console.log(`⏳ PvE: el rival anterior se queda ${ms} ms en pantalla (ronda ${r})`);
+    window._spawnPvEPendiente = setTimeout(() => {
+        window._spawnPvEPendiente = null;
+        try { spawnearMonstruoPvE(r); } catch (e) { }
+    }, Math.max(0, ms));
+}
 
 // ============================================================
 // SPAWN DEL MONSTRUO
@@ -155,19 +264,18 @@ function spawnearMonstruoPvE(ronda) {
         renderizar();
     }
 
-    // 7) 💬 Tu personaje dice la descripción de la ronda (solo 1 vez)
+    // 7) 💬 Tu personaje dice la descripción de la ronda, pero SOLO cuando
+    //    la tienda de la ronda esté cerrada (en la 1 no hay tienda y sale ya).
     if (typeof mostrarConsejoJugadorPvE === 'function'
         && window.modoDosJugadores !== true
         && window._consejoPvEMostrado !== r
         && config.descripcion) {
         window._consejoPvEMostrado = r;
-        setTimeout(() => {
-            try {
-                // Nunca encima de un combate en curso
-                if (typeof combatiendo !== 'undefined' && combatiendo) return;
-                mostrarConsejoJugadorPvE(config.descripcion, 6500);
-            } catch (e) { /* sin diálogo */ }
-        }, 1200);
+        window._dialogoPvEPendiente = { frase: config.descripcion, ronda: r };
+        window._dialogoPvEInicio = Date.now();
+        window._dialogoPvEVioTienda = false;
+        setTimeout(() => { try { _intentarMostrarDialogoPvE(); } catch (e) { } }, 1200);
+        _vigilarDialogoPvE();
     }
 
     console.log(`✅ Monstruo spawneado. window.enRondaPvE = ${window.enRondaPvE}`);
@@ -188,8 +296,10 @@ function limpiarMonstruoPvE() {
     window.enRondaPvE = false;
     window.monstruoActual = null;
 
-    // Permite que el consejo vuelva a salir en la próxima ronda PvE
+    // Permite que el diálogo vuelva a salir en la próxima ronda PvE
     window._consejoPvEMostrado = null;
+    window._dialogoPvEPendiente = null;
+    window._dialogoPvEVioTienda = false;
 }
 
 // ============================================================
@@ -272,5 +382,8 @@ window.esRondaPvE = esRondaPvE;  // ← La función (para usarla desde otros scr
 // ⚠️ PERO NO la volvemos a pisar con booleanos. El estado va en `window.enRondaPvE`.
 
 window.spawnearMonstruoPvE = spawnearMonstruoPvE;
+window.spawnearMonstruoPvEConRetraso = spawnearMonstruoPvEConRetraso;
 window.limpiarMonstruoPvE = limpiarMonstruoPvE;
+// 💬 Se llama al cerrar la tienda para que el diálogo de la ronda salga al momento
+window.mostrarDialogoPvEPendiente = _intentarMostrarDialogoPvE;
 window.aplicarRecompensasPvE = aplicarRecompensasPvE;

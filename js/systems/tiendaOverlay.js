@@ -351,6 +351,14 @@ function cerrarTienda() {
     document.body.classList.remove('tienda-abierta');
 
     renderizar();
+
+    // 💬 Si la ronda es PvE y su diálogo estaba esperando a que cerraras
+    //    la tienda, sale ahora mismo.
+    if (typeof window.mostrarDialogoPvEPendiente === 'function') {
+        setTimeout(() => {
+            try { window.mostrarDialogoPvEPendiente(); } catch (e) { }
+        }, 400);
+    }
 }
 
 function toggleTienda() {
@@ -443,19 +451,24 @@ function crearCartaTienda(p, idx) {
             traitsHtml += `<span class="trait-icon">${getIconoClase(p.clase)}</span>`;
         }
 
-        let copiasEnTablero = 0, copiasEnBanquillo = 0;
+        // 🔥 FUSIÓN: solo cuenta copias de NIVEL 1 (las que se fusionan al
+        //    comprar otra de 1★). Antes se contaban por nombre sin mirar el
+        //    nivel, así que dos copias 2★ marcaban la carta como "¡Evoluciona!"
+        //    aunque comprarla no fusionara nada.
+        let copiasNivel1Tienda = 0;
         if (tablero) {
             for (let i = 0; i < tablero.length; i++) {
-                if (tablero[i] && tablero[i].pokemon && tablero[i].pokemon.nombre === p.nombre) copiasEnTablero++;
+                const u = tablero[i];
+                if (u && u.pokemon && u.pokemon.nombre === p.nombre && u.nivel === 1 && !u.esZacian) copiasNivel1Tienda++;
             }
         }
         if (banquillo) {
             for (let i = 0; i < banquillo.length; i++) {
-                if (banquillo[i] && banquillo[i].pokemon && banquillo[i].pokemon.nombre === p.nombre) copiasEnBanquillo++;
+                const u = banquillo[i];
+                if (u && u.pokemon && u.pokemon.nombre === p.nombre && u.nivel === 1 && !u.esZacian) copiasNivel1Tienda++;
             }
         }
-        let totalCopias = copiasEnTablero + copiasEnBanquillo;
-        let fusionReady = (totalCopias >= 2);
+        let fusionReady = (copiasNivel1Tienda >= 2);
 
         if (fusionReady) {
             card.classList.add('fusion-ready');

@@ -2029,6 +2029,16 @@ function cambiarTabPostCombate(tab) {
 }
 
 function gameOver() {
+    // 🏅 Posición final del jugador: se apunta el orden de eliminación para
+    //    que el resumen final ordene a los eliminados por cuándo cayeron.
+    try {
+        window._registrarEliminacionesPendientes && window._registrarEliminacionesPendientes();
+        if (!window._ordenEliminacionJugador) {
+            window._contadorEliminaciones = (window._contadorEliminaciones || 0) + 1;
+            window._ordenEliminacionJugador = window._contadorEliminaciones;
+        }
+    } catch (e) { }
+
     const overlayAntiguo = document.getElementById('gameOverOverlay');
     if (overlayAntiguo) {
         overlayAntiguo.classList.remove('visible');

@@ -953,10 +953,49 @@ body.celebrando .btn-abrir-tienda {
     width: auto;
 }
 
+/* ============================================================
+   🎒 OBJETOS EQUIPADOS EN EL RESUMEN FINAL
+   Mini-iconos bajo cada Pokémon del equipo final.
+   ============================================================ */
+.unidad-final .objetos-final {
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    padding: 1px 3px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.78);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    z-index: 3;
+    white-space: nowrap;
+}
+
+.unidad-final .objeto-final-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    display: block;
+}
+
+.unidad-final .objeto-final-emoji {
+    font-size: 0.55rem;
+    line-height: 1;
+}
+
+/* Un poco de aire entre unidades para que se vean los objetos */
+.equipo-final {
+    gap: 9px;
+    padding-bottom: 6px;
+}
+
 .sinergias-final {
     display: flex;
-    gap: 6px;
-    width: 150px;
+    flex-wrap: wrap;              /* 🧩 caben TODAS las sinergias */
+    align-content: center;
+    gap: 4px;
+    width: 200px;
     flex-shrink: 0;
     justify-content: flex-end;
 }
@@ -966,22 +1005,23 @@ body.celebrando .btn-abrir-tienda {
     flex-direction: column;
     align-items: center;
     background: rgba(0, 0, 0, 0.4);
-    padding: 4px;
+    padding: 3px;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sinergia-icono-final img {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
 }
 
 .sinergia-icono-final .lvl {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     font-weight: 900;
     color: #fbbf24;
-    margin-top: 2px;
+    margin-top: 1px;
+    line-height: 1;
 }
 
 .resultados-footer {

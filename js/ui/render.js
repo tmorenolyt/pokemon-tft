@@ -592,10 +592,19 @@ function renderizarTienda() {
         const escalaSprite = typeof getSpriteScale === 'function' ? getSpriteScale(p.spriteId) : 1;
         const offsetXSprite = typeof getSpriteOffsetX === 'function' ? getSpriteOffsetX(p.spriteId) : '0px';
 
-        let copiasEnTablero = 0, copiasEnBanquillo = 0;
-        for (let i = 0; i < tablero.length; i++) if (tablero[i] && tablero[i].pokemon.nombre === p.nombre) copiasEnTablero++;
-        for (let i = 0; i < banquillo.length; i++) if (banquillo[i] && banquillo[i].pokemon.nombre === p.nombre) copiasEnBanquillo++;
-        if (copiasEnTablero + copiasEnBanquillo >= 2) card.classList.add('fusion-ready');
+        // 🔥 Solo cuentan las copias de NIVEL 1 (las que fusionan al comprar
+        //    otra de 1★). Antes se contaban por nombre y dos copias 2★
+        //    marcaban la carta como fusión sin serlo.
+        let copiasNivel1 = 0;
+        for (let i = 0; i < tablero.length; i++) {
+            const u = tablero[i];
+            if (u && u.pokemon.nombre === p.nombre && u.nivel === 1 && !u.esZacian) copiasNivel1++;
+        }
+        for (let i = 0; i < banquillo.length; i++) {
+            const u = banquillo[i];
+            if (u && u.pokemon.nombre === p.nombre && u.nivel === 1 && !u.esZacian) copiasNivel1++;
+        }
+        if (copiasNivel1 >= 2) card.classList.add('fusion-ready');
 
         const monedaImg = `<img src="assets/icons/moneda.png" alt="💰" draggable="false" style="width:16px;height:16px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(251,191,36,0.3));display:inline-block;vertical-align:middle;">`;
         card.innerHTML = `

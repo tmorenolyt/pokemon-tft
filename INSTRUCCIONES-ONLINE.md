@@ -252,6 +252,50 @@ protegido solo por `ACCESS_KEY`.
   abajo; se cierra al tocarla), con retrato de **90 px** y letra algo menor. Además el
   diálogo ya no se sale por el borde derecho: se recoloca con el ancho real del
   texto.
+- **FIX: derrota en rondas 24/30/36 sin quitar HP**: esas rondas se daban
+  por "PvE" por la fórmula (1, 6, 12, 18, 24, 30…), pero **no existe monstruo
+  configurado** para ellas (solo 1, 6, 12 y 18), así que se peleaba sin
+  monstruo y con el **daño PvE = 0**: perdías y no te quitaban vida.
+  Ahora una ronda solo cuenta como PvE si hay monstruo configurado; si no, se
+  juega como ronda PvP normal (con daño normal al perder).
+- **Rival sin pareja → combate real**: cuando queda un solo rival vivo (no hay
+  con quién emparejarlo) ya **no pierde HP "por inanición"**: disputa un
+  combate simulado contra un **equipo fantasma** formado por otro rival que
+  **siga vivo** (los eliminados nunca, aunque conserven su equipo) o, si no
+  queda ninguno, contra **tu propio equipo**. Si gana, gana oro y racha; si
+  pierde, **pierde HP** y racha, igual que cualquier combate.
+- **Objetos equipados en el resumen final**: cada Pokémon del "EQUIPO FINAL"
+  muestra ahora sus **objetos equipados** como mini-iconos bajo la carta
+  (jugador y rivales), con su nombre al pasar el ratón.
+- **Todas las sinergias en el resumen final**: antes solo salían **3** (se
+  cortaba con `slice(0,3)`), así que sinergias como **Normal** desaparecían.
+  Ahora aparecen **todas**, tanto tipos como clases, con salto de línea si no
+  caben (también en el resumen del online 1v1).
+- **Posiciones finales por orden de eliminación**: el resumen final ya no
+  ordena por HP. Ahora se ordena como en TFT: **1º el que queda vivo** y
+  después **el último en caer es 2º**, luego 3º, etc. (cada rival eliminado
+  guarda su número de orden, y el jugador también). Así, si caes al final,
+  sales 2º y no por debajo de un rival que murió antes.
+- **Tienda: marca de fusión correcta**: la carta ya **solo se marca como
+  "¡Evoluciona!/¡Mejora!"** cuando de verdad vas a fusionar, es decir, cuando
+  tienes **2 copias de nivel 1★** de ese Pokémon. Antes contaba copias por
+  nombre sin mirar el nivel, así que con dos Leafeon **2★** (tablero + banco)
+  la tienda marcaba un Leafeon como fusión y no era cierto.
+- **Ranking siempre por posición**: la lista del ranking ya **no se reordena
+  por emparejamientos**; va siempre de 1º a último (vivos primero, luego por
+  vida) y el rival de la ronda aparece **con el recuadro marcado** (marco
+  dorado + ⚔️, con un pulso suave). En las rondas PvE no se marca a nadie.
+- **Resumen final sin HP y con sinergias**: en la pantalla de resultados
+  finales ya **no se muestra el HP ni el corazón** en ninguna fila (ni en
+  victoria ni en derrota), ni en el torneo 1J ni en el online 1v1. Además las
+  **sinergias ya se ven**: antes el jugador solo mostraba sinergias de *tipo*
+  (las de *clase* se perdían); ahora salen tipos **y** clases, igual que en
+  las filas de los rivales, con su icono y nivel.
+- **El rival se queda 2 s antes de las rondas PvE**: al entrar en una ronda
+  PvE el panel del rival anterior (nombre, vida y sus Pokémon en el tablero)
+  **aguanta 2 s más en pantalla** y después aparece el monstruo con su panel
+  (∞ HP). Evita el cambio brusco al terminar la ronda. Ajustable con
+  `spawnearMonstruoPvEConRetraso(fase, 2000)` en `js/systems/combate.js`.
 - **Diálogos del rival un segundo más largos**: las frases del rival duran
   ahora **1 s más** cada una (al empezar el combate 3 s, al ganar/perder 3,5 s,
   al pensar y al sustituir unidad 2,5 s), además del tiempo de escritura. Tú
@@ -260,9 +304,11 @@ protegido solo por `ACCESS_KEY`.
   12, 18…) tu **propio personaje** (tu avatar y tu nombre) aparece en la barra
   de diálogo estilo Persona y dice **literalmente la descripción del monstruo**
   de esa ronda, p. ej. «Dos Aipom salvajes bloquean el camino.». Sale **una vez
-  por ronda** (1,2 s después de spawnear el monstruo), nunca durante un combate
-  ni en 2 jugadores. Las frases se editan en `js/data/monstruosPvE.js`, campo
-  **`descripcion`** de cada ronda.
+  por ronda** y **al cerrar la tienda** de esa ronda (antes en las rondas 6, 12
+  y 18 aparecía debajo del overlay de la tienda); en la ronda 1, que no tiene
+  tienda, sale casi en seguida (a los **~1,6 s** de aparecer el monstruo). Nunca
+  durante un combate ni en 2 jugadores. Las frases se editan en
+  `js/data/monstruosPvE.js`, campo **`descripcion`** de cada ronda.
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
   en la tienda, venta de un Pokémon con objetos, paso de un Pokémon con objetos
   al banco o al conseguir el **Disco Definitivo** de nivel 5 y 8) la tira (📦) se

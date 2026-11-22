@@ -1069,17 +1069,96 @@ function simularCombatesRivales(rivalDelJugador, parejasRonda) {
     });
 
     if (rivalesVivos.length < 2) {
-        console.log(`   ⚠️ Menos de 2 rivales para simular. El rival suelto pierde HP por inanición.`);
+        // ============================================================
+        // 🤝 RIVAL SIN PAREJA: combate contra el equipo de OTRO rival
+        // ============================================================
+        // Antes perdía HP "por inanición" sin combatir. Ahora disputa un
+        // combate simulado contra el equipo guardado de otro rival (los
+        // eliminados siguen teniendo su equipo) y tiene las mismas
+        // consecuencias que cualquier combate: si pierde, pierde HP y racha;
+        // si gana, gana oro y racha.
+        // ============================================================
+        console.log(`   🤝 Menos de 2 rivales: el rival suelto combate contra el equipo de otro rival.`);
+
+        const topeOro = (typeof _TOPE_ORO_RIVAL === 'number') ? _TOPE_ORO_RIVAL : 60;
+
         for (const r of rivalesVivos) {
-            const daño = 3 + Math.floor(Math.random() * 3);
-            r.vida = Math.max(0, r.vida - daño);
-            r._estadoRonda = 'loss';
-            r._danoRonda = daño;
-            r.derrotas = (r.derrotas || 0) + 1;
-            r.racha = r.racha < 0 ? r.racha - 1 : -1;
-            if (r.vida <= 0) {
-                r.eliminado = true;
-                console.log(`   💀 ${r.nombre} ELIMINADO (sin rival, -${daño} HP)`);
+            if (!r || r.eliminado) continue;
+
+            // Candidatos "fantasma": SOLO rivales que sigan VIVOS (los
+            // eliminados nunca) y, además, tu propio equipo actual.
+            const candidatos = [];
+
+            (window.torneoRivales || []).forEach(x => {
+                if (!x || x === r || x.nombre === r.nombre) return;
+                if (x.eliminado) return;                       // 🚫 eliminados nunca
+                if (!x._equipoGuardado || !Array.isArray(x._equipoGuardado.tablero)) return;
+                if (!x._equipoGuardado.tablero.some(u => !!u)) return;
+                candidatos.push({ etiqueta: x.nombre, poder: calcularPoderRival(x) });
+            });
+
+            if (typeof tablero !== 'undefined' && Array.isArray(tablero)
+                && tablero.some(u => !!u)
+                && (typeof vidaJugador === 'undefined' || vidaJugador > 0)) {
+                candidatos.push({
+                    etiqueta: 'tu equipo',
+                    poder: calcularPoderRival({
+                        nivel: (typeof nivelJugador === 'number') ? nivelJugador : 1,
+                        victorias: (typeof victorias === 'number') ? victorias : 0,
+                        derrotas: 0
+                    })
+                });
+            }
+
+            // Sin nadie contra quien pelear: comportamiento antiguo (inanición)
+            if (candidatos.length === 0) {
+                const daño = 3 + Math.floor(Math.random() * 3);
+                r.vida = Math.max(0, r.vida - daño);
+                r._estadoRonda = 'loss';
+                r._danoRonda = daño;
+                r.derrotas = (r.derrotas || 0) + 1;
+                r.racha = r.racha < 0 ? r.racha - 1 : -1;
+                if (r.vida <= 0) r.eliminado = true;
+                console.log(`   💀 ${r.nombre} -${daño} HP (sin equipo rival al que enfrentarse)`);
+                continue;
+            }
+
+            const fantasma = candidatos[Math.floor(Math.random() * candidatos.length)];
+
+            const poderR = calcularPoderRival(r);
+            const poderF = fantasma.poder || 1;
+            const probGana = poderR / (poderR + poderF || 1);
+            const gana = Math.random() < probGana;
+
+            const oroActual = (typeof r.oro === 'number' && !isNaN(r.oro)) ? r.oro : 10;
+            const ingreso = calcularIngresoRival(r, gana);
+
+            if (gana) {
+                r._estadoRonda = 'win';
+                r._danoRonda = null;
+                r.victorias = (r.victorias || 0) + 1;
+                r.racha = r.racha > 0 ? r.racha + 1 : 1;
+                const oroNuevo = Math.min(oroActual + ingreso, topeOro);
+                r.oro = oroNuevo;
+                console.log(`   ⚔️ ${r.nombre} venció al equipo fantasma de ${fantasma.etiqueta} (+${ingreso} oro → ${oroNuevo}💰)`);
+            } else {
+                const vivasGanador = 1 + Math.floor(Math.random() * 4);
+                const rondaTerminada = (typeof fase === 'number') ? fase - 1 : undefined;
+                const daño = (typeof getDañoRealPorDerrota === 'function')
+                    ? getDañoRealPorDerrota(vivasGanador, rondaTerminada)
+                    : 5;
+                r.vida = Math.max(0, r.vida - daño);
+                r._estadoRonda = 'loss';
+                r._danoRonda = daño;
+                r.derrotas = (r.derrotas || 0) + 1;
+                r.racha = r.racha < 0 ? r.racha - 1 : -1;
+                const oroNuevo = Math.min(oroActual + ingreso, topeOro);
+                r.oro = oroNuevo;
+                console.log(`   ⚔️ ${r.nombre} perdió contra el equipo fantasma de ${fantasma.etiqueta} (-${daño} HP → ${r.vida} HP, +${ingreso} oro)`);
+                if (r.vida <= 0) {
+                    r.eliminado = true;
+                    console.log(`   💀 ${r.nombre} ELIMINADO del torneo`);
+                }
             }
         }
         return;
@@ -1313,11 +1392,32 @@ function simularCombatesPvE(rondaPvE, rivalDelJugador) {
 window.simularCombatesPvE = simularCombatesPvE;
 
 // ============================================================
+// 🏅 ORDEN DE ELIMINACIÓN (posiciones finales tipo TFT)
+// ============================================================
+// Cada rival eliminado recibe un número de orden. Así el resumen final puede
+// ordenar por "cuándo cayó" (el último eliminado = 2º) en vez de por HP.
+// ============================================================
+window._contadorEliminaciones = window._contadorEliminaciones || 0;
+
+function _registrarEliminacionesPendientes() {
+    if (!window.torneoRivales) return;
+    window.torneoRivales.forEach(r => {
+        if (r && r.eliminado && !r._ordenEliminacion) {
+            window._contadorEliminaciones = (window._contadorEliminaciones || 0) + 1;
+            r._ordenEliminacion = window._contadorEliminaciones;
+        }
+    });
+}
+window._registrarEliminacionesPendientes = _registrarEliminacionesPendientes;
+
+// ============================================================
 // ACTUALIZAR RANKING DE VIDA
 // ============================================================
 function actualizarRankingTorneo() {
     const panel = document.getElementById('rankingTorneo');
     if (!panel) return;
+
+    try { _registrarEliminacionesPendientes(); } catch (e) { }
 
     if (!window.torneoRivales || window.torneoRivales.length === 0) {
         panel.innerHTML = '<div class="ranking-header">🏆 RANKING</div>' +
@@ -1359,59 +1459,13 @@ function actualizarRankingTorneo() {
 
     const todos = [jugador, ...rivales];
 
-    const nombresInicioPareja = new Set();
-
-    if (window._rankingEmparejado && window._parejasRanking && window._parejasRanking.length > 0) {
-        const mapaPorNombre = new Map();
-        todos.forEach(t => mapaPorNombre.set(t.nombre, t));
-
-        const yaColocados = new Set();
-        const filasOrdenadas = [];
-
-        const parejas = window._parejasRanking
-            .map(p => p.map(n => mapaPorNombre.get(n)).filter(Boolean))
-            .filter(p => p.length > 0);
-
-        parejas.sort((pA, pB) => {
-            const maxA = Math.max(...pA.map(x => x.vida));
-            const maxB = Math.max(...pB.map(x => x.vida));
-            return maxB - maxA;
-        });
-
-        for (let pareja of parejas) {
-            pareja.sort((a, b) => b.vida - a.vida);
-
-            let primeroDeEstaPareja = null;
-
-            for (let miembro of pareja) {
-                if (yaColocados.has(miembro.nombre)) continue;
-                yaColocados.add(miembro.nombre);
-                filasOrdenadas.push(miembro);
-                if (!primeroDeEstaPareja) primeroDeEstaPareja = miembro.nombre;
-            }
-
-            if (primeroDeEstaPareja) {
-                nombresInicioPareja.add(primeroDeEstaPareja);
-            }
-        }
-
-        const sueltos = todos
-            .filter(t => !yaColocados.has(t.nombre))
-            .sort((a, b) => {
-                if (a.eliminado !== b.eliminado) return a.eliminado ? 1 : -1;
-                return b.vida - a.vida;
-            });
-
-        filasOrdenadas.push(...sueltos);
-
-        todos.length = 0;
-        todos.push(...filasOrdenadas);
-    } else {
-        todos.sort((a, b) => {
-            if (a.eliminado !== b.eliminado) return a.eliminado ? 1 : -1;
-            return b.vida - a.vida;
-        });
-    }
+    // 🏅 ORDEN SIEMPRE POR POSICIÓN (vivos primero, luego por vida).
+    //    Los enfrentamientos ya NO reordenan la lista: solo se marca con un
+    //    recuadro el rival al que te vas a enfrentar (ver claseRating abajo).
+    todos.sort((a, b) => {
+        if (a.eliminado !== b.eliminado) return a.eliminado ? 1 : -1;
+        return b.vida - a.vida;
+    });
 
     const vidaMaxTorneo = (typeof CONFIG !== 'undefined' && CONFIG.VIDA_MAX_JUGADOR) ? CONFIG.VIDA_MAX_JUGADOR : 50;
 
@@ -1447,15 +1501,17 @@ function actualizarRankingTorneo() {
             ? ` title="Potencial de sinergia: ${r.potencial}"`
             : '';
 
-        const esInicioPareja = nombresInicioPareja.has(r.nombre);
-        const claseSeparador = esInicioPareja ? 'inicio-pareja' : '';
-
-        const esRivalActivo = window._rankingEmparejado &&
-            window.rivalActual && r.nombre === window.rivalActual.nombre;
+        // 🎯 Recuadro del rival al que te vas a enfrentar esta ronda
+        //    (el jugador nunca se marca y los eliminados tampoco)
+        const esRivalActivo = !r.esJugador
+            && !r.eliminado
+            && window.rivalActual
+            && !window.rivalActual.esMonstruo
+            && r.nombre === window.rivalActual.nombre;
         const claseRivalActivo = esRivalActivo ? 'pareja-activa' : '';
 
         html += `
-            <div class="ranking-item ${claseJugador} ${claseEliminado} ${claseRacha} ${claseSeparador}" 
+            <div class="ranking-item ${claseJugador} ${claseEliminado} ${claseRacha} ${claseRivalActivo}" 
                  data-rival="${r.nombre}" 
                  data-es-jugador="${r.esJugador}"
                  ${tituloPotencial}>
@@ -1844,7 +1900,25 @@ function mostrarPantallaResultadosFinales() {
 
     let todosLosJugadores = [];
 
-    const tuEquipo = tablero.filter(u => u && !u.esArticuno).map(u => ({ pokemon: u.pokemon, nivel: u.nivel }));
+    try { _registrarEliminacionesPendientes(); } catch (e) { }
+
+    const tuEquipo = tablero.filter(u => u && !u.esArticuno).map(u => ({
+        pokemon: u.pokemon,
+        nivel: u.nivel,
+        objetos: Array.isArray(u.objetos) ? u.objetos.slice() : []
+    }));
+
+    // 🧩 Sinergias del jugador: TIPOS + CLASES (antes solo tipos, así que las
+    //    sinergias de clase nunca salían en el resumen final)
+    const sinJugador = (typeof getSinergiasActivas === 'function' ? getSinergiasActivas() : null) || {};
+    const sinergiasJugador = {};
+    Object.keys(sinJugador.types || {}).forEach(k => {
+        sinergiasJugador[k] = { nivel: sinJugador.types[k].nivel, esClase: false };
+    });
+    Object.keys(sinJugador.classes || {}).forEach(k => {
+        sinergiasJugador[k] = { nivel: sinJugador.classes[k].nivel, esClase: true };
+    });
+
     todosLosJugadores.push({
         esJugador: true,
         nombre: window.nombreJugador || 'Tú',
@@ -1852,14 +1926,19 @@ function mostrarPantallaResultadosFinales() {
         carpeta: 'jugador',
         vida: vidaJugador,
         equipo: tuEquipo,
-        sinergias: getSinergiasActivas().types
+        sinergias: sinergiasJugador,
+        ordenEliminacion: window._ordenEliminacionJugador || 0
     });
 
     if (window.torneoRivales) {
         window.torneoRivales.forEach(rival => {
             let equipoRival = [];
             if (rival._equipoGuardado && rival._equipoGuardado.tablero) {
-                equipoRival = rival._equipoGuardado.tablero.filter(Boolean).map(u => ({ pokemon: u.pokemon, nivel: u.nivel }));
+                equipoRival = rival._equipoGuardado.tablero.filter(Boolean).map(u => ({
+                    pokemon: u.pokemon,
+                    nivel: u.nivel,
+                    objetos: Array.isArray(u.objetos) ? u.objetos.slice() : []
+                }));
             }
 
             let sinergiasRival = {};
@@ -1889,14 +1968,20 @@ function mostrarPantallaResultadosFinales() {
                 vida: rival.vida,
                 equipo: equipoRival,
                 sinergias: sinergiasRival,
-                eliminado: rival.eliminado
+                eliminado: rival.eliminado,
+                ordenEliminacion: rival._ordenEliminacion || 0
             });
         });
     }
 
+    // 🏅 POSICIONES FINALES por orden de eliminación (estilo TFT):
+    //    1º el que queda vivo; después, el último en caer va 2º, etc.
     todosLosJugadores.sort((a, b) => {
-        if (a.vida !== b.vida) return b.vida - a.vida;
-        return a.esJugador ? -1 : 1;
+        if (a.eliminado !== b.eliminado) return a.eliminado ? 1 : -1;
+        const oa = a.ordenEliminacion || 0;
+        const ob = b.ordenEliminacion || 0;
+        if (oa !== ob) return ob - oa;      // más reciente = mejor puesto
+        return b.vida - a.vida;             // empate: más HP primero
     });
 
     const miPosicion = todosLosJugadores.findIndex(j => j.esJugador) + 1;
@@ -1926,10 +2011,26 @@ function mostrarPantallaResultadosFinales() {
                 const p = u.pokemon;
                 const nivel = u.nivel || 1;
                 const spriteUrl = getSpriteUrl(p.spriteId, p.nombre);
+
+                // 🎒 Objetos equipados (se ven también en el resumen final)
+                const objetos = Array.isArray(u.objetos) ? u.objetos : [];
+                let objetosHtml = '';
+                if (objetos.length > 0) {
+                    const iconos = objetos.map(nombreObj => {
+                        const data = (typeof OBJETOS !== 'undefined') ? OBJETOS[nombreObj] : null;
+                        const src = (data && data.emoji && String(data.emoji).includes('.png')) ? data.emoji : null;
+                        return src
+                            ? `<img class="objeto-final-icon" src="${src}" alt="${nombreObj}" title="${nombreObj}" draggable="false" onerror="this.style.display='none'">`
+                            : `<span class="objeto-final-emoji" title="${nombreObj}">📦</span>`;
+                    }).join('');
+                    objetosHtml = `<div class="objetos-final">${iconos}</div>`;
+                }
+
                 equipoHtml += `
                     <div class="unidad-final" title="${p.nombre}">
                         <img src="${spriteUrl}" onerror="this.style.display='none'">
                         <img class="estrellas-final" src="${getEstrellasUrl(nivel)}">
+                        ${objetosHtml}
                     </div>
                 `;
             });
@@ -1942,7 +2043,7 @@ function mostrarPantallaResultadosFinales() {
             nombre: key,
             nivel: jugador.sinergias[key].nivel,
             esClase: jugador.sinergias[key].esClase
-        })).sort((a,b) => b.nivel - a.nivel).slice(0, 3);
+        })).sort((a,b) => b.nivel - a.nivel);   // 🧩 TODAS las sinergias (antes solo 3)
 
         sinergiasArray.forEach(s => {
             const icono = s.esClase ? getIconoClase(s.nombre) : getIconoTipo(s.nombre);
@@ -1960,7 +2061,6 @@ function mostrarPantallaResultadosFinales() {
                 <img src="assets/avatars/${jugador.carpeta}/${jugador.avatar}.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%236b8aaa\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
                 <div style="display:flex; flex-direction:column;">
                     <span class="nombre">${jugador.nombre}</span>
-                    <span class="hp">❤️ ${Math.max(0, jugador.vida)} HP</span>
                 </div>
             </div>
             <div class="equipo-final">
