@@ -410,12 +410,14 @@ protegido solo por `ACCESS_KEY`.
 
 ## ⚡ Rendimiento (P0)
 
-- **Caché y compresión** (`servidor-online.js`): HTML `no-store`, JS/CSS
-  `max-age=600` y imágenes/audio/fuentes `max-age=604800`. Además gzip para
-  HTML/CSS/JS/JSON/SVG (con caché en memoria). Antes todo iba con `no-store`:
-  **cada visita descargaba 22 MB otra vez**. Ahora la segunda carga es **0 KB**.
-  Ojo: tras un deploy, los amigos pueden tardar hasta 10 min en ver el JS nuevo
-  (Ctrl+Shift+F5 lo fuerza).
+- **Caché y compresión** (`servidor-online.js`): HTML `no-store`, JS/CSS e
+  imágenes/audio/fuentes `max-age=604800`. Además gzip para HTML/CSS/JS/JSON/SVG
+  (con caché en memoria). Antes todo iba con `no-store`: **cada visita
+  descargaba 22 MB otra vez**. Ahora la segunda carga es **0 KB**.
+- **Sin caché vieja tras un deploy**: el HTML (que sí es `no-store`) reescribe
+  todas las URLs de `js/` y `css/` como `...?v=<commit>`. Al cambiar el commit
+  cambia la URL, así que el navegador baja el CSS/JS nuevo **al recargar**, sin
+  necesitar Ctrl+Shift+F5 y sin quedarse con el banco/tienda viejos.
 - **Fondos en WebP**: los 5 fondos del menú pasan de **13,8 MB a 0,5 MB**
   (0,25 MB en móvil, con variantes de 900 px), y cada terreno de **~3,4 MB a
   ~0,18 MB**. Los PNG originales se quedan en `assets/` como respaldo.
@@ -444,3 +446,13 @@ protegido solo por `ACCESS_KEY`.
   Ahora ese bloque solo aplica a **≥1101px**: en móvil vuelven a **27×29** con
   4 columnas, sprite e iconos. Verificado a 844×390, 1024×600, 1920×900 y
   2133×1200 (escritorio 100 % y 90 % sin cambios).
+  Si tras actualizar aún se veían “en vertical”, era el CSS viejo en caché: con
+  las URLs versionadas por commit ya no puede pasar (hace falta un último
+  Ctrl+Shift+F5 para salir de la caché anterior).
+- **Banco de móvil más legible**: el hueco real del banco es **114×60 px**
+  (4 columnas × 2 filas de 27×29; no cabe más sin invadir el tablero). Dentro de
+  ese espacio ahora: sprite de **24 px centrado** (antes 18 px), **sin nombre**
+  (a 4,8 px era ilegible y desplazaba el sprite), iconos de tipo/clase a 6 px y
+  estrella a 7 px en las esquinas, y la Poké Ball de los huecos vacíos a 18 px.
+  Aplica solo a móvil horizontal (≤1100 px de ancho y ≤560 px de alto), así que
+  tablet y escritorio no cambian.

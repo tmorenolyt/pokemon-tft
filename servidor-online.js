@@ -409,8 +409,8 @@ function loginPage(res, mensaje, modo) {
 // 📦 CACHÉ Y COMPRESIÓN DE ESTÁTICOS
 // Antes todo iba con `no-store`: cada visita descargaba ~22 MB
 // otra vez (fondos, sprites, JS...). Ahora:
-//   · HTML  -> no-store (para que los cambios se vean al recargar)
-//   · JS/CSS -> 10 min (recarga normal ya no los baja; un deploy se ve pronto)
+//   · HTML  -> no-store y versiona las URLs de js/css con ?v=<commit>
+//   · JS/CSS -> 7 días (la URL cambia en cada deploy, así no se queda viejo)
 //   · imágenes/sonidos/fuentes -> 7 días
 //   · JS/CSS/HTML/SVG/JSON -> gzip (2,1 MB de JS -> ~500 KB)
 // ============================================================
@@ -419,7 +419,7 @@ const gzipCache = new Map(); // fp -> { mtimeMs, size, gz }
 
 function cacheHeaderFor(ext) {
     if (ext === '.html') return 'no-store';
-    if (ext === '.js' || ext === '.css') return 'public, max-age=600';
+    if (ext === '.js' || ext === '.css') return 'public, max-age=604800';
     return 'public, max-age=604800'; // imágenes, audio, fuentes
 }
 
@@ -442,6 +442,18 @@ function serveStatic(req, res, pathname) {
     fs.readFile(fp, (err, buf) => {
         if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('404'); return; }
         const ext = path.extname(fp).toLowerCase();
+
+        // 🔁 Cache-busting por commit: el HTML es no-store y sus <script>/<link>
+        // llevan ?v=<commit>. Así un deploy nuevo cambia la URL y el navegador
+        // no puede seguir usando el CSS/JS viejo (el banco de móvil se quedaba
+        // con la versión anterior por la caché de 10 min).
+        if (ext === '.html') {
+            const s = buf.toString('utf8').replace(
+                /(\b(?:src|href)=")((?:js|css)\/[^"#]+\.(?:js|css))(?:\?[^"]*)?(")/g,
+                (m, pre, url, post) => pre + url + '?v=' + encodeURIComponent(COMMIT) + post
+            );
+            buf = Buffer.from(s, 'utf8');
+        }
         const base = {
             'Content-Type': MIME[ext] || 'application/octet-stream',
             'Cache-Control': cacheHeaderFor(ext),
