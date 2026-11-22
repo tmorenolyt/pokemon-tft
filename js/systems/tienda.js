@@ -300,12 +300,19 @@ function generarObjetosTienda() {
     _barajarObjetos(noChips);
 
     const seleccionados = [];
-    // Máximo 2 chips.
-    for (let i = 0; i < 2 && i < chips.length; i++) seleccionados.push(chips[i]);
+    // 🎲 La única norma es que NUNCA salgan 3 chips en la misma tienda.
+    //    Antes se metían siempre 2 chips + 1 objeto, y eso hacía la tienda
+    //    muy repetitiva. Ahora el número de chips es aleatorio: 0, 1 o 2.
+    const maxChips = Math.min(2, chips.length);
+    const nChips = Math.floor(Math.random() * (maxChips + 1));
+    for (let i = 0; i < nChips && i < chips.length; i++) seleccionados.push(chips[i]);
     // Rellenar con objetos normales.
     for (let i = 0; seleccionados.length < 3 && i < noChips.length; i++) seleccionados.push(noChips[i]);
-    // Fallback (raro): si apenas hay objetos normales, rellenar con más chips.
+    // Fallback (raro): si apenas hay objetos normales, completar con más chips,
+    // pero nunca llegando a 3 chips.
     for (let i = 0; seleccionados.length < 3 && i < chips.length; i++) {
+        const chipsYa = seleccionados.filter(n => chips.includes(n)).length;
+        if (chipsYa >= 2) break;
         if (!seleccionados.includes(chips[i])) seleccionados.push(chips[i]);
     }
 

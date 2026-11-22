@@ -226,6 +226,27 @@ protegido solo por `ACCESS_KEY`.
 
 ## Cambios recientes (online 1v1)
 
+- **Moneda del juego en victoria y derrota**: el cartel ya no usa el emoji
+  de bolsa de dinero (💰): muestra la **moneda del juego**
+  (`assets/icons/moneda.png`) con un halo dorado, en «+6 🪙 · Racha +2».
+  Además, en **derrota** ahora también indica el oro ganado (siempre se gana
+  algo: 5 + interés + racha), p. ej. «-9 HP · +5 🪙 · Racha -2».
+- **Tienda de objetos más variada**: antes salían siempre 2 chips + 1 objeto.
+  Ahora el número de chips es aleatorio (**0, 1 o 2** por tienda, aprox. un
+  tercio cada caso) y el resto son objetos normales. La única norma se mantiene:
+  **nunca 3 chips** en la misma tienda.
+- **Diálogo estilo Persona (PC y móvil)**: el bocadillo de los rivales
+  (y la reacción del jugador) ya no es una nube: es una **barra de diálogo
+  centrada**, **un poco más ancha que la barra de acciones** (1.060 px máx.) y
+  pegada justo encima de ella, con fondo casi
+  negro, **línea roja degradada** arriba, el **nombre en verde**, el texto en
+  blanco (grande) y un pequeño **▼ rojo parpadeando** para indicar que puedes
+  seguir. A la izquierda asoma el **retrato grande del rival** enmarcado con
+  sombra roja, y el texto se coloca a su derecha. El color del nombre cambia
+  según el estado (verde/amarillo/rojo/gris). En **móvil** es la misma barra
+  pero compacta: ancho completo menos 6 px por lado, justo encima de la barra de
+  acciones, retrato de **90 px** y letra algo menor. Además el diálogo ya no se
+  sale por el borde derecho: se recoloca con el ancho real del texto.
 - **Baúl automático en móvil**: cada vez que un objeto entra en el baúl (compra
   en la tienda, venta de un Pokémon con objetos, paso de un Pokémon con objetos
   al banco o al conseguir el **Disco Definitivo** de nivel 5 y 8) la tira (📦) se

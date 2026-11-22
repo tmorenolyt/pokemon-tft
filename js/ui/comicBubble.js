@@ -155,6 +155,22 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
     cursorEl.textContent = COMIC_TYPING_CURSOR;
     bubble.appendChild(cursorEl);
 
+    // 🖼️ Retrato grande del rival (en PC; en móvil el CSS lo oculta).
+    // Usamos el avatar del panel del rival, así cada rival muestra su cara.
+    const avatarEl = elementoPadre ? elementoPadre.querySelector('.player-info-avatar img') : null;
+    const srcAvatar = avatarEl ? avatarEl.getAttribute('src') : null;
+    if (srcAvatar) {
+        const retrato = document.createElement('div');
+        retrato.className = 'comic-portrait';
+        const imgRetrato = document.createElement('img');
+        imgRetrato.src = srcAvatar;
+        imgRetrato.alt = nombre || 'Rival';
+        imgRetrato.draggable = false;
+        retrato.appendChild(imgRetrato);
+        bubble.appendChild(retrato);
+        bubble.classList.add('con-retrato');
+    }
+
     if (situacion === 'win') bubble.classList.add('bubble-victory');
     else if (situacion === 'lowHp') bubble.classList.add('bubble-low-hp');
     else if (situacion === 'lastStand') bubble.classList.add('bubble-last-stand');
@@ -203,6 +219,19 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
     bubble.style.left = left + 'px';
     bubble.style.zIndex = '99999';
 
+    // 🆕 El ancho real cambia mientras escribe el texto (y en PC el estilo
+    // Persona inclina la caja, que la ensancha). En vez de dar por hecho los
+    // 320 px del cálculo, recolocamos con el ancho medido de verdad.
+    const MARGEN_DERECHA_BURBUJA = 20;
+    const recolocarBocadillo = () => {
+        const ancho = bubble.offsetWidth;
+        const izq = parseFloat(bubble.style.left) || 0;
+        if (izq + ancho + MARGEN_DERECHA_BURBUJA > window.innerWidth) {
+            bubble.style.left = Math.max(10, window.innerWidth - ancho - MARGEN_DERECHA_BURBUJA) + 'px';
+        }
+    };
+    recolocarBocadillo();
+
     _comicBubbleElement = bubble;
     _comicBubbleElementPadre = document.body;
 
@@ -228,6 +257,8 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
             if (cursorEl) {
                 cursorEl.style.display = 'none';
             }
+            // Ya está todo el texto: el bocadillo es más ancho, reajustamos.
+            recolocarBocadillo();
             if (typeof playUISound === 'function') {
                 playUISound('click.mp3', 0.05);
             }

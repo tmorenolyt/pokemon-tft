@@ -1148,11 +1148,17 @@ function mostrarResultadoCombate(victoria, ganancia, daño, racha, callback, esS
     const textoDerrota = ganadorNombre2P ? `¡DERROTA! Gana ${ganadorNombre2P}` : "¡DERROTA!";
     let textoMonedasRacha = '', textoMonedasRachaDerrota = '';
     const rachaMostrar = victoria ? (racha > 0 ? racha + 1 : 1) : (racha < 0 ? racha - 1 : -1);
+    // 🪙 La moneda del juego en vez del emoji de bolsa de dinero
+    const monedaHtml = '<img class="coin-inline" src="assets/icons/moneda.png" alt="oro" draggable="false">';
     if (victoria) {
         const rachaTexto = `Racha +${rachaMostrar}`;
-        textoMonedasRacha = ganancia > 0 ? `+${ganancia} 💰 · ${rachaTexto}` : `Sin oro · ${rachaTexto}`;
+        textoMonedasRacha = ganancia > 0 ? `+${ganancia} ${monedaHtml} · ${rachaTexto}` : `Sin oro · ${rachaTexto}`;
     } else {
-        textoMonedasRachaDerrota = `-${daño} HP · Racha ${rachaMostrar}`;
+        // 🪙 En derrota también se gana oro (5 + interés + racha), así que se
+        //    muestra igual que en victoria: daño recibido + monedas ganadas.
+        textoMonedasRachaDerrota = ganancia > 0
+            ? `-${daño} HP · +${ganancia} ${monedaHtml} · Racha ${rachaMostrar}`
+            : `-${daño} HP · Sin oro · Racha ${rachaMostrar}`;
     }
     // 👥 En 2P SIEMPRE se muestra al GANADOR (nunca "DERROTA").
     const es2P = window.modoDosJugadores === true;
