@@ -1056,6 +1056,11 @@ function simularCombatesRivales(rivalDelJugador, parejasRonda) {
 
     if (window.torneoRivales) {
         window.torneoRivales.forEach(r => {
+            // 🆕 El rival al que se enfrentó el jugador NO se resetea aquí:
+            // su ✔/✖ y su -X los acaba de escribir combatir.js. Si se
+            // pusieran a null, era el único que se quedaba sin el daño en
+            // el ranking mientras los simulados sí lo mostraban.
+            if (rivalDelJugador && r.nombre === rivalDelJugador.nombre) return;
             r._estadoRonda = null;
             r._danoRonda = null;
         });
@@ -1439,9 +1444,16 @@ function actualizarRankingTorneo() {
     if (victoriaJugador === true) estadoJugador = 'win';
     else if (victoriaJugador === false) estadoJugador = 'loss';
 
+    // 🆕 Si algún HP llega inválido (NaN/undefined), no dejar la fila sin
+    // número/barra: usar el máximo del torneo como valor seguro.
+    const VIDA_MAX_RANKING = (typeof CONFIG !== 'undefined' && CONFIG.VIDA_MAX_JUGADOR) ? CONFIG.VIDA_MAX_JUGADOR : 50;
+    const hpSeguro = (v, eliminado) => Number.isFinite(Number(v))
+        ? Number(v)
+        : (eliminado ? 0 : VIDA_MAX_RANKING);
+
     const jugador = {
         nombre: window.nombreJugador || 'Tú',
-        vida: vidaJugador,
+        vida: hpSeguro(vidaJugador, vidaJugador <= 0),
         nivel: nivelJugador,
         avatar: window.avatarJugador || 'rojo',
         esJugador: true,
@@ -1453,7 +1465,7 @@ function actualizarRankingTorneo() {
 
     const rivales = window.torneoRivales.map(r => ({
         nombre: r.nombre,
-        vida: r.vida,
+        vida: hpSeguro(r.vida, r.eliminado),
         nivel: r.nivel || 1,
         avatar: r.avatar,
         esJugador: false,
@@ -1474,7 +1486,7 @@ function actualizarRankingTorneo() {
         return b.vida - a.vida;
     });
 
-    const vidaMaxTorneo = (typeof CONFIG !== 'undefined' && CONFIG.VIDA_MAX_JUGADOR) ? CONFIG.VIDA_MAX_JUGADOR : 50;
+    const vidaMaxTorneo = VIDA_MAX_RANKING;
 
     let html = '<div class="ranking-header">🏆 RANKING</div>';
 

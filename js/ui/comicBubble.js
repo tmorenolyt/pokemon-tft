@@ -23,6 +23,14 @@ const COMIC_BUBBLE_FRASES_DEFAULT = {
         "¡No me lo puedo creer!",
         "¡Buena pelea!"
     ],
+    // 🆕 Último diálogo cuando la derrota lo elimina del torneo
+    eliminado: [
+        "Me has superado... esta vez.",
+        "He caído. Buen combate, entrenador.",
+        "El torneo es tuyo... por ahora.",
+        "Nos veremos en la próxima.",
+        "Has sido más fuerte. Me retiro."
+    ],
     win: [
         "¡Ja! ¿Eso es todo?",
         "¡Fácil!",
@@ -55,6 +63,29 @@ const COMIC_BUBBLE_FRASES_DEFAULT = {
     ]
 };
 
+// ===== FRASES DE ELIMINACIÓN POR RIVAL =====
+// Se usan SOLO cuando la derrota del rival lo elimina del torneo en esa ronda.
+// Si un rival no está aquí, cae en `frases.eliminado` o en el `lose` genérico.
+const COMIC_FRASES_ELIMINADO_RIVAL = {
+    "Rival":    ["Me has superado... esta vez.", "Buen combate. Nos veremos."],
+    "Misty":    ["El agua... se ha agotado.", "Me has ganado en mi propia marea..."],
+    "Rojo":     ["Así que este es tu verdadero poder...", "He perdido. Bien jugado."],
+    "Bruno":    ["Mi fuerza no ha bastado...", "Has superado mi entrenamiento."],
+    "Lance":    ["Mis dragones han caído...", "Eres un verdadero campeón."],
+    "N":        ["La verdad que buscaba... era tu fuerza.", "Me retiro. El torneo es tuyo."],
+    "Sabrina":  ["No predije esta derrota...", "El futuro es tuyo."],
+    "Lectro":   ["Mi circuito se ha fundido...", "Buena descarga."],
+    "Lorelei":  ["El hielo se ha derretido...", "Me has superado."],
+    "Agatha":   ["La oscuridad se desvanece...", "Buen combate, jovencito."],
+    "Koga":     ["Mi veneno no fue suficiente...", "Has esquivado mi trampa."],
+    "Erika":    ["Mi jardín ha sido arrasado...", "La naturaleza se rinde ante ti."],
+    "Valerie":  ["La magia feérica se apaga...", "Me has hechizado con tu fuerza."],
+    "Blaine":   ["Mi llama se ha apagado...", "Buen combate, entrenador."],
+    "Karen":    ["La oscuridad también sabe perder...", "Me has sorprendido."],
+    "Noa":      ["Mis Eeveelutions... han caído.", "La evolución no fue suficiente."],
+    "Winona":   ["Mis alas han caído...", "El cielo es tuyo."]
+};
+
 // ===== OBTENER FRASE =====
 function obtenerFraseComic(situacion, contexto = {}) {
     // 🆕 FIX: usar el rival capturado en el contexto si existe.
@@ -64,7 +95,14 @@ function obtenerFraseComic(situacion, contexto = {}) {
 
     let frases = null;
 
-    if (rival && rival.frases) {
+    // 🆕 Eliminación: frase de despedida propia del rival
+    if (situacion === 'eliminado' && rival) {
+        const nombre = (rival.nombre || '').trim();
+        const custom = COMIC_FRASES_ELIMINADO_RIVAL[nombre];
+        if (custom && custom.length > 0) frases = custom;
+    }
+
+    if (!frases && rival && rival.frases) {
         if (rival.frases[situacion] && rival.frases[situacion].length > 0) {
             frases = rival.frases[situacion];
         } else {
@@ -73,6 +111,8 @@ function obtenerFraseComic(situacion, contexto = {}) {
             } else if (situacion === 'lowHp' && rival.frases.lose) {
                 frases = rival.frases.lose;
             } else if (situacion === 'lastStand' && rival.frases.lose) {
+                frases = rival.frases.lose;
+            } else if (situacion === 'eliminado' && rival.frases.lose) {
                 frases = rival.frases.lose;
             } else if (situacion === 'start' && rival.frases.win) {
                 frases = rival.frases.win;
@@ -175,6 +215,7 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
     else if (situacion === 'lowHp') bubble.classList.add('bubble-low-hp');
     else if (situacion === 'lastStand') bubble.classList.add('bubble-last-stand');
     else if (situacion === 'thinking') bubble.classList.add('bubble-thinking');
+    else if (situacion === 'eliminado') bubble.classList.add('bubble-eliminado');
 
     bubble.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -356,10 +397,23 @@ function mostrarReaccionEnemigo(victoriaJugador, rivalParaFrase = null) {
     }
 
     const ancla = panel.querySelector('.player-info-header') || panel;
-    const situacion = calcularSituacionComic(victoriaJugador);
+    let situacion = calcularSituacionComic(victoriaJugador);
+
+    // 🆕 Si el rival acaba de perder y eso lo elimina del torneo, su último
+    // diálogo no es un "lose" normal: es una despedida.
+    if (victoriaJugador === true && rivalCapturado) {
+        const nombreRival = (rivalCapturado.nombre || '').trim();
+        const rivalTorneo = (window.torneoRivales || []).find(r => r.nombre === nombreRival);
+        if (rivalTorneo && (rivalTorneo.eliminado === true ||
+            (typeof rivalTorneo.vida === 'number' && rivalTorneo.vida <= 0))) {
+            situacion = 'eliminado';
+        }
+    }
+
     const frase = obtenerFraseComic(situacion, { victoriaJugador, rival: rivalCapturado });
 
-    mostrarComicBubble(ancla, frase, 3500, situacion, _nombreRivalComic(rivalCapturado));
+    // La despedida de eliminación dura un poco más que una reacción normal.
+    mostrarComicBubble(ancla, frase, situacion === 'eliminado' ? 4500 : 3500, situacion, _nombreRivalComic(rivalCapturado));
 }
 
 // ===== MOSTRAR REACCIÓN DEL JUGADOR =====

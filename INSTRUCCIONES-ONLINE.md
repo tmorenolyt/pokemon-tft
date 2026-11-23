@@ -604,6 +604,37 @@ protegido solo por `ACCESS_KEY`.
     desbloqueados, y el menú conserva SIEMPRE el fondo original de Pradera. El
     mapa elegido se aplica solo dentro de la partida. Al volver al menú se
     restaura Pradera (no queda el último terreno del rival).
+  - **Cambiar de mapa en partida**: botón 🗺️ en la cabecera del juego (junto a
+    ⚙️). Abre el selector y aplica el mapa al instante. `Automático` vuelve al
+    terreno del rival. También se puede elegir antes de empezar en la pantalla
+    de selección de jugador (`MAPA … CAMBIAR ›`). La elección se recuerda.
+  - **🔁 Alternar mapa**: casilla en el selector de mapas. Con un mapa fijo
+    elegido, usa el tuyo en las rondas **impares** y el del rival en las
+    **pares** (en PvE, el del monstruo/salvaje). Con `Automático` está
+    desactivada porque ya usa siempre el del rival. Se guarda en
+    `localStorage['pktft_mapa_alternar']`.
+  - **Terrenos de jefe PvE**: cada ronda de `MONSTRUOS_PVE` puede definir
+    `terreno`. Ahora **Araquanid** usa `terreno-araquanid.webp`, **Drednaw**
+    `terreno-pantano.webp` y **Regidrago** `terreno-regidrago.webp`; tienen
+    prioridad sobre el mapa elegido y se aplican al spawnear el monstruo
+    (también en el spawn retrasado de 2 s).
+  - **Saltar animación de evolución**: botón `SALTAR ⏭` arriba a la derecha
+    del overlay (`#btnSaltarEvolucion`). Cancela todos los timers/intervalos,
+    para los sonidos de evolución y resuelve la promesa al momento; la fusión
+    ya está hecha, solo se acelera la parte visual. La finalización normal usa
+    el mismo limpiador (`_finalizarAnimacion`).
+  - **Ranking: daño del rival al que te enfrentas**: `combatir.js` ahora
+    escribe `_estadoRonda` (✖/✔) y `_danoRonda` (-X) también en el rival del
+    combate del jugador. `simularCombatesRivales` ya no resetea ese rival, así
+    que era el único que se quedaba sin el `-X` mientras los simulados sí lo
+    tenían. Además, un HP inválido (`NaN`) ya no deja la fila sin número/barra:
+    se usa el máximo del torneo como valor seguro.
+  - **Último diálogo del rival eliminado**: si el rival cae eliminado en esa
+    ronda (`rival.eliminado` o `vida <= 0`), `mostrarReaccionEnemigo` usa la
+    situación `eliminado`: frase de despedida propia del rival desde
+    `COMIC_FRASES_ELIMINADO_RIVAL` (en `comicBubble.js`) y estilo
+    `bubble-eliminado` (borde dorado). Si no está eliminado, sigue usando el
+    `lose` normal. El bocadillo de despedida dura 4,5 s en vez de 3,5 s.
   - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
     así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
     navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.

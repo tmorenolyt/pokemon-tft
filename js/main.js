@@ -286,6 +286,7 @@ let _evolucionMusicaFondoVolumenOriginal = 0.5;
 window.pararSonidoEvolucionCompleta = pararSonidoEvolucionCompleta;
 window.playGritoEvolucion = playGritoEvolucion;
 window.playEvolveCompleted = playEvolveCompleted;
+window.pararEvolveCompleted = pararEvolveCompleted;
 window.playSonidoEvolucionCompleta = playSonidoEvolucionCompleta;
 
 let _victoriaAudioActual = null;

@@ -251,6 +251,15 @@ function spawnearMonstruoPvE(ronda) {
     window.enRondaPvE = true;
     window.monstruoActual = config;
 
+    // 🗺️ Aplicar el terreno propio del monstruo en cuanto aparece
+    // (Drednaw → pantano, Regidrago → regidrago). También cubre el spawn
+    // retrasado de las rondas PvE que no son la primera.
+    if (typeof aplicarTerrenoActual === 'function') {
+        aplicarTerrenoActual(window.rivalActual);
+    } else if (typeof cambiarTerrenoPorRival === 'function') {
+        cambiarTerrenoPorRival(window.rivalActual);
+    }
+
     if (typeof addConsoleMessage === 'function') {
         addConsoleMessage(
             `👾 RONDA ${r} PvE: ${config.nombre} (${unidadesSpawneadas} unidad${unidadesSpawneadas !== 1 ? 'es' : ''})`,

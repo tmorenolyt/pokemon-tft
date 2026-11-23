@@ -4655,6 +4655,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Araquanid en su telaraña',
         descripcion: 'Una Araquanid gigante protege su territorio.',
         tipo: 'PvE',
+        terreno: 'terreno-araquanid.webp',
                 unidades: [
             { pokemon: 'araquanid', indice: 8, nivel: 1, escudoInicial: 300 }  // E3 (fila 3, col E, frente)
         ],
@@ -4677,6 +4678,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Drednaw el Devorador',
         descripcion: 'Drednaw emerge del pantano.',
         tipo: 'PvE',
+        terreno: 'terreno-pantano.webp',
                 unidades: [
             { pokemon: 'drednaw', indice: 8, nivel: 1, escudoInicial: 600 }  // E3 (fila 3, col E, frente)
         ],
@@ -4700,6 +4702,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Regidrago, el Núcleo Dragón',
         descripcion: 'El guardián final del torneo PvE.',
         tipo: 'PvE',
+        terreno: 'terreno-regidrago.webp',
                 unidades: [
             { pokemon: 'regidrago', indice: 11, nivel: 1, escudoInicial: 1000 }  // H3 (fila 3, col H)
         ],
@@ -9816,6 +9819,7 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
 
     const CLAVE = 'pktft_logros_v1';
     const CLAVE_MAPA = 'pktft_mapa_v1';
+    const CLAVE_ALTERNAR = 'pktft_mapa_alternar';
 
     // ------------------------------------------------------------
     // LOGROS
@@ -9963,8 +9967,18 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
 
     let mapaSel = cargarMapa();
 
+    function cargarAlternar() {
+        try { return localStorage.getItem(CLAVE_ALTERNAR) === '1'; } catch (e) { return false; }
+    }
+
+    let alternarMapa = cargarAlternar();
+
     function guardarMapa() {
         try { localStorage.setItem(CLAVE_MAPA, mapaSel); } catch (e) { }
+    }
+
+    function guardarAlternar() {
+        try { localStorage.setItem(CLAVE_ALTERNAR, alternarMapa ? '1' : '0'); } catch (e) { }
     }
 
     // ------------------------------------------------------------
@@ -10004,6 +10018,17 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
     }
 
     function mapaSeleccionado() { return mapaSel; }
+
+    // 🔁 Alternar: usa tu mapa en las rondas impares y el del rival en las
+    // pares. Solo tiene efecto si hay un mapa fijo seleccionado (no "auto").
+    function mapaAlternando() { return alternarMapa; }
+
+    function setAlternarMapa(on) {
+        alternarMapa = !!on;
+        guardarAlternar();
+        if (window.LogrosUI && typeof window.LogrosUI.refrescar === 'function') window.LogrosUI.refrescar();
+        return alternarMapa;
+    }
 
     function seleccionarMapa(id) {
         if (id !== 'auto' && !MAPA_POR_ID[id]) return false;
@@ -10212,6 +10237,8 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
         mapaDesbloqueado,
         mapaActual,
         mapaSeleccionado,
+        mapaAlternando,
+        setAlternarMapa,
         seleccionarMapa
     };
 })();
@@ -22979,6 +23006,15 @@ function spawnearMonstruoPvE(ronda) {
     window.enRondaPvE = true;
     window.monstruoActual = config;
 
+    // 🗺️ Aplicar el terreno propio del monstruo en cuanto aparece
+    // (Drednaw → pantano, Regidrago → regidrago). También cubre el spawn
+    // retrasado de las rondas PvE que no son la primera.
+    if (typeof aplicarTerrenoActual === 'function') {
+        aplicarTerrenoActual(window.rivalActual);
+    } else if (typeof cambiarTerrenoPorRival === 'function') {
+        cambiarTerrenoPorRival(window.rivalActual);
+    }
+
     if (typeof addConsoleMessage === 'function') {
         addConsoleMessage(
             `👾 RONDA ${r} PvE: ${config.nombre} (${unidadesSpawneadas} unidad${unidadesSpawneadas !== 1 ? 'es' : ''})`,
@@ -25699,8 +25735,14 @@ async function combatir() {
             const rivalEnTorneo = window.torneoRivales.find(r => r.nombre === window.rivalActual.nombre);
             if (rivalEnTorneo) {
                 if (victoria) {
-                    rivalEnTorneo.vida = Math.max(0, enemyHealth);
-                    if (enemyHealth <= 0) rivalEnTorneo.eliminado = true;
+                    // 🆕 Proteger contra un enemyHealth inválido: si no es un
+                    // número, conservar el HP anterior en vez de dejar NaN
+                    // (la fila del ranking se quedaba sin número/barra).
+                    const hpFinal = Number(enemyHealth);
+                    rivalEnTorneo.vida = Number.isFinite(hpFinal)
+                        ? Math.max(0, hpFinal)
+                        : rivalEnTorneo.vida;
+                    if (rivalEnTorneo.vida <= 0) rivalEnTorneo.eliminado = true;
                     rivalEnTorneo.derrotas = (rivalEnTorneo.derrotas || 0) + 1;
                     rivalEnTorneo.racha = (rivalEnTorneo.racha || 0) < 0
                         ? (rivalEnTorneo.racha || 0) - 1
@@ -25711,6 +25753,13 @@ async function combatir() {
                         ? (rivalEnTorneo.racha || 0) + 1
                         : 1;
                 }
+
+                // 🏅 Reflejar en el ranking el resultado de ESTE combate,
+                // igual que se hace con los rivales simulados:
+                //   - si el rival pierde: ✖ y el daño que se lleva (-X)
+                //   - si el rival gana: ✔ y sin daño
+                rivalEnTorneo._estadoRonda = victoria ? 'loss' : 'win';
+                rivalEnTorneo._danoRonda = victoria ? daño : null;
             }
         }
 
@@ -33597,6 +33646,28 @@ function animarEvolucionPokemon(datosPokemon) {
             ? datosPokemon.spriteIdOriginal
             : null;
 
+        // ⏭ Timers controlados: al pulsar SALTAR se cancelan todos para que
+        // la animación no siga sonando/renderizando por detrás.
+        const _timers = new Set();
+        const _later = (fn, ms) => {
+            const id = setTimeout(() => {
+                _timers.delete(id);
+                try { fn(); } catch (e) { console.warn('⚠️ animarEvolucionPokemon timer:', e); }
+            }, ms);
+            _timers.add(id);
+            return id;
+        };
+        const _every = (fn, ms) => {
+            const id = setInterval(fn, ms);
+            _timers.add(id);
+            return id;
+        };
+        const _clearTimers = () => {
+            _timers.forEach(id => { clearTimeout(id); clearInterval(id); });
+            _timers.clear();
+        };
+        let _finalizado = false;
+
         if (!nombreOriginal || !spriteIdOriginal) {
             try {
                 const todasLasUnidades = [
@@ -33729,7 +33800,7 @@ function animarEvolucionPokemon(datosPokemon) {
         // evolution.mp3. El grito del Pokémon NUEVO suena más tarde,
         // cuando se revela (~5.6s).
         if (spriteIdOriginal && typeof playPokemonCry === 'function') {
-            setTimeout(() => {
+            _later(() => {
                 try {
                     playPokemonCry(spriteIdOriginal);
                 } catch (e) {
@@ -33909,7 +33980,7 @@ function animarEvolucionPokemon(datosPokemon) {
         mostrandoOriginal = true;
         aplicarFlicker();
 
-        flickerInterval = setInterval(() => {
+        flickerInterval = _every(() => {
             if (!flickerActivo || !spriteOriginal || !spriteNuevo || !spriteOriginal.parentNode) {
                 clearInterval(flickerInterval);
                 return;
@@ -33917,6 +33988,66 @@ function animarEvolucionPokemon(datosPokemon) {
             mostrandoOriginal = !mostrandoOriginal;
             aplicarFlicker();
         }, 250);
+
+        // ⏭ Saltar animación: la fusión/evolución YA está hecha; esto solo
+        // acelera la parte visual. Limpia timers y sonidos pendientes.
+        function _finalizarAnimacion() {
+            if (_finalizado) return;
+            _finalizado = true;
+            flickerActivo = false;
+            _clearTimers();
+            try { if (typeof pararSonidoEvolucionCompleta === 'function') pararSonidoEvolucionCompleta(); } catch (e) { }
+            try { if (typeof pararGritoPokemon === 'function') pararGritoPokemon(); } catch (e) { }
+            try { if (typeof pararEvolveCompleted === 'function') pararEvolveCompleted(); } catch (e) { }
+            window._evolveCompletedPromise = null;
+
+            _limpiarEstilosCeldasTablero();
+            try { if (typeof renderizar === 'function') renderizar(); } catch (e) { }
+            _restaurarContenedoresVisibles('', '', '');
+
+            overlay.style.animation = 'evolOverlayFadeOut 0.2s ease-out forwards';
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.remove();
+                _restaurarContenedoresVisibles('', '', '');
+                try { if (typeof reanudarFondoPreparacion === 'function') reanudarFondoPreparacion(); } catch (e) { }
+                resolve();
+            }, 220);
+        }
+
+        const btnSaltar = document.createElement('button');
+        btnSaltar.type = 'button';
+        btnSaltar.id = 'btnSaltarEvolucion';
+        btnSaltar.textContent = 'SALTAR ⏭';
+        btnSaltar.title = 'Saltar la animación de evolución';
+        btnSaltar.setAttribute('aria-label', 'Saltar animación de evolución');
+        btnSaltar.style.cssText = `
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top, 0px));
+            right: max(12px, env(safe-area-inset-right, 0px));
+            z-index: 40;
+            pointer-events: auto;
+            appearance: none;
+            border: 2px solid rgba(251, 191, 36, 0.85);
+            background: rgba(10, 15, 29, 0.92);
+            color: #fbbf24;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 18px rgba(251, 191, 36, 0.25);
+            transition: transform 0.15s ease, background 0.15s ease;
+        `;
+        btnSaltar.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            btnSaltar.disabled = true;
+            btnSaltar.textContent = 'SALTANDO…';
+            _finalizarAnimacion();
+        });
+        overlay.appendChild(btnSaltar);
 
         const nombreEl = document.createElement('div');
         nombreEl.textContent = nombreFinal;
@@ -33982,7 +34113,7 @@ function animarEvolucionPokemon(datosPokemon) {
         `;
         carta.appendChild(bannerEvol);
 
-        setTimeout(() => {
+        _later(() => {
             flickerActivo = false;
             clearInterval(flickerInterval);
 
@@ -34021,12 +34152,12 @@ function animarEvolucionPokemon(datosPokemon) {
             `;
             carta.appendChild(flashRadial);
 
-            setTimeout(() => {
+            _later(() => {
                 if (flashRadial.parentNode) flashRadial.remove();
             }, 1400);
         }, 4200);
 
-                setTimeout(() => {
+                _later(() => {
             try {
                 if (typeof pararSonidoEvolucionCompleta === 'function') {
                     pararSonidoEvolucionCompleta();
@@ -34044,7 +34175,7 @@ function animarEvolucionPokemon(datosPokemon) {
                 console.error('❌ Error al reproducir grito:', e);
             }
 
-            setTimeout(() => {
+            _later(() => {
                 try {
                     if (typeof pararGritoPokemon === 'function') {
                         pararGritoPokemon();
@@ -34075,7 +34206,7 @@ function animarEvolucionPokemon(datosPokemon) {
             bannerEvol.style.transform = 'translateY(0)';
         }, 5600);
 
-        setTimeout(() => {
+        _later(() => {
             carta.style.transition = 'box-shadow 0.8s ease';
             carta.style.boxShadow =
                 `0 0 60px ${COLOR_GLOW_1}, ` +
@@ -34090,7 +34221,7 @@ function animarEvolucionPokemon(datosPokemon) {
 
             if (spriteNuevo) spriteNuevo.style.transition = 'transform 0.6s ease';
             let bounce = 0;
-            const bounceInterval = setInterval(() => {
+            const bounceInterval = _every(() => {
                 if (!spriteNuevo || !spriteNuevo.parentNode) {
                     clearInterval(bounceInterval);
                     return;
@@ -34108,7 +34239,7 @@ function animarEvolucionPokemon(datosPokemon) {
             }, 1200);
         }, 6600);
 
-        setTimeout(async () => {
+        _later(async () => {
             try {
                 if (window._evolveCompletedPromise) {
                     await window._evolveCompletedPromise;
@@ -34118,36 +34249,7 @@ function animarEvolucionPokemon(datosPokemon) {
                 console.warn('⚠️ Error esperando evolve-completed:', e);
             }
 
-            flickerActivo = false;
-            clearInterval(flickerInterval);
-
-            _limpiarEstilosCeldasTablero();
-
-            try {
-                if (typeof renderizar === 'function') {
-                    renderizar();
-                }
-            } catch (e) {
-                console.warn('⚠️ renderizar() Fase A falló:', e);
-            }
-
-            _restaurarContenedoresVisibles('', '', '');
-
-            overlay.style.animation = 'evolOverlayFadeOut 0.25s ease-out forwards';
-
-            setTimeout(() => {
-                if (overlay.parentNode) overlay.remove();
-
-                _restaurarContenedoresVisibles('', '', '');
-
-                try {
-                    if (typeof reanudarFondoPreparacion === 'function') {
-                        reanudarFondoPreparacion();
-                    }
-                } catch (e) {}
-
-                resolve();
-            }, 250);
+            _finalizarAnimacion();
         }, 8600);
 
     });
@@ -34905,6 +35007,14 @@ const COMIC_BUBBLE_FRASES_DEFAULT = {
         "¡No me lo puedo creer!",
         "¡Buena pelea!"
     ],
+    // 🆕 Último diálogo cuando la derrota lo elimina del torneo
+    eliminado: [
+        "Me has superado... esta vez.",
+        "He caído. Buen combate, entrenador.",
+        "El torneo es tuyo... por ahora.",
+        "Nos veremos en la próxima.",
+        "Has sido más fuerte. Me retiro."
+    ],
     win: [
         "¡Ja! ¿Eso es todo?",
         "¡Fácil!",
@@ -34937,6 +35047,29 @@ const COMIC_BUBBLE_FRASES_DEFAULT = {
     ]
 };
 
+// ===== FRASES DE ELIMINACIÓN POR RIVAL =====
+// Se usan SOLO cuando la derrota del rival lo elimina del torneo en esa ronda.
+// Si un rival no está aquí, cae en `frases.eliminado` o en el `lose` genérico.
+const COMIC_FRASES_ELIMINADO_RIVAL = {
+    "Rival":    ["Me has superado... esta vez.", "Buen combate. Nos veremos."],
+    "Misty":    ["El agua... se ha agotado.", "Me has ganado en mi propia marea..."],
+    "Rojo":     ["Así que este es tu verdadero poder...", "He perdido. Bien jugado."],
+    "Bruno":    ["Mi fuerza no ha bastado...", "Has superado mi entrenamiento."],
+    "Lance":    ["Mis dragones han caído...", "Eres un verdadero campeón."],
+    "N":        ["La verdad que buscaba... era tu fuerza.", "Me retiro. El torneo es tuyo."],
+    "Sabrina":  ["No predije esta derrota...", "El futuro es tuyo."],
+    "Lectro":   ["Mi circuito se ha fundido...", "Buena descarga."],
+    "Lorelei":  ["El hielo se ha derretido...", "Me has superado."],
+    "Agatha":   ["La oscuridad se desvanece...", "Buen combate, jovencito."],
+    "Koga":     ["Mi veneno no fue suficiente...", "Has esquivado mi trampa."],
+    "Erika":    ["Mi jardín ha sido arrasado...", "La naturaleza se rinde ante ti."],
+    "Valerie":  ["La magia feérica se apaga...", "Me has hechizado con tu fuerza."],
+    "Blaine":   ["Mi llama se ha apagado...", "Buen combate, entrenador."],
+    "Karen":    ["La oscuridad también sabe perder...", "Me has sorprendido."],
+    "Noa":      ["Mis Eeveelutions... han caído.", "La evolución no fue suficiente."],
+    "Winona":   ["Mis alas han caído...", "El cielo es tuyo."]
+};
+
 // ===== OBTENER FRASE =====
 function obtenerFraseComic(situacion, contexto = {}) {
     // 🆕 FIX: usar el rival capturado en el contexto si existe.
@@ -34946,7 +35079,14 @@ function obtenerFraseComic(situacion, contexto = {}) {
 
     let frases = null;
 
-    if (rival && rival.frases) {
+    // 🆕 Eliminación: frase de despedida propia del rival
+    if (situacion === 'eliminado' && rival) {
+        const nombre = (rival.nombre || '').trim();
+        const custom = COMIC_FRASES_ELIMINADO_RIVAL[nombre];
+        if (custom && custom.length > 0) frases = custom;
+    }
+
+    if (!frases && rival && rival.frases) {
         if (rival.frases[situacion] && rival.frases[situacion].length > 0) {
             frases = rival.frases[situacion];
         } else {
@@ -34955,6 +35095,8 @@ function obtenerFraseComic(situacion, contexto = {}) {
             } else if (situacion === 'lowHp' && rival.frases.lose) {
                 frases = rival.frases.lose;
             } else if (situacion === 'lastStand' && rival.frases.lose) {
+                frases = rival.frases.lose;
+            } else if (situacion === 'eliminado' && rival.frases.lose) {
                 frases = rival.frases.lose;
             } else if (situacion === 'start' && rival.frases.win) {
                 frases = rival.frases.win;
@@ -35057,6 +35199,7 @@ function mostrarComicBubble(elementoPadre, frase, duracionMs = 4000, situacion =
     else if (situacion === 'lowHp') bubble.classList.add('bubble-low-hp');
     else if (situacion === 'lastStand') bubble.classList.add('bubble-last-stand');
     else if (situacion === 'thinking') bubble.classList.add('bubble-thinking');
+    else if (situacion === 'eliminado') bubble.classList.add('bubble-eliminado');
 
     bubble.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -35238,10 +35381,23 @@ function mostrarReaccionEnemigo(victoriaJugador, rivalParaFrase = null) {
     }
 
     const ancla = panel.querySelector('.player-info-header') || panel;
-    const situacion = calcularSituacionComic(victoriaJugador);
+    let situacion = calcularSituacionComic(victoriaJugador);
+
+    // 🆕 Si el rival acaba de perder y eso lo elimina del torneo, su último
+    // diálogo no es un "lose" normal: es una despedida.
+    if (victoriaJugador === true && rivalCapturado) {
+        const nombreRival = (rivalCapturado.nombre || '').trim();
+        const rivalTorneo = (window.torneoRivales || []).find(r => r.nombre === nombreRival);
+        if (rivalTorneo && (rivalTorneo.eliminado === true ||
+            (typeof rivalTorneo.vida === 'number' && rivalTorneo.vida <= 0))) {
+            situacion = 'eliminado';
+        }
+    }
+
     const frase = obtenerFraseComic(situacion, { victoriaJugador, rival: rivalCapturado });
 
-    mostrarComicBubble(ancla, frase, 3500, situacion, _nombreRivalComic(rivalCapturado));
+    // La despedida de eliminación dura un poco más que una reacción normal.
+    mostrarComicBubble(ancla, frase, situacion === 'eliminado' ? 4500 : 3500, situacion, _nombreRivalComic(rivalCapturado));
 }
 
 // ===== MOSTRAR REACCIÓN DEL JUGADOR =====
@@ -36621,7 +36777,10 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
         const thumb = $('mapSelectorThumb');
         if (thumb) thumb.style.backgroundImage = "url('assets/backgrounds/" + m.archivo + "')";
         const nombre = $('mapSelectorName');
-        if (nombre) nombre.textContent = m.nombre;
+        if (nombre) {
+            const alt = Logros.mapaAlternando() && id !== 'auto';
+            nombre.textContent = m.nombre + (alt ? ' 🔁' : '');
+        }
         aplicarFondoMapa();
     }
 
@@ -36753,6 +36912,11 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
             if (card.classList.contains('bloqueado')) return;
             if (Logros.seleccionarMapa(id)) {
                 actualizarMapSelector();
+                // Si estamos dentro de una partida, aplicar el cambio al instante.
+                const juego = document.getElementById('juegoContainer');
+                if (juego && getComputedStyle(juego).display !== 'none' && typeof aplicarTerrenoActual === 'function') {
+                    aplicarTerrenoActual(window.rivalActual);
+                }
                 cerrar(overlayMapas);
             }
         });
@@ -36769,7 +36933,7 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
             const valor = logro ? Math.min(objetivo, Logros.valor(logro)) : 0;
             const req = logro
                 ? (ok ? '✓ Desbloqueado' : '🔒 ' + esc(logro.nombre) + ' · ' + valor + '/' + objetivo)
-                : (m.siempreDesbloqueado ? '✓ Siempre disponible' : '✓ Disponible');
+                : ((m.desc ? esc(m.desc) + ' · ' : '') + (m.siempreDesbloqueado ? '✓ Siempre disponible' : '✓ Disponible'));
             return '' +
                 '<div class="mapa-card ' + (ok ? 'disponible' : 'bloqueado') + (activo ? ' seleccionado' : '') + '" data-mapa="' + m.id + '">' +
                     '<div class="mapa-thumb" style="background-image:url(\'assets/backgrounds/' + m.archivo + '\')">' +
@@ -36783,6 +36947,8 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
         }).join('');
 
         const desbloqueados = Logros.MAPAS.filter(m => Logros.mapaDesbloqueado(m.id)).length;
+        const esAuto = sel === 'auto';
+        const alternar = Logros.mapaAlternando() && !esAuto;
 
         overlayMapas.innerHTML = '' +
             '<div class="logros-modal mapas-modal">' +
@@ -36793,8 +36959,24 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
                     '</div>' +
                     '<button type="button" class="logros-cerrar" data-cerrar-mapas aria-label="Cerrar">✕</button>' +
                 '</div>' +
+                '<label class="mapa-alternar' + (esAuto ? ' deshabilitado' : '') + '" title="Tu mapa en las rondas impares; el del rival en las pares">' +
+                    '<input type="checkbox" id="mapaAlternarToggle"' + (alternar ? ' checked' : '') + (esAuto ? ' disabled' : '') + '>' +
+                    '<span class="mapa-alternar-txt">🔁 Alternar con el mapa del rival</span>' +
+                    '<span class="mapa-alternar-hint">' + (esAuto ? 'Automático ya usa el del rival' : 'Tu mapa en rondas impares · rival en pares') + '</span>' +
+                '</label>' +
                 '<div class="mapas-grid">' + cards + '</div>' +
             '</div>';
+
+        const toggle = document.getElementById('mapaAlternarToggle');
+        if (toggle) {
+            toggle.addEventListener('change', () => {
+                Logros.setAlternarMapa(toggle.checked);
+                const juego = document.getElementById('juegoContainer');
+                if (juego && getComputedStyle(juego).display !== 'none' && typeof aplicarTerrenoActual === 'function') {
+                    aplicarTerrenoActual(window.rivalActual);
+                }
+            });
+        }
     }
 
     // ------------------------------------------------------------
@@ -36867,6 +37049,7 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
         bind('profileCapsuleBtn', abrirLogrosPanel);
         bind('btnElegirMapa', abrirMapasPanel);
         bind('mapSelectorBar', abrirMapasPanel);
+        bind('btnMapaJuego', abrirMapasPanel);
 
         // Accesibilidad: Enter/Espacio en los elementos con role="button"
         ['mapSelectorBar', 'profileCapsuleBtn'].forEach(id => {
@@ -42418,16 +42601,28 @@ function playGritoEvolucion(pokemonId) {
     } catch (e) {}
 }
 
+let _evolveCompletedAudio = null;
+
 function playEvolveCompleted() {
     return new Promise((resolve) => {
         try {
+            if (_evolveCompletedAudio) {
+                try { _evolveCompletedAudio.pause(); _evolveCompletedAudio.currentTime = 0; } catch (e) { }
+                _evolveCompletedAudio = null;
+            }
             const url = CONFIG.UI_SOUND_URL + 'evolve-completed.mp3';
             const audio = new Audio(url);
+            _evolveCompletedAudio = audio;
             audio.volume = 0.35;
             let yaResuelto = false;
-            const resolver = () => { if (yaResuelto) return; yaResuelto = true; resolve(); };
+            const resolver = () => {
+                if (yaResuelto) return;
+                yaResuelto = true;
+                if (_evolveCompletedAudio === audio) _evolveCompletedAudio = null;
+                resolve();
+            };
             audio.addEventListener('ended', resolver);
-            audio.addEventListener('error', () => { playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
+            audio.addEventListener('error', () => { if (_evolveCompletedAudio === audio) _evolveCompletedAudio = null; playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
             audio.play().then(() => {}).catch(() => { playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
             setTimeout(resolver, 15000);
         } catch (e) { playUISound('levelup.mp3', 0.4); setTimeout(resolve, 1500); }
@@ -42438,6 +42633,12 @@ function pararSonidoEvolucionCompleta() {
     if (!_evolucionAudioActual) return;
     try { _evolucionAudioActual.pause(); _evolucionAudioActual.currentTime = 0; } catch (e) {}
     _evolucionAudioActual = null;
+}
+
+function pararEvolveCompleted() {
+    if (!_evolveCompletedAudio) return;
+    try { _evolveCompletedAudio.pause(); _evolveCompletedAudio.currentTime = 0; } catch (e) {}
+    _evolveCompletedAudio = null;
 }
 
 function playVictoriaSound() {
@@ -43496,16 +43697,53 @@ function aplicarTerrenoActual(rival) {
         return;
     }
 
+    // 👾 TERRENO PROPIO DE JEFES PvE
+    // Drednaw → terreno-pantano.webp · Regidrago → terreno-regidrago.webp
+    // Tiene prioridad sobre el mapa elegido: son arenas temáticas del jefe.
+    if ((window.enRondaPvE === true || (rival && rival.esMonstruo)) && window.monstruoActual) {
+        const cfg = window.monstruoActual;
+        let archivo = cfg.terreno;
+        if (!archivo && Array.isArray(cfg.unidades) && cfg.unidades[0]) {
+            const clave = String(cfg.unidades[0].pokemon || '').toLowerCase();
+            if (clave === 'drednaw') archivo = 'terreno-pantano.webp';
+            else if (clave === 'regidrago') archivo = 'terreno-regidrago.webp';
+            else if (clave === 'araquanid') archivo = 'terreno-araquanid.webp';
+        }
+        if (archivo) {
+            document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${archivo}')`);
+            const arena = document.querySelector('.arena-row');
+            if (arena) arena.style.backgroundImage = 'none';
+            return;
+        }
+    }
+
     // 🗺️ MAPA ELEGIDO: si el jugador ha desbloqueado y elegido un mapa,
     // se respeta en todas las rondas (PvP y PvE). "Automático" devuelve
     // null y se mantiene el comportamiento original por rival.
     if (typeof Logros !== 'undefined' && typeof Logros.mapaActual === 'function') {
         const mapaElegido = Logros.mapaActual();
         if (mapaElegido && mapaElegido.archivo) {
-            document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${mapaElegido.archivo}')`);
-            const arena = document.querySelector('.arena-row');
-            if (arena) arena.style.backgroundImage = 'none';
-            return;
+            // 🔁 Alternar: tu mapa en rondas impares, el del rival en pares.
+            let usarMio = true;
+            try {
+                const alternar = (typeof Logros.mapaAlternando === 'function') && Logros.mapaAlternando();
+                if (alternar) {
+                    let rondaActual = 1;
+                    try {
+                        if (typeof ronda !== 'undefined' && Number(ronda) > 0) rondaActual = Number(ronda);
+                        else if (typeof fase !== 'undefined' && Number(fase) > 0) rondaActual = Number(fase);
+                    } catch (e) { }
+                    usarMio = (rondaActual % 2 === 1);
+                }
+            } catch (e) { }
+
+            if (usarMio) {
+                document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${mapaElegido.archivo}')`);
+                const arena = document.querySelector('.arena-row');
+                if (arena) arena.style.backgroundImage = 'none';
+                return;
+            }
+            // Si toca el del rival, sigue abajo con el comportamiento normal.
         }
     }
 
@@ -44587,6 +44825,7 @@ let _evolucionMusicaFondoVolumenOriginal = 0.5;
 window.pararSonidoEvolucionCompleta = pararSonidoEvolucionCompleta;
 window.playGritoEvolucion = playGritoEvolucion;
 window.playEvolveCompleted = playEvolveCompleted;
+window.pararEvolveCompleted = pararEvolveCompleted;
 window.playSonidoEvolucionCompleta = playSonidoEvolucionCompleta;
 
 let _victoriaAudioActual = null;
@@ -46953,6 +47192,11 @@ function simularCombatesRivales(rivalDelJugador, parejasRonda) {
 
     if (window.torneoRivales) {
         window.torneoRivales.forEach(r => {
+            // 🆕 El rival al que se enfrentó el jugador NO se resetea aquí:
+            // su ✔/✖ y su -X los acaba de escribir combatir.js. Si se
+            // pusieran a null, era el único que se quedaba sin el daño en
+            // el ranking mientras los simulados sí lo mostraban.
+            if (rivalDelJugador && r.nombre === rivalDelJugador.nombre) return;
             r._estadoRonda = null;
             r._danoRonda = null;
         });
@@ -47336,9 +47580,16 @@ function actualizarRankingTorneo() {
     if (victoriaJugador === true) estadoJugador = 'win';
     else if (victoriaJugador === false) estadoJugador = 'loss';
 
+    // 🆕 Si algún HP llega inválido (NaN/undefined), no dejar la fila sin
+    // número/barra: usar el máximo del torneo como valor seguro.
+    const VIDA_MAX_RANKING = (typeof CONFIG !== 'undefined' && CONFIG.VIDA_MAX_JUGADOR) ? CONFIG.VIDA_MAX_JUGADOR : 50;
+    const hpSeguro = (v, eliminado) => Number.isFinite(Number(v))
+        ? Number(v)
+        : (eliminado ? 0 : VIDA_MAX_RANKING);
+
     const jugador = {
         nombre: window.nombreJugador || 'Tú',
-        vida: vidaJugador,
+        vida: hpSeguro(vidaJugador, vidaJugador <= 0),
         nivel: nivelJugador,
         avatar: window.avatarJugador || 'rojo',
         esJugador: true,
@@ -47350,7 +47601,7 @@ function actualizarRankingTorneo() {
 
     const rivales = window.torneoRivales.map(r => ({
         nombre: r.nombre,
-        vida: r.vida,
+        vida: hpSeguro(r.vida, r.eliminado),
         nivel: r.nivel || 1,
         avatar: r.avatar,
         esJugador: false,
@@ -47371,7 +47622,7 @@ function actualizarRankingTorneo() {
         return b.vida - a.vida;
     });
 
-    const vidaMaxTorneo = (typeof CONFIG !== 'undefined' && CONFIG.VIDA_MAX_JUGADOR) ? CONFIG.VIDA_MAX_JUGADOR : 50;
+    const vidaMaxTorneo = VIDA_MAX_RANKING;
 
     let html = '<div class="ranking-header">🏆 RANKING</div>';
 

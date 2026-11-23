@@ -13,6 +13,7 @@
 
     const CLAVE = 'pktft_logros_v1';
     const CLAVE_MAPA = 'pktft_mapa_v1';
+    const CLAVE_ALTERNAR = 'pktft_mapa_alternar';
 
     // ------------------------------------------------------------
     // LOGROS
@@ -160,8 +161,18 @@
 
     let mapaSel = cargarMapa();
 
+    function cargarAlternar() {
+        try { return localStorage.getItem(CLAVE_ALTERNAR) === '1'; } catch (e) { return false; }
+    }
+
+    let alternarMapa = cargarAlternar();
+
     function guardarMapa() {
         try { localStorage.setItem(CLAVE_MAPA, mapaSel); } catch (e) { }
+    }
+
+    function guardarAlternar() {
+        try { localStorage.setItem(CLAVE_ALTERNAR, alternarMapa ? '1' : '0'); } catch (e) { }
     }
 
     // ------------------------------------------------------------
@@ -201,6 +212,17 @@
     }
 
     function mapaSeleccionado() { return mapaSel; }
+
+    // 🔁 Alternar: usa tu mapa en las rondas impares y el del rival en las
+    // pares. Solo tiene efecto si hay un mapa fijo seleccionado (no "auto").
+    function mapaAlternando() { return alternarMapa; }
+
+    function setAlternarMapa(on) {
+        alternarMapa = !!on;
+        guardarAlternar();
+        if (window.LogrosUI && typeof window.LogrosUI.refrescar === 'function') window.LogrosUI.refrescar();
+        return alternarMapa;
+    }
 
     function seleccionarMapa(id) {
         if (id !== 'auto' && !MAPA_POR_ID[id]) return false;
@@ -409,6 +431,8 @@
         mapaDesbloqueado,
         mapaActual,
         mapaSeleccionado,
+        mapaAlternando,
+        setAlternarMapa,
         seleccionarMapa
     };
 })();

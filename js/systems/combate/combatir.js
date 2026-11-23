@@ -1474,8 +1474,14 @@ async function combatir() {
             const rivalEnTorneo = window.torneoRivales.find(r => r.nombre === window.rivalActual.nombre);
             if (rivalEnTorneo) {
                 if (victoria) {
-                    rivalEnTorneo.vida = Math.max(0, enemyHealth);
-                    if (enemyHealth <= 0) rivalEnTorneo.eliminado = true;
+                    // 🆕 Proteger contra un enemyHealth inválido: si no es un
+                    // número, conservar el HP anterior en vez de dejar NaN
+                    // (la fila del ranking se quedaba sin número/barra).
+                    const hpFinal = Number(enemyHealth);
+                    rivalEnTorneo.vida = Number.isFinite(hpFinal)
+                        ? Math.max(0, hpFinal)
+                        : rivalEnTorneo.vida;
+                    if (rivalEnTorneo.vida <= 0) rivalEnTorneo.eliminado = true;
                     rivalEnTorneo.derrotas = (rivalEnTorneo.derrotas || 0) + 1;
                     rivalEnTorneo.racha = (rivalEnTorneo.racha || 0) < 0
                         ? (rivalEnTorneo.racha || 0) - 1
@@ -1486,6 +1492,13 @@ async function combatir() {
                         ? (rivalEnTorneo.racha || 0) + 1
                         : 1;
                 }
+
+                // 🏅 Reflejar en el ranking el resultado de ESTE combate,
+                // igual que se hace con los rivales simulados:
+                //   - si el rival pierde: ✖ y el daño que se lleva (-X)
+                //   - si el rival gana: ✔ y sin daño
+                rivalEnTorneo._estadoRonda = victoria ? 'loss' : 'win';
+                rivalEnTorneo._danoRonda = victoria ? daño : null;
             }
         }
 

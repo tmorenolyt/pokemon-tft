@@ -1011,6 +1011,28 @@ function animarEvolucionPokemon(datosPokemon) {
             ? datosPokemon.spriteIdOriginal
             : null;
 
+        // ⏭ Timers controlados: al pulsar SALTAR se cancelan todos para que
+        // la animación no siga sonando/renderizando por detrás.
+        const _timers = new Set();
+        const _later = (fn, ms) => {
+            const id = setTimeout(() => {
+                _timers.delete(id);
+                try { fn(); } catch (e) { console.warn('⚠️ animarEvolucionPokemon timer:', e); }
+            }, ms);
+            _timers.add(id);
+            return id;
+        };
+        const _every = (fn, ms) => {
+            const id = setInterval(fn, ms);
+            _timers.add(id);
+            return id;
+        };
+        const _clearTimers = () => {
+            _timers.forEach(id => { clearTimeout(id); clearInterval(id); });
+            _timers.clear();
+        };
+        let _finalizado = false;
+
         if (!nombreOriginal || !spriteIdOriginal) {
             try {
                 const todasLasUnidades = [
@@ -1143,7 +1165,7 @@ function animarEvolucionPokemon(datosPokemon) {
         // evolution.mp3. El grito del Pokémon NUEVO suena más tarde,
         // cuando se revela (~5.6s).
         if (spriteIdOriginal && typeof playPokemonCry === 'function') {
-            setTimeout(() => {
+            _later(() => {
                 try {
                     playPokemonCry(spriteIdOriginal);
                 } catch (e) {
@@ -1323,7 +1345,7 @@ function animarEvolucionPokemon(datosPokemon) {
         mostrandoOriginal = true;
         aplicarFlicker();
 
-        flickerInterval = setInterval(() => {
+        flickerInterval = _every(() => {
             if (!flickerActivo || !spriteOriginal || !spriteNuevo || !spriteOriginal.parentNode) {
                 clearInterval(flickerInterval);
                 return;
@@ -1331,6 +1353,66 @@ function animarEvolucionPokemon(datosPokemon) {
             mostrandoOriginal = !mostrandoOriginal;
             aplicarFlicker();
         }, 250);
+
+        // ⏭ Saltar animación: la fusión/evolución YA está hecha; esto solo
+        // acelera la parte visual. Limpia timers y sonidos pendientes.
+        function _finalizarAnimacion() {
+            if (_finalizado) return;
+            _finalizado = true;
+            flickerActivo = false;
+            _clearTimers();
+            try { if (typeof pararSonidoEvolucionCompleta === 'function') pararSonidoEvolucionCompleta(); } catch (e) { }
+            try { if (typeof pararGritoPokemon === 'function') pararGritoPokemon(); } catch (e) { }
+            try { if (typeof pararEvolveCompleted === 'function') pararEvolveCompleted(); } catch (e) { }
+            window._evolveCompletedPromise = null;
+
+            _limpiarEstilosCeldasTablero();
+            try { if (typeof renderizar === 'function') renderizar(); } catch (e) { }
+            _restaurarContenedoresVisibles('', '', '');
+
+            overlay.style.animation = 'evolOverlayFadeOut 0.2s ease-out forwards';
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.remove();
+                _restaurarContenedoresVisibles('', '', '');
+                try { if (typeof reanudarFondoPreparacion === 'function') reanudarFondoPreparacion(); } catch (e) { }
+                resolve();
+            }, 220);
+        }
+
+        const btnSaltar = document.createElement('button');
+        btnSaltar.type = 'button';
+        btnSaltar.id = 'btnSaltarEvolucion';
+        btnSaltar.textContent = 'SALTAR ⏭';
+        btnSaltar.title = 'Saltar la animación de evolución';
+        btnSaltar.setAttribute('aria-label', 'Saltar animación de evolución');
+        btnSaltar.style.cssText = `
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top, 0px));
+            right: max(12px, env(safe-area-inset-right, 0px));
+            z-index: 40;
+            pointer-events: auto;
+            appearance: none;
+            border: 2px solid rgba(251, 191, 36, 0.85);
+            background: rgba(10, 15, 29, 0.92);
+            color: #fbbf24;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 18px rgba(251, 191, 36, 0.25);
+            transition: transform 0.15s ease, background 0.15s ease;
+        `;
+        btnSaltar.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            btnSaltar.disabled = true;
+            btnSaltar.textContent = 'SALTANDO…';
+            _finalizarAnimacion();
+        });
+        overlay.appendChild(btnSaltar);
 
         const nombreEl = document.createElement('div');
         nombreEl.textContent = nombreFinal;
@@ -1396,7 +1478,7 @@ function animarEvolucionPokemon(datosPokemon) {
         `;
         carta.appendChild(bannerEvol);
 
-        setTimeout(() => {
+        _later(() => {
             flickerActivo = false;
             clearInterval(flickerInterval);
 
@@ -1435,12 +1517,12 @@ function animarEvolucionPokemon(datosPokemon) {
             `;
             carta.appendChild(flashRadial);
 
-            setTimeout(() => {
+            _later(() => {
                 if (flashRadial.parentNode) flashRadial.remove();
             }, 1400);
         }, 4200);
 
-                setTimeout(() => {
+                _later(() => {
             try {
                 if (typeof pararSonidoEvolucionCompleta === 'function') {
                     pararSonidoEvolucionCompleta();
@@ -1458,7 +1540,7 @@ function animarEvolucionPokemon(datosPokemon) {
                 console.error('❌ Error al reproducir grito:', e);
             }
 
-            setTimeout(() => {
+            _later(() => {
                 try {
                     if (typeof pararGritoPokemon === 'function') {
                         pararGritoPokemon();
@@ -1489,7 +1571,7 @@ function animarEvolucionPokemon(datosPokemon) {
             bannerEvol.style.transform = 'translateY(0)';
         }, 5600);
 
-        setTimeout(() => {
+        _later(() => {
             carta.style.transition = 'box-shadow 0.8s ease';
             carta.style.boxShadow =
                 `0 0 60px ${COLOR_GLOW_1}, ` +
@@ -1504,7 +1586,7 @@ function animarEvolucionPokemon(datosPokemon) {
 
             if (spriteNuevo) spriteNuevo.style.transition = 'transform 0.6s ease';
             let bounce = 0;
-            const bounceInterval = setInterval(() => {
+            const bounceInterval = _every(() => {
                 if (!spriteNuevo || !spriteNuevo.parentNode) {
                     clearInterval(bounceInterval);
                     return;
@@ -1522,7 +1604,7 @@ function animarEvolucionPokemon(datosPokemon) {
             }, 1200);
         }, 6600);
 
-        setTimeout(async () => {
+        _later(async () => {
             try {
                 if (window._evolveCompletedPromise) {
                     await window._evolveCompletedPromise;
@@ -1532,36 +1614,7 @@ function animarEvolucionPokemon(datosPokemon) {
                 console.warn('⚠️ Error esperando evolve-completed:', e);
             }
 
-            flickerActivo = false;
-            clearInterval(flickerInterval);
-
-            _limpiarEstilosCeldasTablero();
-
-            try {
-                if (typeof renderizar === 'function') {
-                    renderizar();
-                }
-            } catch (e) {
-                console.warn('⚠️ renderizar() Fase A falló:', e);
-            }
-
-            _restaurarContenedoresVisibles('', '', '');
-
-            overlay.style.animation = 'evolOverlayFadeOut 0.25s ease-out forwards';
-
-            setTimeout(() => {
-                if (overlay.parentNode) overlay.remove();
-
-                _restaurarContenedoresVisibles('', '', '');
-
-                try {
-                    if (typeof reanudarFondoPreparacion === 'function') {
-                        reanudarFondoPreparacion();
-                    }
-                } catch (e) {}
-
-                resolve();
-            }, 250);
+            _finalizarAnimacion();
         }, 8600);
 
     });

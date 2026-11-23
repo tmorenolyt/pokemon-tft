@@ -342,16 +342,53 @@ function aplicarTerrenoActual(rival) {
         return;
     }
 
+    // 👾 TERRENO PROPIO DE JEFES PvE
+    // Drednaw → terreno-pantano.webp · Regidrago → terreno-regidrago.webp
+    // Tiene prioridad sobre el mapa elegido: son arenas temáticas del jefe.
+    if ((window.enRondaPvE === true || (rival && rival.esMonstruo)) && window.monstruoActual) {
+        const cfg = window.monstruoActual;
+        let archivo = cfg.terreno;
+        if (!archivo && Array.isArray(cfg.unidades) && cfg.unidades[0]) {
+            const clave = String(cfg.unidades[0].pokemon || '').toLowerCase();
+            if (clave === 'drednaw') archivo = 'terreno-pantano.webp';
+            else if (clave === 'regidrago') archivo = 'terreno-regidrago.webp';
+            else if (clave === 'araquanid') archivo = 'terreno-araquanid.webp';
+        }
+        if (archivo) {
+            document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${archivo}')`);
+            const arena = document.querySelector('.arena-row');
+            if (arena) arena.style.backgroundImage = 'none';
+            return;
+        }
+    }
+
     // 🗺️ MAPA ELEGIDO: si el jugador ha desbloqueado y elegido un mapa,
     // se respeta en todas las rondas (PvP y PvE). "Automático" devuelve
     // null y se mantiene el comportamiento original por rival.
     if (typeof Logros !== 'undefined' && typeof Logros.mapaActual === 'function') {
         const mapaElegido = Logros.mapaActual();
         if (mapaElegido && mapaElegido.archivo) {
-            document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${mapaElegido.archivo}')`);
-            const arena = document.querySelector('.arena-row');
-            if (arena) arena.style.backgroundImage = 'none';
-            return;
+            // 🔁 Alternar: tu mapa en rondas impares, el del rival en pares.
+            let usarMio = true;
+            try {
+                const alternar = (typeof Logros.mapaAlternando === 'function') && Logros.mapaAlternando();
+                if (alternar) {
+                    let rondaActual = 1;
+                    try {
+                        if (typeof ronda !== 'undefined' && Number(ronda) > 0) rondaActual = Number(ronda);
+                        else if (typeof fase !== 'undefined' && Number(fase) > 0) rondaActual = Number(fase);
+                    } catch (e) { }
+                    usarMio = (rondaActual % 2 === 1);
+                }
+            } catch (e) { }
+
+            if (usarMio) {
+                document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${mapaElegido.archivo}')`);
+                const arena = document.querySelector('.arena-row');
+                if (arena) arena.style.backgroundImage = 'none';
+                return;
+            }
+            // Si toca el del rival, sigue abajo con el comportamiento normal.
         }
     }
 

@@ -190,6 +190,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Araquanid en su telaraña',
         descripcion: 'Una Araquanid gigante protege su territorio.',
         tipo: 'PvE',
+        terreno: 'terreno-araquanid.webp',
                 unidades: [
             { pokemon: 'araquanid', indice: 8, nivel: 1, escudoInicial: 300 }  // E3 (fila 3, col E, frente)
         ],
@@ -212,6 +213,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Drednaw el Devorador',
         descripcion: 'Drednaw emerge del pantano.',
         tipo: 'PvE',
+        terreno: 'terreno-pantano.webp',
                 unidades: [
             { pokemon: 'drednaw', indice: 8, nivel: 1, escudoInicial: 600 }  // E3 (fila 3, col E, frente)
         ],
@@ -235,6 +237,7 @@ const MONSTRUOS_PVE = {
         nombre: 'Regidrago, el Núcleo Dragón',
         descripcion: 'El guardián final del torneo PvE.',
         tipo: 'PvE',
+        terreno: 'terreno-regidrago.webp',
                 unidades: [
             { pokemon: 'regidrago', indice: 11, nivel: 1, escudoInicial: 1000 }  // H3 (fila 3, col H)
         ],

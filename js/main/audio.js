@@ -137,16 +137,28 @@ function playGritoEvolucion(pokemonId) {
     } catch (e) {}
 }
 
+let _evolveCompletedAudio = null;
+
 function playEvolveCompleted() {
     return new Promise((resolve) => {
         try {
+            if (_evolveCompletedAudio) {
+                try { _evolveCompletedAudio.pause(); _evolveCompletedAudio.currentTime = 0; } catch (e) { }
+                _evolveCompletedAudio = null;
+            }
             const url = CONFIG.UI_SOUND_URL + 'evolve-completed.mp3';
             const audio = new Audio(url);
+            _evolveCompletedAudio = audio;
             audio.volume = 0.35;
             let yaResuelto = false;
-            const resolver = () => { if (yaResuelto) return; yaResuelto = true; resolve(); };
+            const resolver = () => {
+                if (yaResuelto) return;
+                yaResuelto = true;
+                if (_evolveCompletedAudio === audio) _evolveCompletedAudio = null;
+                resolve();
+            };
             audio.addEventListener('ended', resolver);
-            audio.addEventListener('error', () => { playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
+            audio.addEventListener('error', () => { if (_evolveCompletedAudio === audio) _evolveCompletedAudio = null; playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
             audio.play().then(() => {}).catch(() => { playUISound('levelup.mp3', 0.4); setTimeout(resolver, 1500); });
             setTimeout(resolver, 15000);
         } catch (e) { playUISound('levelup.mp3', 0.4); setTimeout(resolve, 1500); }
@@ -157,6 +169,12 @@ function pararSonidoEvolucionCompleta() {
     if (!_evolucionAudioActual) return;
     try { _evolucionAudioActual.pause(); _evolucionAudioActual.currentTime = 0; } catch (e) {}
     _evolucionAudioActual = null;
+}
+
+function pararEvolveCompleted() {
+    if (!_evolveCompletedAudio) return;
+    try { _evolveCompletedAudio.pause(); _evolveCompletedAudio.currentTime = 0; } catch (e) {}
+    _evolveCompletedAudio = null;
 }
 
 function playVictoriaSound() {

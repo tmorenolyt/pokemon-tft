@@ -51,7 +51,10 @@
         const thumb = $('mapSelectorThumb');
         if (thumb) thumb.style.backgroundImage = "url('assets/backgrounds/" + m.archivo + "')";
         const nombre = $('mapSelectorName');
-        if (nombre) nombre.textContent = m.nombre;
+        if (nombre) {
+            const alt = Logros.mapaAlternando() && id !== 'auto';
+            nombre.textContent = m.nombre + (alt ? ' 🔁' : '');
+        }
         aplicarFondoMapa();
     }
 
@@ -183,6 +186,11 @@
             if (card.classList.contains('bloqueado')) return;
             if (Logros.seleccionarMapa(id)) {
                 actualizarMapSelector();
+                // Si estamos dentro de una partida, aplicar el cambio al instante.
+                const juego = document.getElementById('juegoContainer');
+                if (juego && getComputedStyle(juego).display !== 'none' && typeof aplicarTerrenoActual === 'function') {
+                    aplicarTerrenoActual(window.rivalActual);
+                }
                 cerrar(overlayMapas);
             }
         });
@@ -199,7 +207,7 @@
             const valor = logro ? Math.min(objetivo, Logros.valor(logro)) : 0;
             const req = logro
                 ? (ok ? '✓ Desbloqueado' : '🔒 ' + esc(logro.nombre) + ' · ' + valor + '/' + objetivo)
-                : (m.siempreDesbloqueado ? '✓ Siempre disponible' : '✓ Disponible');
+                : ((m.desc ? esc(m.desc) + ' · ' : '') + (m.siempreDesbloqueado ? '✓ Siempre disponible' : '✓ Disponible'));
             return '' +
                 '<div class="mapa-card ' + (ok ? 'disponible' : 'bloqueado') + (activo ? ' seleccionado' : '') + '" data-mapa="' + m.id + '">' +
                     '<div class="mapa-thumb" style="background-image:url(\'assets/backgrounds/' + m.archivo + '\')">' +
@@ -213,6 +221,8 @@
         }).join('');
 
         const desbloqueados = Logros.MAPAS.filter(m => Logros.mapaDesbloqueado(m.id)).length;
+        const esAuto = sel === 'auto';
+        const alternar = Logros.mapaAlternando() && !esAuto;
 
         overlayMapas.innerHTML = '' +
             '<div class="logros-modal mapas-modal">' +
@@ -223,8 +233,24 @@
                     '</div>' +
                     '<button type="button" class="logros-cerrar" data-cerrar-mapas aria-label="Cerrar">✕</button>' +
                 '</div>' +
+                '<label class="mapa-alternar' + (esAuto ? ' deshabilitado' : '') + '" title="Tu mapa en las rondas impares; el del rival en las pares">' +
+                    '<input type="checkbox" id="mapaAlternarToggle"' + (alternar ? ' checked' : '') + (esAuto ? ' disabled' : '') + '>' +
+                    '<span class="mapa-alternar-txt">🔁 Alternar con el mapa del rival</span>' +
+                    '<span class="mapa-alternar-hint">' + (esAuto ? 'Automático ya usa el del rival' : 'Tu mapa en rondas impares · rival en pares') + '</span>' +
+                '</label>' +
                 '<div class="mapas-grid">' + cards + '</div>' +
             '</div>';
+
+        const toggle = document.getElementById('mapaAlternarToggle');
+        if (toggle) {
+            toggle.addEventListener('change', () => {
+                Logros.setAlternarMapa(toggle.checked);
+                const juego = document.getElementById('juegoContainer');
+                if (juego && getComputedStyle(juego).display !== 'none' && typeof aplicarTerrenoActual === 'function') {
+                    aplicarTerrenoActual(window.rivalActual);
+                }
+            });
+        }
     }
 
     // ------------------------------------------------------------
@@ -297,6 +323,7 @@
         bind('profileCapsuleBtn', abrirLogrosPanel);
         bind('btnElegirMapa', abrirMapasPanel);
         bind('mapSelectorBar', abrirMapasPanel);
+        bind('btnMapaJuego', abrirMapasPanel);
 
         // Accesibilidad: Enter/Espacio en los elementos con role="button"
         ['mapSelectorBar', 'profileCapsuleBtn'].forEach(id => {
