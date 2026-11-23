@@ -313,6 +313,9 @@
     function init() {
         if (!window.Logros) return;
         Logros.init();
+        // Recupera logros ya cumplidos (p. ej. progreso de Pokédex de
+        // partidas anteriores) sin llenar la pantalla de toasts.
+        Logros.comprobar(true);
         actualizarPerfilUI();
         actualizarMapSelector();
 

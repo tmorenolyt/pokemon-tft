@@ -459,6 +459,21 @@ function getSpriteUrlFallback(spriteId, nombre, esShiny = false) {
     return `${CONFIG.SPRITE_BASE_URL}${carpeta}${idFinal}.${CONFIG.SPRITE_EXTENSION_FALLBACK}`;
 }
 
+// ¿Existe el sprite shiny de esta forma? (según el manifiesto)
+// Con esto la Pokédex no pide una imagen que no existe si algún día
+// se añade un Pokémon sin variante shiny.
+function tieneSpriteShiny(spriteId, nombre) {
+    let idFinal = spriteId;
+    if (nombre === "Vulpix") idFinal = 10103;
+    else if (nombre === "Ninetales") idFinal = 10104;
+    try {
+        const m = window.SPRITE_FORMATOS;
+        if (m && m.shiny) return !!m.shiny[idFinal];
+    } catch (e) { }
+    return true;
+}
+window.tieneSpriteShiny = tieneSpriteShiny;
+
 function getSpriteUrlOriginal(unidad) {
     if (!unidad || !unidad.pokemon) return '';
     const spriteId = unidad.pokemon.spriteId || unidad.pokemon.id;
@@ -2375,6 +2390,196 @@ TODOS_POKEMONS.forEach(p => {
 if (typeof window.precargarSprites === 'function') {
     window.precargarSprites();
 }
+;
+
+/* ==================== js/systems/pokedexEstado.js ==================== */
+// ============================================================
+// POKÉDEX · ESTADO (REGISTRADO / VISTO / NO VISTO)
+// ------------------------------------------------------------
+// - Se guarda en localStorage por navegador.
+// - "Registrado" = lo has comprado/obtenido en una partida.
+// - "Visto" = ha aparecido en el equipo rival (sin datos).
+// - Se agrupa por FAMILIA EVOLUTIVA: si ves un Ivysaur, la ficha
+//   base (Bulbasaur) queda como vista. Así la Pokédex mantiene las
+//   fichas base y su detalle por estrellas.
+// - "Shiny": si compras/obtienes una unidad shiny, la familia queda
+//   marcada como shiny y la Pokédex usa su sprite shiny.
+// ============================================================
+(function () {
+    'use strict';
+
+    const CLAVE = 'pktft_pokedex_v1';
+
+    let estado = { v: 2, comprados: {}, vistos: {}, shinies: {} };
+
+    function cargar() {
+        try {
+            const raw = localStorage.getItem(CLAVE);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (!data || typeof data !== 'object') return;
+            estado.v = 2;
+            estado.comprados = (data.comprados && typeof data.comprados === 'object') ? data.comprados : {};
+            estado.vistos = (data.vistos && typeof data.vistos === 'object') ? data.vistos : {};
+            estado.shinies = (data.shinies && typeof data.shinies === 'object') ? data.shinies : {};
+        } catch (e) { }
+    }
+
+    function guardar() {
+        try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) { }
+        avisarLogros();
+    }
+
+    // Los logros de la categoría 📖 Pokédex leen el progreso directamente
+    // de aquí, así que basta con avisar al sistema de logros tras cada
+    // cambio (compra o avistamiento).
+    function avisarLogros() {
+        try {
+            if (window.Logros && typeof window.Logros.comprobar === 'function') {
+                window.Logros.comprobar();
+            }
+        } catch (e) { }
+    }
+
+    cargar();
+
+    // Devuelve el nombre de la forma base de una familia.
+    // Ivysaur → Bulbasaur, Venusaur → Bulbasaur, Bulbasaur → Bulbasaur.
+    function nombreBase(nombre) {
+        if (!nombre) return null;
+        var p = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(nombre) : null;
+        if (!p) return null;
+
+        let actual = p;
+        let iter = 0;
+        while (actual && iter < 12) {
+            iter++;
+            const padre = (typeof TODOS_POKEMONS !== 'undefined')
+                ? TODOS_POKEMONS.find(x => x.evolucion === actual.nombre)
+                : null;
+            if (!padre) break;
+            actual = padre;
+        }
+        return actual ? actual.nombre : null;
+    }
+
+    function registrarVisto(nombre) {
+        if (window.modoCreativo === true) return false;
+        const base = nombreBase(nombre);
+        if (!base || estado.vistos[base]) return false;
+        estado.vistos[base] = true;
+        guardar();
+        return true;
+    }
+
+    function registrarCompra(nombre, esShiny) {
+        if (window.modoCreativo === true) return false;
+        const base = nombreBase(nombre);
+        if (!base) return false;
+
+        let cambiado = false;
+        if (!estado.comprados[base]) { estado.comprados[base] = true; cambiado = true; }
+        if (!estado.vistos[base]) { estado.vistos[base] = true; cambiado = true; }
+        if (esShiny === true && !estado.shinies[base]) {
+            estado.shinies[base] = true;
+            cambiado = true;
+        }
+        if (cambiado) guardar();
+        return true;
+    }
+
+    function estaComprado(nombre) {
+        const base = nombreBase(nombre);
+        return !!(base && estado.comprados[base]);
+    }
+
+    function estaVisto(nombre) {
+        const base = nombreBase(nombre);
+        return !!(base && estado.vistos[base]);
+    }
+
+    function tieneShiny(nombre) {
+        const base = nombreBase(nombre);
+        return !!(base && estado.shinies[base]);
+    }
+
+    function estadoDe(nombre) {
+        const base = nombreBase(nombre);
+        if (!base) return 'no-visto';
+        if (estado.comprados[base]) return 'comprado';
+        if (estado.vistos[base]) return 'visto';
+        return 'no-visto';
+    }
+
+    function registrarEquipoVisto(unidades) {
+        if (window.modoCreativo === true) return;
+        let cambiado = false;
+        for (const u of (unidades || [])) {
+            if (!u || !u.pokemon || !u.pokemon.nombre) continue;
+            const base = nombreBase(u.pokemon.nombre);
+            if (!base || estado.vistos[base]) continue;
+            estado.vistos[base] = true;
+            cambiado = true;
+        }
+        if (cambiado) guardar();
+    }
+
+    function sincronizarEquipoJugador() {
+        if (window.modoCreativo === true) return;
+        let cambiado = false;
+        const unidades = [
+            ...(typeof tablero !== 'undefined' ? tablero : []),
+            ...(typeof banquillo !== 'undefined' ? banquillo : [])
+        ];
+        for (const u of unidades) {
+            if (!u || !u.pokemon || !u.pokemon.nombre) continue;
+            const base = nombreBase(u.pokemon.nombre);
+            if (!base) continue;
+            if (!estado.comprados[base]) { estado.comprados[base] = true; cambiado = true; }
+            if (!estado.vistos[base]) { estado.vistos[base] = true; cambiado = true; }
+            const esShinyUnidad = (u.esShiny === true) || (u.pokemon && u.pokemon.shiny === true);
+            if (esShinyUnidad && !estado.shinies[base]) {
+                estado.shinies[base] = true;
+                cambiado = true;
+            }
+        }
+        if (cambiado) guardar();
+    }
+
+    function contar() {
+        const lista = (typeof POKEMONS !== 'undefined') ? POKEMONS : [];
+        let comprados = 0, vistos = 0, vistosTotal = 0, shinies = 0;
+        for (const p of lista) {
+            const comprado = !!estado.comprados[p.nombre];
+            const visto = !!estado.vistos[p.nombre];
+            if (comprado) comprados++;
+            if (visto) vistosTotal++;
+            if (visto && !comprado) vistos++;
+            if (estado.shinies[p.nombre]) shinies++;
+        }
+        return { total: lista.length, comprados, vistos, vistosTotal, shinies };
+    }
+
+    function reiniciar() {
+        estado = { v: 2, comprados: {}, vistos: {}, shinies: {} };
+        guardar();
+    }
+
+    window.Pokedex = {
+        registrarVisto,
+        registrarCompra,
+        estaComprado,
+        estaVisto,
+        tieneShiny,
+        estadoDe,
+        registrarEquipoVisto,
+        sincronizarEquipoJugador,
+        contar,
+        reiniciar,
+        nombreBase
+    };
+})();
+
 ;
 
 /* ==================== js/data/movimientosPokemon.js ==================== */
@@ -6527,6 +6732,7 @@ function comprar(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (evolucionData && evolucionData.id) {
             playPokemonCry(evolucionData.id);
@@ -6626,6 +6832,7 @@ function comprar(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon && pokemon.id) {
             playPokemonCry(pokemon.id);
@@ -6666,6 +6873,7 @@ function comprar(pokemon, idx) {
     if (colocado) {
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon && pokemon.id) {
             playPokemonCry(pokemon.id);
@@ -9849,6 +10057,16 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
         { id: 'coleccionista', cat: 'unidades', icono: '🌈', nombre: 'Coleccionista', desc: 'Consigue 5 unidades 3★ en la misma partida.', tipo: 'record', clave: 'maxRunUnidades3', objetivo: 5, xp: 250, mapa: 'eevee' },
         { id: 'mitico', cat: 'unidades', icono: '💎', nombre: 'Mítico', desc: 'Consigue una unidad de coste 5 a 3★.', tipo: 'record', clave: 'maxCoste5Tres', objetivo: 1, xp: 200, mapa: 'dragon' },
 
+        // ---------- Pokédex ----------
+        // Se leen directamente del progreso de la Pokédex (Pokedex.contar()),
+        // así no hay un segundo contador que se pueda desincronizar.
+        { id: 'pokedex_1', cat: 'pokedex', icono: '📖', nombre: 'Primera ficha', desc: 'Registra tu primer Pokémon en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 1, xp: 50 },
+        { id: 'pokedex_10', cat: 'pokedex', icono: '🔍', nombre: 'Investigador', desc: 'Registra 10 Pokémon distintos en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 10, xp: 100 },
+        { id: 'pokedex_25', cat: 'pokedex', icono: '🧭', nombre: 'Biólogo de campo', desc: 'Registra 25 Pokémon distintos en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 25, xp: 250 },
+        { id: 'pokedex_45', cat: 'pokedex', icono: '📚', nombre: 'Pokédex completa', desc: 'Registra los 45 Pokémon de la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 45, xp: 500 },
+        { id: 'pokedex_vistos_10', cat: 'pokedex', icono: '👁️', nombre: 'Ojo entrenador', desc: 'Ve 10 Pokémon distintos en combate (aunque no los compres).', tipo: 'pokedex', clave: 'vistosTotal', objetivo: 10, xp: 100 },
+        { id: 'pokedex_vistos_30', cat: 'pokedex', icono: '🔭', nombre: 'Vigía de Kanto', desc: 'Ve 30 Pokémon distintos en combate.', tipo: 'pokedex', clave: 'vistosTotal', objetivo: 30, xp: 200 },
+
         // ---------- Sinergias ----------
         { id: 'sinergia_6', cat: 'sinergias', icono: '🔗', nombre: 'Sinergia perfecta', desc: 'Activa un tipo a nivel 6.', tipo: 'record', clave: 'maxSinergia', objetivo: 6, xp: 250, mapa: 'agua' },
         { id: 'equipo_equilibrado', cat: 'sinergias', icono: '⚖️', nombre: 'Equipo equilibrado', desc: 'Activa 3 tipos distintos a nivel 3 o más.', tipo: 'record', clave: 'maxTipos3', objetivo: 3, xp: 150, mapa: 'hada' },
@@ -9875,6 +10093,7 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
         { id: 'todos', nombre: 'Todos', icono: '🏆' },
         { id: 'progresion', nombre: 'Progresión', icono: '📈' },
         { id: 'unidades', nombre: 'Unidades', icono: '⭐' },
+        { id: 'pokedex', nombre: 'Pokédex', icono: '📖' },
         { id: 'sinergias', nombre: 'Sinergias', icono: '🔗' },
         { id: 'objetos', nombre: 'Objetos', icono: '🎒' },
         { id: 'combate', nombre: 'Combate', icono: '⚔️' },
@@ -10005,6 +10224,11 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
             case 'record':   return Number(estado.records[logro.clave] || 0);
             case 'run':      return Number(estado.run[logro.clave] || 0);
             case 'evento':   return estado.eventos[logro.id] ? 1 : 0;
+            case 'pokedex': {
+                if (!window.Pokedex || typeof window.Pokedex.contar !== 'function') return 0;
+                const c = window.Pokedex.contar();
+                return Number(c[logro.clave] || 0);
+            }
             default:         return 0;
         }
     }
@@ -10080,7 +10304,9 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
         return true;
     }
 
-    function comprobar() {
+    // `silencioso` = true evita los toasts (se usa al arrancar para
+    // recuperar logros ya cumplidos sin llenar la pantalla de avisos).
+    function comprobar(silencioso) {
         const nuevos = [];
         for (const logro of LOGROS) {
             if (desbloqueado(logro.id)) continue;
@@ -10089,7 +10315,7 @@ window.autoDevolverObjetosAlBaul = autoDevolverObjetosAlBaul;
         }
         if (nuevos.length > 0) {
             guardar();
-            notificar(nuevos);
+            if (!silencioso) notificar(nuevos);
         }
         return nuevos;
     }
@@ -24300,6 +24526,15 @@ async function combatir() {
         bloquearEstadoCombate();
         if (typeof resetCambioMovimientoRonda === 'function') resetCambioMovimientoRonda();
 
+        // 📖 Pokédex: registrar los Pokémon del jugador como comprados y los
+        // del rival como vistos (sin datos). Se agrupa por familia base.
+        if (typeof Pokedex !== 'undefined') {
+            try {
+                Pokedex.sincronizarEquipoJugador();
+                Pokedex.registrarEquipoVisto([...(enemyBoard || []), ...(enemyBanquillo || [])]);
+            } catch (e) { }
+        }
+
         const btnPost = document.getElementById('btnPostCombate');
         if (btnPost) btnPost.style.display = 'inline-flex';
 
@@ -31385,6 +31620,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨ (Fusión en curso)`, 'success');
         else addConsoleMessage(`🛒 ${pokemon.nombre} comprado! (${pokemon.coste}💰) - Fusión en curso`, 'buy');
@@ -31474,6 +31710,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
     if (ubicado) {
         oro -= pokemon.coste;
         tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon.id) playPokemonCry(pokemon.id);
         else playBuySound();
@@ -35621,6 +35858,7 @@ function addConsoleMessage(text, type = 'info', showTime = true) {
 
 let pokedexAbierta = false;
 let pokedexDetalleAbierto = false;
+let pokedexModoShiny = false;   // ✨ detalle: ver forma shiny o normal
 let nombreJugador = "Entrenador";
 let avatarJugador = "rojo";
 let nombreJugador2 = "Jugador 2";
@@ -36347,6 +36585,7 @@ function initMenu() {
     document.getElementById('pokedexFiltroTexto')?.addEventListener('input', renderizarPokedex);
     document.getElementById('pokedexFiltroTipo')?.addEventListener('change', renderizarPokedex);
     document.getElementById('pokedexFiltroCoste')?.addEventListener('change', renderizarPokedex);
+    document.getElementById('pokedexFiltroEstado')?.addEventListener('change', renderizarPokedex);
 
     console.log("✅ Menú inicializado correctamente");
 }
@@ -36399,6 +36638,15 @@ function renderizarPokedex() {
     const filtroTexto = document.getElementById('pokedexFiltroTexto');
     const filtroTipo = document.getElementById('pokedexFiltroTipo');
     const filtroCoste = document.getElementById('pokedexFiltroCoste');
+    const filtroEstado = document.getElementById('pokedexFiltroEstado');
+
+    // 📖 Progreso de la Pokédex (registrados / vistos / total)
+    const progEl = document.getElementById('pokedexProgreso');
+    if (progEl && typeof Pokedex !== 'undefined') {
+        const c = Pokedex.contar();
+        progEl.textContent = `✅ ${c.comprados} registrados · 👁 ${c.vistos} vistos / ${c.total}`
+            + (c.shinies > 0 ? ` · ✨ ${c.shinies} shiny` : '');
+    }
 
     if (!grid) return;
 
@@ -36414,8 +36662,13 @@ function renderizarPokedex() {
     }
 
     const tipoNormalizado = normalizarTexto(tipoSeleccionado);
+    const estadoSeleccionado = filtroEstado ? filtroEstado.value : 'todos';
 
     pokemons = pokemons.filter(p => {
+        const estadoP = (typeof Pokedex !== 'undefined') ? Pokedex.estadoDe(p.nombre) : 'comprado';
+        if (estadoSeleccionado === 'comprados' && estadoP !== 'comprado') return false;
+        if (estadoSeleccionado === 'vistos' && estadoP !== 'visto') return false;
+        if (estadoSeleccionado === 'no-vistos' && estadoP !== 'no-visto') return false;
         if (texto && !p.nombre.toLowerCase().includes(texto)) return false;
         if (tipoSeleccionado !== 'todos') {
             let coincide = false;
@@ -36446,9 +36699,17 @@ function renderizarPokedex() {
     pokemons.forEach(p => {
         const card = document.createElement('div');
         const coste = p.coste || 1;
-        card.className = `pokedex-card cost-${coste}`;
+        const estadoP = (typeof Pokedex !== 'undefined') ? Pokedex.estadoDe(p.nombre) : 'comprado';
+        card.className = `pokedex-card cost-${coste} ${estadoP}`;
+        const nombreMostrar = estadoP === 'no-visto' ? '???' : p.nombre;
 
-        const spriteUrl = typeof getSpriteUrl === 'function' ? getSpriteUrl(p.spriteId, p.nombre) : '';
+        // ✨ Si has comprado la versión shiny, la ficha usa su sprite shiny.
+        const esShinyP = estadoP === 'comprado'
+            && typeof Pokedex !== 'undefined'
+            && typeof Pokedex.tieneShiny === 'function'
+            && Pokedex.tieneShiny(p.nombre);
+
+        const spriteUrl = typeof getSpriteUrl === 'function' ? getSpriteUrl(p.spriteId, p.nombre, esShinyP) : '';
         const escalaSprite = typeof getSpriteScale === 'function' ? getSpriteScale(p.spriteId) : 1;
         const offsetXSprite = typeof getSpriteOffsetX === 'function' ? getSpriteOffsetX(p.spriteId) : '0px';
 
@@ -36481,13 +36742,17 @@ function renderizarPokedex() {
         card.innerHTML = `
             <div class="pokedex-card-tipos">${tiposHtml}</div>
             ${costeHtml}
+            ${esShinyP ? '<div class="pokedex-card-shiny" title="Shiny registrado">✨</div>' : ''}
             <img class="pokedex-card-sprite" src="${spriteUrl}" alt="${p.nombre}" draggable="false" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none';">
-            <div class="pokedex-card-nombre">${p.nombre}</div>
+            <div class="pokedex-card-nombre">${nombreMostrar}</div>
             ${estrellasHtml}
             ${evolucionHtml}
+            <div class="pokedex-card-estado ${estadoP}" title="${estadoP === 'comprado' ? 'Registrado' : (estadoP === 'visto' ? 'Visto en combate' : 'No visto')}">${estadoP === 'comprado' ? '✅' : (estadoP === 'visto' ? '👁' : '❓')}</div>
         `;
 
-        card.title = `${p.nombre} (Coste ${coste})`;
+        card.title = estadoP === 'comprado'
+            ? `${p.nombre} (Coste ${coste})${esShinyP ? ' · ✨ Shiny' : ''}`
+            : (estadoP === 'visto' ? `${p.nombre} · Visto (sin datos)` : '??? · No visto');
         card.addEventListener('click', function () {
             abrirPokedexDetalle(p);
             if (typeof playButtonSound === 'function') playButtonSound();
@@ -36503,11 +36768,37 @@ function cerrarPokedexDetalle() {
     pokedexDetalleAbierto = false;
 }
 
+function construirPokedexDetalleBloqueado(pokemon, estado) {
+    const visto = estado === 'visto';
+    const nombre = visto ? pokemon.nombre : '???';
+    const spriteUrl = (visto && typeof getSpriteUrl === 'function')
+        ? getSpriteUrl(pokemon.spriteId, pokemon.nombre)
+        : '';
+    return `
+        <div class="pokedex-detalle-bloqueado ${estado}">
+            ${spriteUrl ? `<img class="pokedex-detalle-sprite-bloqueado" src="${spriteUrl}" alt="${nombre}" draggable="false">` : ''}
+            <div class="pokedex-detalle-bloqueado-icono">${visto ? '👁' : '❓'}</div>
+            <h2>${nombre}</h2>
+            <p>${visto
+                ? 'Visto en combate. Aún no lo has registrado: compra este Pokémon en la tienda para ver sus datos.'
+                : 'Todavía no lo has visto. Aparecerá aquí cuando lo veas en combate o lo compres.'}</p>
+        </div>
+    `;
+}
+
 function abrirPokedexDetalle(pokemon) {
     if (!pokemon) return;
     const overlay = document.getElementById('pokedexDetalleOverlay');
     const body = document.getElementById('pokedexDetalleBody');
     if (!overlay || !body) return;
+
+    const estadoP = (typeof Pokedex !== 'undefined') ? Pokedex.estadoDe(pokemon.nombre) : 'comprado';
+    if (estadoP !== 'comprado') {
+        body.innerHTML = construirPokedexDetalleBloqueado(pokemon, estadoP);
+        overlay.classList.add('visible');
+        pokedexDetalleAbierto = true;
+        return;
+    }
 
     let formaBase = pokemon;
     if (typeof TODOS_POKEMONS !== 'undefined') {
@@ -36519,6 +36810,12 @@ function abrirPokedexDetalle(pokemon) {
             formaBase = padre;
         }
     }
+    window._pokedexDetalleBase = formaBase;
+    window._pokedexDetalleNivel = 1;
+    pokedexModoShiny = (typeof Pokedex !== 'undefined' && typeof Pokedex.tieneShiny === 'function')
+        ? Pokedex.tieneShiny(formaBase.nombre)
+        : false;
+
     body.innerHTML = construirPokedexDetalleHtml(formaBase, 1);
     overlay.classList.add('visible');
     pokedexDetalleAbierto = true;
@@ -36533,11 +36830,25 @@ function engacharEventosDetalle(pokemonBase) {
             const nivel = parseInt(this.dataset.nivel);
             if (isNaN(nivel)) return;
             const base = window._pokedexDetalleBase || pokemonBase;
+            window._pokedexDetalleNivel = nivel;
             body.innerHTML = construirPokedexDetalleHtml(base, nivel);
             engacharEventosDetalle(base);
             if (typeof playButtonSound === 'function') playButtonSound();
         });
     });
+
+    // ✨ Alternar entre la forma normal y la shiny (solo si la has comprado)
+    const shinyBtn = body.querySelector('.pokedex-detalle-shiny-toggle');
+    if (shinyBtn) {
+        shinyBtn.addEventListener('click', function () {
+            const base = window._pokedexDetalleBase || pokemonBase;
+            const nivel = window._pokedexDetalleNivel || 1;
+            pokedexModoShiny = !pokedexModoShiny;
+            body.innerHTML = construirPokedexDetalleHtml(base, nivel);
+            engacharEventosDetalle(base);
+            if (typeof playButtonSound === 'function') playButtonSound();
+        });
+    }
 }
 
 function construirPokedexDetalleHtml(p, nivelSeleccionado = 1) {
@@ -36561,7 +36872,17 @@ function construirPokedexDetalleHtml(p, nivelSeleccionado = 1) {
     const nivel = nivelSeleccionado;
 
     const spriteId = formaMostrada.spriteId || formaMostrada.id;
-    const spriteUrl = typeof getSpriteUrl === 'function' ? getSpriteUrl(spriteId, formaMostrada.nombre) : '';
+
+    // ✨ Forma shiny (si la familia tiene shiny registrado y existe el sprite)
+    const shinyRegistrado = (typeof Pokedex !== 'undefined' && typeof Pokedex.tieneShiny === 'function')
+        ? Pokedex.tieneShiny(p.nombre)
+        : false;
+    const shinyDisponible = (typeof tieneSpriteShiny === 'function')
+        ? tieneSpriteShiny(spriteId, formaMostrada.nombre)
+        : true;
+    const esShiny = pokedexModoShiny && shinyRegistrado && shinyDisponible;
+
+    const spriteUrl = typeof getSpriteUrl === 'function' ? getSpriteUrl(spriteId, formaMostrada.nombre, esShiny) : '';
 
     function getStatValue(stat, nivel) {
         if (stat === null || stat === undefined) return 0;
@@ -36696,12 +37017,13 @@ function construirPokedexDetalleHtml(p, nivelSeleccionado = 1) {
     const offsetXSprite = typeof getSpriteOffsetX === 'function' ? getSpriteOffsetX(spriteId) : '0px';
 
     return `
-        <div class="pokedex-detalle-cabecera cost-${coste}">
+        <div class="pokedex-detalle-cabecera cost-${coste}${esShiny ? ' shiny' : ''}">
             <div class="pokedex-detalle-sprite-wrapper"><img class="pokedex-detalle-sprite" src="${spriteUrl}" alt="${formaMostrada.nombre}" draggable="false" style="--sprite-scale: ${escalaSprite}; --sprite-offset-x: ${offsetXSprite}" onerror="this.style.display='none';"></div>
             <div class="pokedex-detalle-info">
                 <div class="pokedex-detalle-nombre">${formaMostrada.nombre}</div>
-                <div class="pokedex-detalle-subinfo"><span class="item"><img src="assets/icons/moneda.png" alt="💰" draggable="false"> Coste ${coste}</span>${estrellasUrl ? `<span class="item"><img src="${estrellasUrl}" alt="${nivel}★" draggable="false"> Nivel ${nivel}★</span>` : ''}</div>
+                <div class="pokedex-detalle-subinfo"><span class="item"><img src="assets/icons/moneda.png" alt="💰" draggable="false"> Coste ${coste}</span>${estrellasUrl ? `<span class="item"><img src="${estrellasUrl}" alt="${nivel}★" draggable="false"> Nivel ${nivel}★</span>` : ''}${esShiny ? '<span class="item pokedex-detalle-shiny-tag">✨ Shiny</span>' : ''}</div>
                 <div class="pokedex-detalle-badges">${tiposHtml}${claseHtml}</div>
+                ${(shinyRegistrado && shinyDisponible) ? `<button type="button" class="pokedex-detalle-shiny-toggle${esShiny ? ' activo' : ''}">${esShiny ? '🎨 Ver forma normal' : '✨ Ver forma shiny'}</button>` : ''}
             </div>
             ${evolucionHtml}
         </div>
@@ -37060,6 +37382,9 @@ window.conectarBotonesHeaderPokedex = conectarBotonesHeaderPokedex;
     function init() {
         if (!window.Logros) return;
         Logros.init();
+        // Recupera logros ya cumplidos (p. ej. progreso de Pokédex de
+        // partidas anteriores) sin llenar la pantalla de toasts.
+        Logros.comprobar(true);
         actualizarPerfilUI();
         actualizarMapSelector();
 
@@ -48051,6 +48376,16 @@ function abrirInspeccionRival(nombreRival) {
 
     const rivalData = window.torneoRivales.find(r => r.nombre === nombreRival);
     if (!rivalData) return;
+
+    // 📖 Al espiar a un rival, sus Pokémon cuentan como vistos.
+    if (typeof Pokedex !== 'undefined' && rivalData._equipoGuardado) {
+        try {
+            Pokedex.registrarEquipoVisto([
+                ...(rivalData._equipoGuardado.tablero || []),
+                ...(rivalData._equipoGuardado.banquillo || [])
+            ]);
+        } catch (e) { }
+    }
 
     if (typeof combatiendo !== 'undefined' && combatiendo) {
         if (typeof addConsoleMessage === 'function') addConsoleMessage('⛔ No puedes espiar durante el combate', 'error');

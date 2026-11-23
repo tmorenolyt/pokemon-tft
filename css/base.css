@@ -266,16 +266,8 @@ body::before {
 .comic-bubble.bubble-thinking::before { border-bottom-color: #6b8aaa; }
 .comic-bubble.bubble-thinking::after  { border-bottom-color: #ffffff; }
 
-/* 🆕 Último diálogo: rival eliminado del torneo */
-.comic-bubble.bubble-eliminado {
-    border-color: #fbbf24 !important;
-    background: #fffdf5 !important;
-    box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.7), 0 0 20px rgba(251, 191, 36, 0.45) !important;
-    animation: comicBubbleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), comicBubblePulse 1.8s ease-in-out 0.3s infinite !important;
-}
-.comic-bubble.bubble-eliminado::before { border-bottom-color: #fbbf24; }
-.comic-bubble.bubble-eliminado::after  { border-bottom-color: #fffdf5; }
-
+/* El último diálogo del rival eliminado usa el estilo normal del
+   bocadillo (blanco, borde negro y letra idéntica al resto). */
 .comic-bubble.closing { opacity: 0 !important; transform: translateY(-10px) scale(0.95) !important; }
 
 .comic-bubble.bubble-left::before { left: auto; right: 20px; }

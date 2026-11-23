@@ -62,19 +62,33 @@
 
 .ranking-torneo .ranking-item:hover {
     background: transparent !important;
-    border-color: rgba(251, 191, 36, 0.5) !important;
+    border-color: transparent !important;
 }
 
-/* Fila del jugador activo (sin fondo, solo borde cian) */
+/* Fila del jugador activo (sin fondo ni marco; el avatar ya va en amarillo) */
 .ranking-torneo .ranking-item.jugador {
     background: transparent;
-    border-color: rgba(77, 212, 247, 0.3);
+    border-color: transparent;
     cursor: default;
 }
 
 .ranking-torneo .ranking-item.jugador:hover {
     background: transparent !important;
-    border-color: rgba(77, 212, 247, 0.3) !important;
+    border-color: transparent !important;
+}
+
+/* 🟡 Marco amarillo del avatar del jugador: se reconoce de un vistazo
+   en el ranking (1J, 2J y online comparten este panel). */
+.ranking-torneo .ranking-item.jugador .ranking-avatar {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25);
+}
+
+/* 🔴 Marco rojo del avatar del rival de esta ronda (el jugador nunca
+   lleva esta clase, así que no choca con el amarillo). */
+.ranking-torneo .ranking-item.pareja-activa .ranking-avatar {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 0 6px rgba(239, 68, 68, 0.45);
 }
 
 /* Rival eliminado */
@@ -491,32 +505,20 @@ body.modo-espia #playerBoard .board-cell {
 
 /* ============================================================
    🎯 RIVAL AL QUE TE VAS A ENFRENTAR (recuadro marcado)
-   El ranking SIEMPRE va en orden de posición; solo se resalta
-   la fila del próximo rival con un marco dorado y un ⚔️.
+   El ranking SIEMPRE va en orden de posición; el próximo rival
+   se marca solo con el marco rojo de su avatar.
    ============================================================ */
+/* El próximo rival ya se distingue solo por el marco rojo de su avatar.
+   Sin marco de fila, sin fondo dorado y sin ⚔️. */
 .ranking-torneo .ranking-item.pareja-activa {
-    border: 1px solid rgba(251, 191, 36, 0.85) !important;
-    background: linear-gradient(90deg, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0.02) 100%) !important;
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.35), inset 0 0 10px rgba(251, 191, 36, 0.12);
-    animation: pulsoRivalActivo 1.8s ease-in-out infinite;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none;
+    animation: none;
 }
 
 .ranking-torneo .ranking-item.pareja-activa:hover {
-    border-color: rgba(251, 191, 36, 1) !important;
-}
-
-.ranking-torneo .ranking-item.pareja-activa::after {
-    content: '⚔️';
-    position: absolute;
-    top: -7px;
-    right: -6px;
-    font-size: 0.8rem;
-    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
-}
-
-@keyframes pulsoRivalActivo {
-    0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.28), inset 0 0 8px rgba(251, 191, 36, 0.10); }
-    50%      { box-shadow: 0 0 16px rgba(251, 191, 36, 0.55), inset 0 0 14px rgba(251, 191, 36, 0.20); }
+    border-color: transparent !important;
 }
 /* ============================================================
    📐 RANKING GRANDE A 100 % (1920 px de ancho)
@@ -593,16 +595,11 @@ body.modo-espia #playerBoard .board-cell {
 
 /* ============================================================
    📐 DECORACIONES DEL RANKING DENTRO DEL PANEL (≤2000px)
-   El ⚔️ del rival y el 🔥 de la racha estaban con right/left
-   negativos: además de salirse, el ⚔️ sacaba barra horizontal.
-   Van al final para ganar a las reglas base (misma especificidad).
+   El 🔥 de la racha estaba con left negativo: además de salirse,
+   sacaba barra horizontal. Va al final para ganar a la regla base
+   (misma especificidad).
    ============================================================ */
 @media (max-width: 2000px) {
-    .ranking-torneo .ranking-item.pareja-activa::after {
-        right: 2px;
-        top: -6px;
-    }
-
     .ranking-torneo .ranking-item.racha-alta::before {
         left: 0;
     }

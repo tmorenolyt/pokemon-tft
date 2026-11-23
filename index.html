@@ -26,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=b371ee2463" />
+    <link rel="stylesheet" href="css/bundle.css?v=82d5425dc5" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -432,6 +432,7 @@
             <div class="pokedex-contenido">
                                 <div class="pokedex-header">
                     <span class="pokedex-titulo">📖 POKÉDEX</span>
+                    <span class="pokedex-progreso" id="pokedexProgreso"></span>
                 </div>
 
                 <div class="pokedex-filtros">
@@ -481,6 +482,12 @@
                         <option value="3">⭐ Coste 3</option>
                         <option value="4">⭐ Coste 4</option>
                         <option value="5">⭐ Coste 5</option>
+                    </select>
+                    <select id="pokedexFiltroEstado" class="pokedex-select">
+                        <option value="todos">📖 Todos</option>
+                        <option value="comprados">✅ Registrados</option>
+                        <option value="vistos">👁 Vistos</option>
+                        <option value="no-vistos">❓ No vistos</option>
                     </select>
                 </div>
 
@@ -1126,6 +1133,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=b371ee2463"></script>
+    <script defer src="js/bundle.js?v=82d5425dc5"></script>
 </body>
 </html>

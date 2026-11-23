@@ -577,13 +577,13 @@ protegido solo por `ACCESS_KEY`.
   así que el relleno quedaba en **1 px** y casi no se veía cargar. Ahora mide
   4 px, sin borde, y el relleno ocupa los 4 px completos (verificado de 667×375
   a 926×428). El resto de barras (HP/energía) no cambia.
-- **Sistema de logros + mapas desbloqueables**: 21 logros en 8 categorías
-  (progresión, unidades, sinergias, objetos, combate, PvE y online), con XP de
+- **Sistema de logros + mapas desbloqueables**: 27 logros en 9 categorías
+  (progresión, unidades, Pokédex, sinergias, objetos, combate, PvE y online), con XP de
   perfil, toasts de desbloqueo y panel 🏆. El perfil del menú ya no es decorativo:
   la barra de XP sube con cada logro (`Nv.` calculado con `sqrt`).
   - Persistencia: `localStorage['pktft_logros_v1']` (logros, contadores,
     récords y XP) y `localStorage['pktft_mapa_v1']` (mapa elegido).
-  - 21 logros desbloquean 17 mapas (más `Automático` y `Pradera`). La selección
+  - 21 de esos logros desbloquean 17 mapas (más `Automático` y `Pradera`). La selección
     de mapa está en la pantalla de selección de jugador (`MAPA … CAMBIAR ›`).
     `aplicarTerrenoActual()` respeta el mapa elegido en todas las rondas; con
     `Automático` se mantiene el comportamiento por rival/PvE.
@@ -595,6 +595,13 @@ protegido solo por `ACCESS_KEY`.
     intocable, contra las cuerdas), `torneo_ganado`, `fusion` (3★ y coste 5),
     `objeto_equipado` (solo unidades del jugador), `sinergias`, `nivel`,
     `baul` y `online_fin`.
+  - **Logros de Pokédex** (categoría 📖): leen el progreso real de la Pokédex
+    (`Pokedex.contar()`) en vez de llevar un contador aparte. `Primera ficha`
+    (1 registrado), `Investigador` (10), `Biólogo de campo` (25), `Pokédex
+    completa` (45), `Ojo entrenador` (10 vistos) y `Vigía de Kanto` (30
+    vistos). Se comprueban al comprar/ver un Pokémon (hook en `guardar()` de
+    `pokedexEstado.js`) y al arrancar de forma silenciosa, para recuperar los
+    ya cumplidos sin toasts.
   - El modo creativo/sandbox no cuenta. Los objetos que equipa la IA tampoco.
   - Verificado en headless: desbloqueo por evento real, persistencia tras
     recargar, mapa aplicado al iniciar partida, mapa bloqueado no seleccionable,
@@ -669,6 +676,25 @@ protegido solo por `ACCESS_KEY`.
     ~0,8 s después del combate (antes se veían varios segundos el rival y su
     baúl). También se evita el combate fantasma de `simularCombatesRivales`
     cuando ya no queda nadie vivo.
+  - **Pokédex realista (registrado / visto / no visto)**:
+    `js/systems/pokedexEstado.js` guarda en
+    `localStorage['pktft_pokedex_v1']` los Pokémon **registrados** (comprados u
+    obtenidos) y **vistos** (equipo rival o espiado), agrupados por **familia
+    base** (Ivysaur cuenta como Bulbasaur).
+    - Al comprar en la tienda se registra la familia.
+    - Al empezar cada combate, los Pokémon del jugador se registran como
+      comprados y los del rival como vistos; al espiar a un rival también.
+    - La Pokédex muestra ✅ registrados, 👁 vistos (silueta, sin datos) y ❓ no
+      vistos (???), con filtro por estado y contador de progreso. Al abrir una
+      ficha no registrada se muestra un aviso sin stats/movimientos.
+    - **Shiny**: al comprar una unidad shiny se guarda su familia en
+      `shinies` (también al sincronizar el equipo, por si llega por fusión).
+      La ficha y el detalle usan el sprite shiny (`assets/sprites/pokemon/shiny/`)
+      con una insignia ✨, y el detalle incluye un botón para alternar entre la
+      forma shiny y la normal. Las fichas shiny solo aparecen si la familia
+      está registrada (no para simples avistamientos).
+    - El modo creativo no cuenta. `Pokedex.reiniciar()` permite borrar el
+      progreso por consola (aún no hay botón en Ajustes).
   - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
     así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
     navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.

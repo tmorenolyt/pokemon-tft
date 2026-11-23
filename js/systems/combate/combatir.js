@@ -26,6 +26,15 @@ async function combatir() {
         bloquearEstadoCombate();
         if (typeof resetCambioMovimientoRonda === 'function') resetCambioMovimientoRonda();
 
+        // 📖 Pokédex: registrar los Pokémon del jugador como comprados y los
+        // del rival como vistos (sin datos). Se agrupa por familia base.
+        if (typeof Pokedex !== 'undefined') {
+            try {
+                Pokedex.sincronizarEquipoJugador();
+                Pokedex.registrarEquipoVisto([...(enemyBoard || []), ...(enemyBanquillo || [])]);
+            } catch (e) { }
+        }
+
         const btnPost = document.getElementById('btnPostCombate');
         if (btnPost) btnPost.style.display = 'inline-flex';
 

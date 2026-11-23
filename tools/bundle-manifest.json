@@ -7,6 +7,7 @@
     "js/data/objetos.js",
     "js/data/objetosRecomendados.js",
     "js/data/pokemon.js",
+    "js/systems/pokedexEstado.js",
     "js/data/movimientosPokemon.js",
     "js/data/movimientosSecundarios.js",
     "js/data/ultisPokemon.js",

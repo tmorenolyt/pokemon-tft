@@ -268,16 +268,8 @@ body::before {
 .comic-bubble.bubble-thinking::before { border-bottom-color: #6b8aaa; }
 .comic-bubble.bubble-thinking::after  { border-bottom-color: #ffffff; }
 
-/* 🆕 Último diálogo: rival eliminado del torneo */
-.comic-bubble.bubble-eliminado {
-    border-color: #fbbf24 !important;
-    background: #fffdf5 !important;
-    box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.7), 0 0 20px rgba(251, 191, 36, 0.45) !important;
-    animation: comicBubbleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), comicBubblePulse 1.8s ease-in-out 0.3s infinite !important;
-}
-.comic-bubble.bubble-eliminado::before { border-bottom-color: #fbbf24; }
-.comic-bubble.bubble-eliminado::after  { border-bottom-color: #fffdf5; }
-
+/* El último diálogo del rival eliminado usa el estilo normal del
+   bocadillo (blanco, borde negro y letra idéntica al resto). */
 .comic-bubble.closing { opacity: 0 !important; transform: translateY(-10px) scale(0.95) !important; }
 
 .comic-bubble.bubble-left::before { left: auto; right: 20px; }
@@ -1494,6 +1486,171 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
     border-color: #4dd4f7;
     box-shadow: 0 8px 24px rgba(77, 212, 247, 0.35), 0 0 20px rgba(77, 212, 247, 0.2);
     z-index: 5;
+}
+
+/* ============================================================
+   📖 ESTADOS: REGISTRADO / VISTO / NO VISTO
+   ============================================================ */
+.pokedex-progreso {
+    font-size: 0.62rem;
+    color: #93c5fd;
+    margin-top: 3px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.pokedex-card.visto .pokedex-card-tipos,
+.pokedex-card.visto .pokedex-card-coste,
+.pokedex-card.visto .pokedex-card-stars,
+.pokedex-card.visto .pokedex-card-evolucion,
+.pokedex-card.no-visto .pokedex-card-tipos,
+.pokedex-card.no-visto .pokedex-card-coste,
+.pokedex-card.no-visto .pokedex-card-stars,
+.pokedex-card.no-visto .pokedex-card-evolucion {
+    display: none !important;
+}
+
+.pokedex-card.visto .pokedex-card-sprite {
+    filter: brightness(0) drop-shadow(0 0 10px rgba(77, 212, 247, 0.55)) !important;
+    opacity: 0.8;
+}
+
+.pokedex-card.no-visto .pokedex-card-sprite {
+    filter: brightness(0) !important;
+    opacity: 0.45;
+}
+
+.pokedex-card.visto {
+    border-color: rgba(77, 212, 247, 0.55);
+}
+
+.pokedex-card.no-visto {
+    border-color: rgba(120, 150, 220, 0.15);
+    opacity: 0.8;
+}
+
+.pokedex-card.visto .pokedex-card-nombre { color: #bfe8ff; }
+.pokedex-card.no-visto .pokedex-card-nombre { color: #6b8aaa; letter-spacing: 2px; }
+
+.pokedex-card-estado {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    z-index: 3;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    font-size: 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
+
+.pokedex-card-estado.comprado { border-color: rgba(74, 222, 128, 0.7); }
+.pokedex-card-estado.visto { border-color: rgba(77, 212, 247, 0.7); }
+.pokedex-card-estado.no-visto { border-color: rgba(120, 150, 220, 0.35); }
+
+/* ✨ Shiny registrado: insignia dorada en la ficha */
+.pokedex-card-shiny {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 3;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(251, 191, 36, 0.85);
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+    font-size: 0.58rem;
+    pointer-events: none;
+}
+
+/* ✨ Shiny en el detalle: etiqueta, botón y brillo del sprite */
+.pokedex-detalle-subinfo .item.pokedex-detalle-shiny-tag {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.55);
+    background: rgba(251, 191, 36, 0.12);
+}
+
+.pokedex-detalle-shiny-toggle {
+    align-self: flex-start;
+    appearance: none;
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pokedex-detalle-shiny-toggle:hover {
+    background: rgba(251, 191, 36, 0.25);
+    border-color: #fbbf24;
+}
+
+.pokedex-detalle-shiny-toggle.activo {
+    background: rgba(251, 191, 36, 0.22);
+    border-color: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+}
+
+.pokedex-detalle-cabecera.shiny .pokedex-detalle-sprite-wrapper {
+    border-color: rgba(251, 191, 36, 0.7);
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 0.4),
+        0 0 26px rgba(251, 191, 36, 0.45);
+}
+
+.pokedex-detalle-cabecera.shiny .pokedex-detalle-nombre {
+    color: #fde68a;
+    text-shadow: 0 0 14px rgba(251, 191, 36, 0.55);
+}
+
+/* Detalle bloqueado (visto / no visto) */
+.pokedex-detalle-bloqueado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 24px 16px;
+    min-height: 280px;
+}
+
+.pokedex-detalle-sprite-bloqueado {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: brightness(0) drop-shadow(0 0 18px rgba(77, 212, 247, 0.45));
+    opacity: 0.85;
+}
+
+.pokedex-detalle-bloqueado-icono { font-size: 1.6rem; opacity: 0.8; }
+.pokedex-detalle-bloqueado h2 { margin: 0; font-size: 1.25rem; color: #e6eefc; }
+.pokedex-detalle-bloqueado p { margin: 0; max-width: 420px; font-size: 0.72rem; color: #93a8c8; line-height: 1.5; }
+
+@media (max-height: 700px) and (max-width: 1100px) {
+    .pokedex-progreso { font-size: 0.5rem; }
+    .pokedex-card-estado { width: 14px; height: 14px; font-size: 0.5rem; }
+    .pokedex-card-shiny { width: 14px; height: 14px; font-size: 0.5rem; }
+    .pokedex-detalle-shiny-toggle { font-size: 0.55rem; padding: 3px 9px; }
+    .pokedex-detalle-sprite-bloqueado { width: 90px; height: 90px; }
+    .pokedex-detalle-bloqueado { min-height: 200px; padding: 12px 8px; gap: 6px; }
+    .pokedex-detalle-bloqueado h2 { font-size: 1rem; }
+    .pokedex-detalle-bloqueado p { font-size: 0.6rem; }
 }
 
 .pokedex-card.cost-1 { background: linear-gradient(145deg, #49636a, #3a5258); border-color: #5a7a82; }
@@ -13996,19 +14153,33 @@ body.combatiendo .objetos-equipados:not(:has(> :not(.vacio))) {
 
 .ranking-torneo .ranking-item:hover {
     background: transparent !important;
-    border-color: rgba(251, 191, 36, 0.5) !important;
+    border-color: transparent !important;
 }
 
-/* Fila del jugador activo (sin fondo, solo borde cian) */
+/* Fila del jugador activo (sin fondo ni marco; el avatar ya va en amarillo) */
 .ranking-torneo .ranking-item.jugador {
     background: transparent;
-    border-color: rgba(77, 212, 247, 0.3);
+    border-color: transparent;
     cursor: default;
 }
 
 .ranking-torneo .ranking-item.jugador:hover {
     background: transparent !important;
-    border-color: rgba(77, 212, 247, 0.3) !important;
+    border-color: transparent !important;
+}
+
+/* 🟡 Marco amarillo del avatar del jugador: se reconoce de un vistazo
+   en el ranking (1J, 2J y online comparten este panel). */
+.ranking-torneo .ranking-item.jugador .ranking-avatar {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25);
+}
+
+/* 🔴 Marco rojo del avatar del rival de esta ronda (el jugador nunca
+   lleva esta clase, así que no choca con el amarillo). */
+.ranking-torneo .ranking-item.pareja-activa .ranking-avatar {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 0 6px rgba(239, 68, 68, 0.45);
 }
 
 /* Rival eliminado */
@@ -14425,32 +14596,20 @@ body.modo-espia #playerBoard .board-cell {
 
 /* ============================================================
    🎯 RIVAL AL QUE TE VAS A ENFRENTAR (recuadro marcado)
-   El ranking SIEMPRE va en orden de posición; solo se resalta
-   la fila del próximo rival con un marco dorado y un ⚔️.
+   El ranking SIEMPRE va en orden de posición; el próximo rival
+   se marca solo con el marco rojo de su avatar.
    ============================================================ */
+/* El próximo rival ya se distingue solo por el marco rojo de su avatar.
+   Sin marco de fila, sin fondo dorado y sin ⚔️. */
 .ranking-torneo .ranking-item.pareja-activa {
-    border: 1px solid rgba(251, 191, 36, 0.85) !important;
-    background: linear-gradient(90deg, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0.02) 100%) !important;
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.35), inset 0 0 10px rgba(251, 191, 36, 0.12);
-    animation: pulsoRivalActivo 1.8s ease-in-out infinite;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none;
+    animation: none;
 }
 
 .ranking-torneo .ranking-item.pareja-activa:hover {
-    border-color: rgba(251, 191, 36, 1) !important;
-}
-
-.ranking-torneo .ranking-item.pareja-activa::after {
-    content: '⚔️';
-    position: absolute;
-    top: -7px;
-    right: -6px;
-    font-size: 0.8rem;
-    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
-}
-
-@keyframes pulsoRivalActivo {
-    0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.28), inset 0 0 8px rgba(251, 191, 36, 0.10); }
-    50%      { box-shadow: 0 0 16px rgba(251, 191, 36, 0.55), inset 0 0 14px rgba(251, 191, 36, 0.20); }
+    border-color: transparent !important;
 }
 /* ============================================================
    📐 RANKING GRANDE A 100 % (1920 px de ancho)
@@ -14527,16 +14686,11 @@ body.modo-espia #playerBoard .board-cell {
 
 /* ============================================================
    📐 DECORACIONES DEL RANKING DENTRO DEL PANEL (≤2000px)
-   El ⚔️ del rival y el 🔥 de la racha estaban con right/left
-   negativos: además de salirse, el ⚔️ sacaba barra horizontal.
-   Van al final para ganar a las reglas base (misma especificidad).
+   El 🔥 de la racha estaba con left negativo: además de salirse,
+   sacaba barra horizontal. Va al final para ganar a la regla base
+   (misma especificidad).
    ============================================================ */
 @media (max-width: 2000px) {
-    .ranking-torneo .ranking-item.pareja-activa::after {
-        right: 2px;
-        top: -6px;
-    }
-
     .ranking-torneo .ranking-item.racha-alta::before {
         left: 0;
     }

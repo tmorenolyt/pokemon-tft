@@ -187,6 +187,21 @@ function getSpriteUrlFallback(spriteId, nombre, esShiny = false) {
     return `${CONFIG.SPRITE_BASE_URL}${carpeta}${idFinal}.${CONFIG.SPRITE_EXTENSION_FALLBACK}`;
 }
 
+// ¿Existe el sprite shiny de esta forma? (según el manifiesto)
+// Con esto la Pokédex no pide una imagen que no existe si algún día
+// se añade un Pokémon sin variante shiny.
+function tieneSpriteShiny(spriteId, nombre) {
+    let idFinal = spriteId;
+    if (nombre === "Vulpix") idFinal = 10103;
+    else if (nombre === "Ninetales") idFinal = 10104;
+    try {
+        const m = window.SPRITE_FORMATOS;
+        if (m && m.shiny) return !!m.shiny[idFinal];
+    } catch (e) { }
+    return true;
+}
+window.tieneSpriteShiny = tieneSpriteShiny;
+
 function getSpriteUrlOriginal(unidad) {
     if (!unidad || !unidad.pokemon) return '';
     const spriteId = unidad.pokemon.spriteId || unidad.pokemon.id;

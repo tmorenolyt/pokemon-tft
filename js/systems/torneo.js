@@ -1858,6 +1858,16 @@ function abrirInspeccionRival(nombreRival) {
     const rivalData = window.torneoRivales.find(r => r.nombre === nombreRival);
     if (!rivalData) return;
 
+    // 📖 Al espiar a un rival, sus Pokémon cuentan como vistos.
+    if (typeof Pokedex !== 'undefined' && rivalData._equipoGuardado) {
+        try {
+            Pokedex.registrarEquipoVisto([
+                ...(rivalData._equipoGuardado.tablero || []),
+                ...(rivalData._equipoGuardado.banquillo || [])
+            ]);
+        } catch (e) { }
+    }
+
     if (typeof combatiendo !== 'undefined' && combatiendo) {
         if (typeof addConsoleMessage === 'function') addConsoleMessage('⛔ No puedes espiar durante el combate', 'error');
         return;

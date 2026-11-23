@@ -631,6 +631,7 @@ function comprar(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (evolucionData && evolucionData.id) {
             playPokemonCry(evolucionData.id);
@@ -730,6 +731,7 @@ function comprar(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon && pokemon.id) {
             playPokemonCry(pokemon.id);
@@ -770,6 +772,7 @@ function comprar(pokemon, idx) {
     if (colocado) {
         oro -= pokemon.coste;
         tienda.splice(idx, 1);
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon && pokemon.id) {
             playPokemonCry(pokemon.id);

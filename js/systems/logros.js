@@ -36,6 +36,16 @@
         { id: 'coleccionista', cat: 'unidades', icono: '🌈', nombre: 'Coleccionista', desc: 'Consigue 5 unidades 3★ en la misma partida.', tipo: 'record', clave: 'maxRunUnidades3', objetivo: 5, xp: 250, mapa: 'eevee' },
         { id: 'mitico', cat: 'unidades', icono: '💎', nombre: 'Mítico', desc: 'Consigue una unidad de coste 5 a 3★.', tipo: 'record', clave: 'maxCoste5Tres', objetivo: 1, xp: 200, mapa: 'dragon' },
 
+        // ---------- Pokédex ----------
+        // Se leen directamente del progreso de la Pokédex (Pokedex.contar()),
+        // así no hay un segundo contador que se pueda desincronizar.
+        { id: 'pokedex_1', cat: 'pokedex', icono: '📖', nombre: 'Primera ficha', desc: 'Registra tu primer Pokémon en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 1, xp: 50 },
+        { id: 'pokedex_10', cat: 'pokedex', icono: '🔍', nombre: 'Investigador', desc: 'Registra 10 Pokémon distintos en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 10, xp: 100 },
+        { id: 'pokedex_25', cat: 'pokedex', icono: '🧭', nombre: 'Biólogo de campo', desc: 'Registra 25 Pokémon distintos en la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 25, xp: 250 },
+        { id: 'pokedex_45', cat: 'pokedex', icono: '📚', nombre: 'Pokédex completa', desc: 'Registra los 45 Pokémon de la Pokédex.', tipo: 'pokedex', clave: 'comprados', objetivo: 45, xp: 500 },
+        { id: 'pokedex_vistos_10', cat: 'pokedex', icono: '👁️', nombre: 'Ojo entrenador', desc: 'Ve 10 Pokémon distintos en combate (aunque no los compres).', tipo: 'pokedex', clave: 'vistosTotal', objetivo: 10, xp: 100 },
+        { id: 'pokedex_vistos_30', cat: 'pokedex', icono: '🔭', nombre: 'Vigía de Kanto', desc: 'Ve 30 Pokémon distintos en combate.', tipo: 'pokedex', clave: 'vistosTotal', objetivo: 30, xp: 200 },
+
         // ---------- Sinergias ----------
         { id: 'sinergia_6', cat: 'sinergias', icono: '🔗', nombre: 'Sinergia perfecta', desc: 'Activa un tipo a nivel 6.', tipo: 'record', clave: 'maxSinergia', objetivo: 6, xp: 250, mapa: 'agua' },
         { id: 'equipo_equilibrado', cat: 'sinergias', icono: '⚖️', nombre: 'Equipo equilibrado', desc: 'Activa 3 tipos distintos a nivel 3 o más.', tipo: 'record', clave: 'maxTipos3', objetivo: 3, xp: 150, mapa: 'hada' },
@@ -62,6 +72,7 @@
         { id: 'todos', nombre: 'Todos', icono: '🏆' },
         { id: 'progresion', nombre: 'Progresión', icono: '📈' },
         { id: 'unidades', nombre: 'Unidades', icono: '⭐' },
+        { id: 'pokedex', nombre: 'Pokédex', icono: '📖' },
         { id: 'sinergias', nombre: 'Sinergias', icono: '🔗' },
         { id: 'objetos', nombre: 'Objetos', icono: '🎒' },
         { id: 'combate', nombre: 'Combate', icono: '⚔️' },
@@ -192,6 +203,11 @@
             case 'record':   return Number(estado.records[logro.clave] || 0);
             case 'run':      return Number(estado.run[logro.clave] || 0);
             case 'evento':   return estado.eventos[logro.id] ? 1 : 0;
+            case 'pokedex': {
+                if (!window.Pokedex || typeof window.Pokedex.contar !== 'function') return 0;
+                const c = window.Pokedex.contar();
+                return Number(c[logro.clave] || 0);
+            }
             default:         return 0;
         }
     }
@@ -267,7 +283,9 @@
         return true;
     }
 
-    function comprobar() {
+    // `silencioso` = true evita los toasts (se usa al arrancar para
+    // recuperar logros ya cumplidos sin llenar la pantalla de avisos).
+    function comprobar(silencioso) {
         const nuevos = [];
         for (const logro of LOGROS) {
             if (desbloqueado(logro.id)) continue;
@@ -276,7 +294,7 @@
         }
         if (nuevos.length > 0) {
             guardar();
-            notificar(nuevos);
+            if (!silencioso) notificar(nuevos);
         }
         return nuevos;
     }

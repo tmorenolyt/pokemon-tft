@@ -789,6 +789,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
         oro -= pokemon.coste;
         tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨ (Fusión en curso)`, 'success');
         else addConsoleMessage(`🛒 ${pokemon.nombre} comprado! (${pokemon.coste}💰) - Fusión en curso`, 'buy');
@@ -878,6 +879,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
     if (ubicado) {
         oro -= pokemon.coste;
         tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon.id) playPokemonCry(pokemon.id);
         else playBuySound();
