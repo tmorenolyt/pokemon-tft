@@ -1757,13 +1757,19 @@ function lanzarVentisca() {
 }
 
 function resetArticunoAlTerminarCombate() {
-    if (articunoUnidad && articunoVisible && !articunoActivado) {
-        quitarArticunoDelTablero();
-        articunoUnidad = null; articunoVisible = false; articunoTimer = 0;
-        articunoActivado = false; _articunoTiempoRealInicio = null; _articunoEsperandoCombate = true;
-        if (articunoContainer) articunoContainer.style.display = 'none';
-    }
+    // Reset COMPLETO: se llama al empezar cada combate y al reiniciar partida.
+    // Antes solo limpiaba la unidad si no había lanzado Ventisca, pero
+    // `_articunoYaUsoVentisca` se quedaba en true para siempre y Articuno
+    // no volvía a aparecer en combates/partidas siguientes.
+    quitarArticunoDelTablero();
+    articunoUnidad = null;
+    articunoVisible = false;
+    articunoTimer = 0;
+    articunoActivado = false;
+    _articunoTiempoRealInicio = null;
+    _articunoEsperandoCombate = true;
     _articunoYaUsoVentisca = false;
+    if (articunoContainer) articunoContainer.style.display = 'none';
 }
 
 // ============================================================

@@ -47,6 +47,13 @@ function bloquearEstadoCombate() {
     enemyCombatiendo = true;
     document.getElementById("btnCombatirFijo").disabled = true;
     document.body.classList.add('combatiendo');
+    // ❄️ Reset de Articuno: sin esto, `_articunoYaUsoVentisca` se quedaba en
+    // true y solo aparecía en el primer combate de la partida.
+    if (typeof resetArticunoAlTerminarCombate === 'function') resetArticunoAlTerminarCombate();
+    // ❄️ Lo mismo para el Articuno del rival (usaba su propio flag global).
+    window.articunoEnemigoUnidad = null;
+    window.articunoEnemigoTimer = 0;
+    window.articunoEnemigoActivado = false;
     // 🎞️ En móvil, sprites estáticos mientras dura el combate (menos CPU)
     if (window.spritesCombate) window.spritesCombate.estaticos();
     const btnPost = document.getElementById('btnPostCombate');

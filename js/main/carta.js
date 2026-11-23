@@ -8,7 +8,10 @@ function getMovimientosPokemon(nombre) {
     return [{ nombre: "⚔️ Ataque Rápido", tipo: "⚪ Normal" }, { nombre: "💥 Golpe Fuerte", tipo: "⚪ Normal" }];
 }
 
-function getDescripcionMovimiento(nombreMovimiento) {
+function getDescripcionMovimiento(nombreMovimiento, iconoKey) {
+    // Las variantes comparten nombre visible pero tienen iconoKey propio
+    // ("Bola Voltio 2", "Bomba Lodo 2"...). Se busca primero la variante.
+    if (iconoKey && window.movimientosInfo && window.movimientosInfo[iconoKey]) return window.movimientosInfo[iconoKey];
     if (window.movimientosInfo && window.movimientosInfo[nombreMovimiento]) return window.movimientosInfo[nombreMovimiento];
     return null;
 }
@@ -37,7 +40,7 @@ function actualizarDescripcionMovimiento() {
     const movimiento = movimientos[movimientoSeleccionadoIndex];
     if (!movimiento) return;
     const nombreLimpio = limpiarNombreMovimiento(movimiento.nombre);
-    const descData = getDescripcionMovimiento(nombreLimpio);
+    const descData = getDescripcionMovimiento(nombreLimpio, movimiento.iconoKey);
     const descripcionContainer = document.getElementById('cartaDescripcionContainer');
     if (descripcionContainer && descData) {
         const claveIcono = movimiento.iconoKey || nombreLimpio;
@@ -161,7 +164,7 @@ function abrirCarta(tipo, indice) {
     const pintarMovimiento = (movData, esSecundario) => {
         if (!movData) return '';
         const nombreLimpio = limpiarNombreMovimiento(movData.nombre);
-        const descData = getDescripcionMovimiento(nombreLimpio);
+        const descData = getDescripcionMovimiento(nombreLimpio, movData.iconoKey);
         const claveIcono = movData.iconoKey || nombreLimpio;
         const iconoHtml = typeof getIconoMovimientoHtml === 'function' ? getIconoMovimientoHtml(claveIcono, 28) : getIconoTipo(descData ? descData.tipo : 'Normal');
         

@@ -84,6 +84,7 @@ window.SONIDOS_MOVIMIENTOS_DISPONIBLES = new Set([
     "rayo",
     "rayo-carga",
     "rayo-solar",
+    "refuerzo",
     "rizo-algodon",
     "roca-afilada",
     "salpicar",

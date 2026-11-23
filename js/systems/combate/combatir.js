@@ -144,6 +144,7 @@ async function combatir() {
                 .toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
                         const ultiFunc = window.ULTIS_REGISTRO && window.ULTIS_REGISTRO[nombreSlug];
             if (ultiFunc && typeof ultiFunc.ejecutar === 'function') {
+                if (typeof aplicarFactorUlti === 'function') aplicarFactorUlti(unidad, nombreSlug, unidad.nivel);
                 try {
                     // 🆕 GRITO DEL POKÉMON ANTES DE LA ULTI DE INICIO
                     const spriteIdGritoInicio = unidad.spriteIdAlternativo || unidad.pokemon.spriteId || unidad.pokemon.id;
@@ -946,6 +947,7 @@ async function combatir() {
                             const nombreSlug = ultiData.id ? ultiData.id : ultiData.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
                                                         const ultiFunc = window.ULTIS_REGISTRO && window.ULTIS_REGISTRO[nombreSlug];
                             if (ultiFunc && typeof ultiFunc.ejecutar === 'function') {
+                                if (typeof aplicarFactorUlti === 'function') aplicarFactorUlti(at.unidad, nombreSlug, at.unidad.nivel);
                                 try {
                                     const aliadosVivosUlti = (at.lado === 'player' ? jugadores : rivales).filter(u => u && u.hp > 0 && !u.muerto);
                                     const enemigosVivosUlti = (at.lado === 'player' ? rivales : jugadores).filter(u => u && u.hp > 0 && !u.muerto);
@@ -1491,6 +1493,15 @@ async function combatir() {
             mostrarReaccionEnemigo(victoria);
         }
 
+        // 🏆 Logros de combate (victorias, PvE, daño/curación, intocable...)
+        if (typeof Logros !== 'undefined') {
+            Logros.evento('combate_fin', {
+                victoria: victoria,
+                esPvE: esPvE,
+                estadisticas: window.statsCombateEnVivo
+            });
+        }
+
         experiencia += 4;
         let coste = getExpNecesaria();
         while (experiencia >= coste && coste > 0 && nivelJugador < CONFIG.NIVEL_MAXIMO) {
@@ -1499,6 +1510,7 @@ async function combatir() {
             coste = getExpNecesaria();
             playSonidoSubirNivel();
             addConsoleMessage(`⬆️ ¡NIVEL ${nivelJugador}! 🎉`, 'level');
+            if (typeof Logros !== 'undefined') Logros.evento('nivel', { nivel: nivelJugador });
             if (Number(nivelJugador) === 5 || Number(nivelJugador) === 8) {
                 if (typeof darDiscoDefinitivo === 'function') darDiscoDefinitivo();
             }

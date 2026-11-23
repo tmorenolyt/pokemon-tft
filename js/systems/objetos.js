@@ -225,6 +225,16 @@ function aplicarObjeto(unidad, objetoNombre) {
     recalcularEfectosObjetos(unidad);
     
     addConsoleMessage(`✅ ${objetoNombre} equipado a ${unidad.pokemon.nombre}`, 'success');
+
+    // 🎒 Logros de objetos (Disco, 3 objetos en una unidad)
+    if (typeof Logros !== 'undefined') {
+        Logros.evento('objeto_equipado', {
+            objeto: objetoNombre,
+            esDisco: !!esDisco,
+            unidad: unidad
+        });
+    }
+
     return true;
 }
 

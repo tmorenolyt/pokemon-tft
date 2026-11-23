@@ -795,6 +795,21 @@ const server = http.createServer((req, res) => {
     serveStatic(req, res, p);
 });
 
+// 🔄 Red de seguridad: regenerar js/bundle.js y css/bundle.css con el
+// contenido actual de los archivos fuente. Así, aunque se olvide ejecutar
+// `node tools/build-bundle.js`, el servidor sirve siempre la versión buena.
+// Si el disco es de solo lectura, se avisa y se usa el bundle ya generado.
+try {
+    require('child_process').execFileSync(
+        process.execPath,
+        [path.join(__dirname, 'tools', 'build-bundle.js')],
+        { stdio: 'ignore', timeout: 20000 }
+    );
+    console.log('🔄 Bundle JS/CSS regenerado al arrancar');
+} catch (e) {
+    console.warn('⚠️ No se pudo regenerar el bundle (se usa el existente):', e.message);
+}
+
 server.listen(PORT, '0.0.0.0', () => {
     console.log('============================================================');
     console.log('  Pokémon TFT - servidor ONLINE (prototipo)');

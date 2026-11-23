@@ -342,6 +342,19 @@ function aplicarTerrenoActual(rival) {
         return;
     }
 
+    // 🗺️ MAPA ELEGIDO: si el jugador ha desbloqueado y elegido un mapa,
+    // se respeta en todas las rondas (PvP y PvE). "Automático" devuelve
+    // null y se mantiene el comportamiento original por rival.
+    if (typeof Logros !== 'undefined' && typeof Logros.mapaActual === 'function') {
+        const mapaElegido = Logros.mapaActual();
+        if (mapaElegido && mapaElegido.archivo) {
+            document.body.style.setProperty('--terreno-actual', `url('../assets/backgrounds/${mapaElegido.archivo}')`);
+            const arena = document.querySelector('.arena-row');
+            if (arena) arena.style.backgroundImage = 'none';
+            return;
+        }
+    }
+
     // --- Modo normal (1J / 2J / Torneo) ---
     let tipoPrincipal = 'default';
     if (rival && rival.estrategia && rival.estrategia.tipos && rival.estrategia.tipos.length > 0) {

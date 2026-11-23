@@ -400,6 +400,10 @@ function reiniciarJuego() {
     vidaJugador = 50; oro = 10; victorias = 0; nivelJugador = 1; racha = 0; fase = 1; ronda = 1; experiencia = 0;
     combatiendo = false; seleccionado = null; primerCombateRealizado = false; fearAuraStacks = 0; window.fearAuraStacks = 0; metronomoGlobalStacks = 0;
 
+    // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
+    window._logroTorneoContado = false;
+    if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
+
     if (typeof resetNuevaVerde === 'function') resetNuevaVerde();
 
     enemyLevel = 1; enemyGold = 10; enemyHealth = 50; enemyWinStreak = 0; enemyLossStreak = 0;
@@ -412,6 +416,7 @@ function reiniciarJuego() {
     if (typeof tiendaRonda2Comprada !== 'undefined') tiendaRonda2Comprada = false;
 
     zacianUnidad = null; zacianNivel = 0; articunoUnidad = null; articunoTimer = 0; articunoActivado = false; articunoVisible = false;
+    if (typeof resetArticunoAlTerminarCombate === 'function') resetArticunoAlTerminarCombate();
 
     estadisticasGlobales = { totalDaño: 0, totalRecibido: 0, totalCuracion: 0, victorias: 0, rondas: 0, mvp: null, topDaño: 0, topRecibido: 0, mejoresPokemon: [] };
 
@@ -421,7 +426,7 @@ function reiniciarJuego() {
 
     if (zacianContainer) zacianContainer.style.display = 'none';
     if (articunoContainer) articunoContainer.style.display = 'none';
-    window.zacianEnemigoUnidad = null; window.articunoEnemigoUnidad = null;
+    window.zacianEnemigoUnidad = null; window.articunoEnemigoUnidad = null; window.articunoEnemigoTimer = 0; window.articunoEnemigoActivado = false;
 
     tablero = new Array(20).fill(null); banquillo = new Array(CONFIG.BANQUILLO_MAXIMO).fill(null);
     enemyBoard = new Array(20).fill(null); enemyBanquillo = new Array(CONFIG.BANQUILLO_MAXIMO).fill(null);
@@ -573,6 +578,9 @@ function prepararJugador2Inicial() {
 
 function init() {
     if (typeof resetHitosYaAnimados === 'function') resetHitosYaAnimados();
+    // ❄️ Nueva partida: limpiar el estado de Articuno (flag de Ventisca incluido)
+    if (typeof resetArticunoAlTerminarCombate === 'function') resetArticunoAlTerminarCombate();
+    window.articunoEnemigoUnidad = null; window.articunoEnemigoTimer = 0; window.articunoEnemigoActivado = false;
 
     // 🧪 El modo creativo se activa después de init(); una partida normal
     // nunca debe heredar el sandbox de una sesión creativa anterior.
@@ -599,6 +607,10 @@ function init() {
     window.cambioMovimientoUsadoEstaRonda = false;
 
     vidaJugador = 50; oro = 10; victorias = 0; nivelJugador = 1; racha = 0; fase = 1; ronda = 1; experiencia = 0; combatiendo = false; seleccionado = null; primerCombateRealizado = false;
+
+    // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
+    window._logroTorneoContado = false;
+    if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
     
     // 🆕 Sincronizar Aura de Miedo al iniciar
     fearAuraStacks = 0;

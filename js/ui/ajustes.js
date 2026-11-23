@@ -267,6 +267,11 @@ function volverAlMenuDesdeAjustes() {
         reiniciarJuego();
     }
 
+    // 🗺️ Restaurar el fondo del menú a un mapa desbloqueado
+    if (window.LogrosUI && typeof LogrosUI.actualizarMapSelector === 'function') {
+        LogrosUI.actualizarMapSelector();
+    }
+
     if (typeof resetMusicaPreparacion === 'function') {
     resetMusicaPreparacion();
 } else if (typeof pausarFondoPreparacion === 'function') {

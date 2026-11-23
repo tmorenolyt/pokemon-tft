@@ -67,6 +67,16 @@ const ULTIS_FAMILIAS = {
         descripcion: "Tras 7 ataques básicos, aumenta su Defensa y Def. Esp. en 1500 y se rodea de piedras, infligiendo 36% de daño de Ataque a los oponentes cercanos."
     },
 
+    // ===== EEVEE =====
+    "Eevee": {
+        nombre: "Refuerzo",
+        id: "refuerzo",
+        iconoKey: "Refuerzo",
+        carga: 5,
+        alcance: 1,
+        descripcion: "Tras 5 ataques básicos, Eevee refuerza al aliado más fuerte: durante 8 segundos, ese aliado gana +25% de Ataque, +25% de Atq. Esp. y +10% de Velocidad de Ataque. Si no hay otro aliado vivo, se refuerza a sí mismo. Además, Eevee inflige 120% de daño de Ataque a los enemigos adyacentes."
+    },
+
     // ===== FAMILIA MACHOP =====
     "Machop, Machoke, Machamp": {
         nombre: "Somanta Épica",

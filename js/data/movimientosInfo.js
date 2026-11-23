@@ -112,6 +112,12 @@ const movimientosInfo = {
         tipo: "Eléctrico",
         efecto: "Parálisis"
     },
+    "Voltio Cruel": {
+        descripcion: "Golpea 3 veces al oponente actual, infligiendo un 160% de daño de Ataque en total. Cada golpe reduce 4 puntos de energía del objetivo.",
+        alcance: "1 casilla",
+        tipo: "Eléctrico",
+        efecto: "Reducción de energía"
+    },
     "Placaje Eléctrico": {
         descripcion: "Salta hacia el oponente, lanzándolo por los aires e infligiendo un 80% de daño de Ataque esp. 5 veces; luego, Pikachu regresa y aumenta la Velocidad de Ataque de todos los aliados un 20% durante 3 segundos.",
         alcance: "4 casillas",
@@ -418,7 +424,7 @@ const movimientosInfo = {
         efecto: "Robo de vida"
     },
 
-    "Premonición": {
+    "Premonición 2": {
         descripcion: "Dispara una energía psíquica al objetivo actual que explota poco después, infligiendo un 210%/210%/630% de daño de Ataque esp. a este y a los enemigos circundantes a 2 casillas de distancia, y reduce su Velocidad de Ataque un 10%/10%/30% durante 1.5 segundos.",
         alcance: "3 casillas",
         tipo: "Psíquico",
@@ -454,7 +460,7 @@ const movimientosInfo = {
     },
 
     // ===== HAUNTER / GENGAR =====
-    "Bomba Lodo": {
+    "Bomba Lodo 2": {
         descripcion: "Lanza lodo al oponente actual, infligiendo un 400%/400%/1200% de daño de Ataque esp. en un área de 3 casillas. Los oponentes alcanzados quedan envenenados, sufriendo 40/40/120 de daño de Ataque esp. por segundo durante 5 segundos.",
         alcance: "8 casillas",
         tipo: "Veneno",
@@ -502,7 +508,7 @@ const movimientosInfo = {
         tipo: "Agua",
         efecto: "Reducción de Velocidad"
     },
-    "Hidroariete": {
+    "Hidroariete 2": {
         descripcion: "Lanza 8 proyectiles de agua al oponente con los HP actuales más altos, infligiendo un 40%/40%/120% de daño de Ataque esp. más un 2.5% adicional de los HP máximos del rival como daño.",
         alcance: "5 casillas",
         tipo: "Agua",
@@ -510,7 +516,7 @@ const movimientosInfo = {
     },
 
     // ===== ZAPDOS =====
-    "Bola Voltio": {
+    "Bola Voltio 2": {
         descripcion: "Lanza una bola hacia adelante que inflige un 120%/120%/360% de daño de Ataque esp. La bola explota al llegar a su destino o al impactar a un oponente, infligiendo múltiples golpes a los rivales circundantes para un total de 360%/360%/1080% de daño de Ataque esp.",
         alcance: "4 casillas",
         tipo: "Eléctrico",
@@ -651,7 +657,7 @@ const movimientosInfo = {
         tipo: "Dragón",
         efecto: "Reducción de Defensa Especial"
     },
-    "Rayo Carga": {
+    "Rayo Carga 2": {
         descripcion: "Usa continuamente Rayo Carga en línea recta hacia adelante, infligiendo un 35%/35%/350% de daño de Ataque esp. hasta que el objetivo actual sea eliminado, momento en el que el movimiento se detiene.",
         alcance: "4 casillas",
         tipo: "Eléctrico",

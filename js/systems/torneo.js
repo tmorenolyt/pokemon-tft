@@ -1863,6 +1863,12 @@ function comprobarFinTorneo() {
             addConsoleMessage('🏆 ¡HAS GANADO EL TORNEO!', 'success');
         }
 
+        // 🏆 Logro: una sola vez por torneo (se resetea al iniciar partida).
+        if (!window._logroTorneoContado) {
+            window._logroTorneoContado = true;
+            if (typeof Logros !== 'undefined') Logros.evento('torneo_ganado');
+        }
+
         setTimeout(() => {
             if (typeof mostrarVictoriaJuego === 'function') {
                 mostrarVictoriaJuego();

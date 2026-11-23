@@ -1,0 +1,597 @@
+/* ============================================================
+   LOGROS + MAPAS DESBLOQUEABLES
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   BARRA DE MAPA EN LA SELECCIÓN DE JUGADOR
+   ------------------------------------------------------------ */
+#menuPrincipal .map-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 auto 6px;
+    padding: 6px 12px;
+    background: rgba(10, 15, 29, 0.82);
+    border: 1px solid rgba(77, 212, 247, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 0 18px rgba(77, 212, 247, 0.10);
+    cursor: pointer;
+    z-index: 12;
+    position: relative;
+    max-width: 100%;
+}
+
+#menuPrincipal .map-selector-thumb {
+    width: 64px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 7px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+#menuPrincipal .map-selector-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.1;
+    text-align: left;
+}
+
+#menuPrincipal .map-selector-label {
+    font-size: 0.52rem;
+    letter-spacing: 1.6px;
+    font-weight: 800;
+    color: #8fb0d6;
+}
+
+#menuPrincipal .map-selector-name {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#menuPrincipal .map-selector-btn {
+    appearance: none;
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    font-weight: 800;
+    font-size: 0.68rem;
+    letter-spacing: 0.6px;
+    padding: 5px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+#menuPrincipal .map-selector-btn:hover {
+    background: rgba(251, 191, 36, 0.25);
+    transform: translateY(-1px);
+}
+
+#menuPrincipal .map-selector + .vs-container {
+    margin-top: 18px !important;
+}
+
+#menuPrincipal .profile-capsule {
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   OVERLAY / MODAL
+   ------------------------------------------------------------ */
+.logros-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    /* Por encima de rankings, resultados y evolución */
+    z-index: 2147482000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: logrosFadeIn 0.18s ease-out;
+}
+
+@keyframes logrosFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.logros-modal {
+    width: 100%;
+    max-width: 920px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px 18px;
+    background: linear-gradient(145deg, #0f172a, #1a2236);
+    border: 2px solid #2a3a5a;
+    border-radius: 20px;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        0 0 40px rgba(77, 212, 247, 0.12);
+    animation: logrosPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes logrosPop {
+    0%   { opacity: 0; transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.logros-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(42, 58, 90, 0.55);
+}
+
+.logros-titulo {
+    font-size: 1.25rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #fbbf24;
+    text-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
+}
+
+.logros-subtitulo {
+    font-size: 0.72rem;
+    color: #93c5fd;
+    margin-top: 2px;
+}
+
+.logros-cerrar {
+    appearance: none;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.35);
+    color: #e6eefc;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.logros-cerrar:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: rotate(90deg);
+}
+
+.logros-barra {
+    height: 7px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logros-barra-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #fde68a);
+    border-radius: 6px;
+    transition: width 0.35s ease;
+}
+
+/* ------------------------------------------------------------
+   PESTAÑAS
+   ------------------------------------------------------------ */
+.logros-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+}
+
+.logros-tabs::-webkit-scrollbar { display: none; }
+
+.logros-tab {
+    appearance: none;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.25);
+    color: #a8b4d4;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.logros-tab:hover {
+    border-color: rgba(77, 212, 247, 0.5);
+    color: #e6eefc;
+}
+
+.logros-tab.activa {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: #fbbf24;
+    color: #fbbf24;
+}
+
+/* ------------------------------------------------------------
+   REJILLA DE LOGROS
+   ------------------------------------------------------------ */
+.logros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    padding: 2px;
+    min-height: 0;
+}
+
+.logro-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #2a4066;
+    background: rgba(10, 18, 34, 0.85);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.logro-card.desbloqueado {
+    border-color: rgba(251, 191, 36, 0.55);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.10);
+}
+
+.logro-card.bloqueado {
+    opacity: 0.62;
+}
+
+.logro-card.bloqueado .logro-card-icon {
+    filter: grayscale(1);
+}
+
+.logro-card-top {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.logro-card-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.logro-card-nombre {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logro-card-check {
+    color: #4ade80;
+    font-weight: 900;
+    font-size: 0.9rem;
+}
+
+.logro-card-desc {
+    font-size: 0.64rem;
+    color: #a8b4d4;
+    line-height: 1.35;
+    min-height: 2.1em;
+}
+
+.logro-card-progress {
+    height: 6px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+
+.logro-card-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #fde68a);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.logro-card-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #93c5fd;
+}
+
+.logro-card-xp {
+    color: #fbbf24;
+    white-space: nowrap;
+}
+
+.logro-card-mapa {
+    font-size: 0.58rem;
+    color: #8fb0d6;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.logro-card-mapa.ok {
+    color: #4ade80;
+}
+
+/* ------------------------------------------------------------
+   MAPAS
+   ------------------------------------------------------------ */
+.mapas-modal {
+    max-width: 960px;
+}
+
+.mapas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-auto-rows: max-content;
+    gap: 10px;
+    overflow-y: auto;
+    padding: 2px;
+    min-height: 0;
+}
+
+.mapa-card {
+    border: 2px solid #2a4066;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(10, 18, 34, 0.9);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mapa-card.disponible:hover {
+    transform: translateY(-2px);
+    border-color: rgba(77, 212, 247, 0.7);
+}
+
+.mapa-card.seleccionado {
+    border-color: #fbbf24;
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
+}
+
+.mapa-card.bloqueado {
+    cursor: not-allowed;
+}
+
+.mapa-thumb {
+    position: relative;
+    height: 86px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.mapa-card.bloqueado .mapa-thumb {
+    filter: grayscale(1) brightness(0.42);
+}
+
+.mapa-emoji {
+    font-size: 1.6rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.mapa-candado {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: rgba(0, 0, 0, 0.35);
+    filter: none !important;
+}
+
+.mapa-actual {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fbbf24;
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.mapa-nombre {
+    padding: 6px 8px 2px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.mapa-req {
+    padding: 0 8px 7px;
+    font-size: 0.56rem;
+    font-weight: 600;
+    color: #8fb0d6;
+    line-height: 1.3;
+}
+
+.mapa-card.bloqueado .mapa-req {
+    color: #f87171;
+}
+
+/* ------------------------------------------------------------
+   TOAST DE LOGRO
+   ------------------------------------------------------------ */
+.logro-toast {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Por encima de la pantalla de victoria (999999) y de la evolución
+       (9999999): el logro de torneo debe verse al terminar. */
+    z-index: 2147483000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(145deg, #1a2236, #0f172a);
+    border: 2px solid #fbbf24;
+    border-radius: 14px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(251, 191, 36, 0.35);
+    animation: logroToastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    max-width: calc(100vw - 24px);
+}
+
+@keyframes logroToastIn {
+    0%   { opacity: 0; transform: translate(-50%, -18px) scale(0.9); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+.logro-toast-icono {
+    font-size: 1.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.7));
+}
+
+.logro-toast-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.logro-toast-eyebrow {
+    font-size: 0.55rem;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    color: #fbbf24;
+}
+
+.logro-toast-nombre {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.logro-toast-xp {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #93c5fd;
+}
+
+.logro-toast-mapa {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #4ade80;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-height: 700px) and (max-width: 1100px) {
+    #menuPrincipal .map-selector {
+        gap: 6px;
+        padding: 3px 8px;
+        margin: 0 auto 2px;
+        border-radius: 10px;
+    }
+    #menuPrincipal .map-selector-thumb {
+        width: 42px;
+        height: 23px;
+        border-radius: 5px;
+    }
+    #menuPrincipal .map-selector-label { display: none; }
+    #menuPrincipal .map-selector-name { font-size: 0.64rem; }
+    #menuPrincipal .map-selector-btn {
+        padding: 4px 8px;
+        font-size: 0.58rem;
+        border-radius: 8px;
+    }
+    #menuPrincipal .map-selector + .vs-container { margin-top: 0 !important; }
+
+    .logros-overlay { padding: 6px; }
+    .logros-modal {
+        max-height: calc(100dvh - 12px);
+        padding: 8px 10px 10px;
+        gap: 6px;
+        border-radius: 14px;
+    }
+    .logros-titulo { font-size: 0.95rem; }
+    .logros-subtitulo { font-size: 0.6rem; }
+    .logros-cerrar { width: 28px; height: 28px; font-size: 0.85rem; }
+    .logros-barra { height: 5px; }
+    .logros-tab { font-size: 0.58rem; padding: 4px 8px; }
+    .logros-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .logro-card { padding: 7px; gap: 4px; border-radius: 9px; }
+    .logro-card-icon { font-size: 1rem; }
+    .logro-card-nombre { font-size: 0.66rem; }
+    .logro-card-desc { font-size: 0.56rem; min-height: 1.9em; }
+    .logro-card-foot { font-size: 0.54rem; }
+    .logro-card-mapa { font-size: 0.52rem; }
+    .mapas-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: max-content;
+        gap: 6px;
+    }
+    .mapa-thumb { height: 62px; }
+    .mapa-nombre { font-size: 0.62rem; padding: 4px 6px 1px; }
+    .mapa-req { font-size: 0.5rem; padding: 0 6px 5px; }
+    .logro-toast { padding: 7px 12px; gap: 9px; }
+    .logro-toast-icono { font-size: 1.4rem; }
+    .logro-toast-nombre { font-size: 0.8rem; }
+}
+
+@media (max-width: 460px) {
+    .logros-grid { grid-template-columns: 1fr; }
+}
+
+/* Pantallas de portátil (768-820 px de alto): la barra de mapa no debe
+   empujar los botones fuera de la pantalla. */
+@media (max-height: 820px) and (min-width: 1101px) {
+    #menuPrincipal .seleccion-container { padding: 8px 20px; }
+    #menuPrincipal .sel-title-container {
+        margin-bottom: 8px;
+        padding: 6px 40px;
+    }
+    #menuPrincipal .sel-title-container h1 { font-size: 1.15rem; }
+    #menuPrincipal .sel-title-container p { font-size: 0.72rem; margin-top: 1px; }
+    #menuPrincipal .map-selector { margin-bottom: 2px; padding: 4px 10px; }
+    #menuPrincipal .map-selector + .vs-container { margin-top: 8px !important; }
+    #menuPrincipal .player-panel { padding: 10px; }
+    #menuPrincipal .character-image { max-height: 230px !important; }
+    #menuPrincipal .bottom-actions { margin-top: 4px; margin-bottom: 6px; }
+    #menuPrincipal .btn-start { padding: 13px 56px; font-size: 1.3rem; }
+}

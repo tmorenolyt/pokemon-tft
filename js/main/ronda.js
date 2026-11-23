@@ -366,6 +366,7 @@ function checkSubirNivel() {
         nivelJugador = Number(nivelJugador) + 1;
         coste = getExpNecesaria();
         playSonidoSubirNivel();
+        if (typeof Logros !== 'undefined') Logros.evento('nivel', { nivel: nivelJugador });
         addConsoleMessage(`⬆️ ¡NIVEL ${nivelJugador}! 🎉`, 'level');
         if (Number(nivelJugador) === 5 || Number(nivelJugador) === 8) {
             if (typeof darDiscoDefinitivo === 'function') darDiscoDefinitivo();

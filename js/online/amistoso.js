@@ -306,6 +306,15 @@
                 const empate = (msg.winner == null);
                 const gane = (msg.winner === pid);
                 setStatus(empate ? '🤝 Empate / fin de partida' : (gane ? '🏆 ¡GANASTE la partida!' : '💀 Has perdido la partida.'));
+
+                // 🏆 Logro online (una vez por partida)
+                if (typeof Logros !== 'undefined') {
+                    Logros.evento('online_fin', {
+                        gane: gane === true,
+                        empate: empate,
+                        partida: (sala || '') + ':' + Date.now()
+                    });
+                }
                 mostrarResultadosFinalesOnline(msg.hp, { empate: empate, ronda: msg.round, gane: gane });
             }
         };

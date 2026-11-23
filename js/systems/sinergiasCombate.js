@@ -226,6 +226,12 @@ function aplicarSinergias() {
     debugLog("🔍 ===== APLICANDO SINERGIAS =====");
 
     let sinergias = getSinergiasActivas();
+
+    // 🔗 Logros de sinergias (nivel máximo de tipo / 3 tipos o clases a nivel 3+)
+    if (typeof Logros !== 'undefined') {
+        Logros.evento('sinergias', { sinergias: sinergias });
+    }
+
     let fearBonus = calcularFearAuraBonus(fearAuraStacks);
     let nivelSiniestro = 0;
     if (sinergias.types["Siniestro"]) {

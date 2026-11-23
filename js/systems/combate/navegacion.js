@@ -235,7 +235,7 @@ function esPokemonMelee(unidad) {
     if (movimientos && movimientos.length > 0) {
         for (let mov of movimientos) {
             const nombreLimpio = limpiarNombreMovimiento(mov.nombre);
-            const info = getDescripcionMovimiento(nombreLimpio);
+            const info = getDescripcionMovimiento(nombreLimpio, mov.iconoKey);
             if (info && info.alcance && info.alcance === "1 casilla") return true;
         }
     }

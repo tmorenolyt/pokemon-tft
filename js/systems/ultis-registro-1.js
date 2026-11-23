@@ -130,6 +130,104 @@ const ULTIS_REGISTRO = {
         }
     },
 
+    // ===== EEVEE =====
+    "refuerzo": {
+        nombre: "Refuerzo",
+        ejecutar: function(atacante, objetivo, contexto) {
+            const log = (msg) => {
+                if (typeof addConsoleMessage === 'function') addConsoleMessage(msg, 'battle');
+                else console.log(msg);
+            };
+            log(`💪 ${atacante.pokemon.nombre} usa REFUERZO!`);
+            if (typeof playSonidoMovimiento === 'function') playSonidoMovimiento('Refuerzo', 0.4);
+
+            const aliados = (contexto.aliados || []).filter(u => u && u.hp > 0 && !u.muerto);
+            const otros = aliados.filter(u => u !== atacante);
+            const candidatos = otros.length ? otros : aliados;
+            const poder = (u) => (u.ataque || 0) + (u.ataqueEspecial || 0);
+            const objetivoAliado = candidatos.slice().sort((a, b) => poder(b) - poder(a))[0] || atacante;
+
+            function restaurar(u) {
+                const p = u._refuerzoPrev;
+                if (!p) return;
+                u.bonusAttack = p.atk;
+                u.bonusSpAttack = p.spa;
+                u.bonusAttackSpeed = p.spd;
+                delete u._refuerzoPrev;
+                if (typeof u.actualizarStats === 'function') u.actualizarStats();
+            }
+
+            function quitarIcono(u) {
+                if (typeof obtenerPosicionUnidadActual !== 'function') return;
+                const pos = obtenerPosicionUnidadActual(u);
+                if (!pos || !pos.elemento) return;
+                pos.elemento.querySelectorAll('.mov-effect-icon.refuerzo-buff').forEach(el => {
+                    if (typeof el._movEffectCleanup === 'function') el._movEffectCleanup();
+                    else el.remove();
+                });
+            }
+
+            if (atacante._refuerzoObjetivo && atacante._refuerzoObjetivo !== objetivoAliado) {
+                restaurar(atacante._refuerzoObjetivo);
+                quitarIcono(atacante._refuerzoObjetivo);
+            }
+
+            if (objetivoAliado._refuerzoPrev) restaurar(objetivoAliado);
+            objetivoAliado._refuerzoPrev = {
+                atk: (typeof objetivoAliado.bonusAttack === 'number') ? objetivoAliado.bonusAttack : 1,
+                spa: (typeof objetivoAliado.bonusSpAttack === 'number') ? objetivoAliado.bonusSpAttack : 1,
+                spd: (typeof objetivoAliado.bonusAttackSpeed === 'number') ? objetivoAliado.bonusAttackSpeed : 1
+            };
+            objetivoAliado.bonusAttack = objetivoAliado._refuerzoPrev.atk * 1.25;
+            objetivoAliado.bonusSpAttack = objetivoAliado._refuerzoPrev.spa * 1.25;
+            objetivoAliado.bonusAttackSpeed = objetivoAliado._refuerzoPrev.spd * 1.10;
+            if (typeof objetivoAliado.actualizarStats === 'function') objetivoAliado.actualizarStats();
+
+            if (typeof movMostrarEfectoVisual === 'function') {
+                try {
+                    quitarIcono(objetivoAliado);
+                    movMostrarEfectoVisual(objetivoAliado, {
+                        color: 'color-yellow',
+                        icono: 'mov:Refuerzo',
+                        intensidad: 'soft',
+                        sizeIcono: 'small',
+                        duracionMs: 8000,
+                        persistente: true,
+                        pulso: true,
+                        conservarIconos: true,
+                        claseExtra: 'refuerzo-buff'
+                    });
+                } catch (e) { }
+            }
+
+            atacante._refuerzoObjetivo = objetivoAliado;
+            objetivoAliado._refuerzoToken = (objetivoAliado._refuerzoToken || 0) + 1;
+            const token = objetivoAliado._refuerzoToken;
+            setTimeout(function () {
+                if (objetivoAliado._refuerzoToken !== token) return;
+                restaurar(objetivoAliado);
+                quitarIcono(objetivoAliado);
+                if (atacante._refuerzoObjetivo === objetivoAliado) atacante._refuerzoObjetivo = null;
+            }, 8000);
+
+            let golpeados = 0;
+            const enemigos = (contexto.enemigos || []).filter(e => e && e.hp > 0 && !e.muerto);
+            enemigos.forEach(e => {
+                try {
+                    if (typeof movDistanciaChebyshev === 'function' && movDistanciaChebyshev(atacante, e) > 1) return;
+                    const dmg = Math.max(1, Math.floor((atacante.ataque || 0) * 1.20));
+                    if (typeof movAplicarDaño === 'function') {
+                        movAplicarDaño(atacante, e, dmg, false);
+                        golpeados++;
+                    }
+                } catch (err) { }
+            });
+
+            log(`   ✨ Aliado reforzado: ${objetivoAliado.pokemon.nombre} | Enemigos golpeados: ${golpeados}`);
+            return true;
+        }
+    },
+
     // ===== CHARMANDER / CHARMELEON / CHARIZARD =====
     "llamarada-charmander": {
         nombre: "Llamarada",
@@ -966,8 +1064,8 @@ if (escudo > 0) {
                 }
             }
 
-            // 🆕 Daño basado en HP máximo del ATACANTE (más relevante que el ataque)
-            const dañoBase = Math.max(1, Math.floor((atacante.maxHp || 0) * 0.08));
+            // 📖 La descripción dice 48% de daño de Ataque (antes usaba 8% de HP máx)
+            const dañoBase = Math.max(1, Math.floor((atacante.ataque || 0) * 0.48));
 
             log(`   🎯 Enemigos afectados: ${enemigosEnArea.length} | Daño: ${dañoBase}`);
 

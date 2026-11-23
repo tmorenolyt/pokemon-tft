@@ -506,3 +506,104 @@ protegido solo por `ACCESS_KEY`.
 - **Gritos sin 404**: `js/data/criasDisponibles.js` lista los 79 `.ogg` que
   existen; los monstruos PvE sin grito (190/752/834/895) usan un sonido
   sintetizado. Regenerar con `node tools/generar-crias.js`.
+- **Articuno reaparece cada combate**: `_articunoYaUsoVentisca` se quedaba en
+  `true` tras la primera Ventisca y bloqueaba todas las invocaciones siguientes.
+  Ahora `resetArticunoAlTerminarCombate()` hace un reset completo y se llama al
+  **empezar cada combate**, al **reiniciar** y al **iniciar partida**. También se
+  resetea el Articuno del rival. Verificado: Hielo 6 + Chip Hielo → aparece,
+  lanza Ventisca, y en el siguiente combate vuelve a aparecer.
+- **Auditoría de movimientos y ultis**: 154 instancias de movimiento y 45 ultis,
+  todas con implementación, descripción e icono (0 faltantes, 0 IDs duplicados).
+  Se separaron las descripciones de las 5 variantes que compartían nombre
+  (`Bola Voltio 2`, `Bomba Lodo 2`, `Premonición 2`, `Hidroariete 2`,
+  `Rayo Carga 2`) y ahora se buscan por `iconoKey`; añadida la descripción de
+  **Voltio Cruel**; corregida la clave de **Ho-Oh** (`giro-fuego-hooh`).
+- **Escalado por descripción (X/X/3X)**: `js/systems/escaladoDescripcion.js`
+  lee el daño de la descripción y `movAplicarDaño` aplica el factor de estrellas
+  (1★/2★/3★) a movimientos y ultis. Ejemplos verificados: Bola Voltio 2 factor
+  3 a 3★, Ho-Oh factor 10, daño 100 → 300 a 3★. Si la descripción tiene un solo
+  valor, no escala.
+- **Planca Corpulenta**: descripción restaurada a **48% de Ataque** y código
+  ajustado a `atacante.ataque * 0.48` (antes usaba 8% de HP máximos).
+- **Ho-Oh**: escudo del 100% de HP, daño 225/225/2250% (el 3★ lo aplica el
+  factor) y **70% del daño de los aliados se redirige a Ho-Oh durante 3 s**
+  (el aliado recibe el 30%). Verificado con 100 de daño → aliado -30, Ho-Oh -70.
+  Los efectos secundarios (ralentizaciones, escudos, curas) siguen usando el
+  valor base; escalarlos también sería una segunda pasada.
+- **Eevee · Refuerzo (nueva definitiva de coste 1)**: basada en el movimiento
+  real **Refuerzo / Helping Hand**. Carga 5, alcance 1, 120% de daño de Ataque a
+  los enemigos adyacentes y refuerza a **un solo aliado** (el más fuerte por
+  Ataque + Atq. Esp.; cualquier tipo): +25% Ataque, +25% Atq. Esp. y +10%
+  Velocidad de Ataque durante 8 s. Si no hay otro aliado vivo, se refuerza a sí
+  mismo. Icono propio (`assets/icons/movimientos/refuerzo.png`). Verificado:
+  solo Lucario recibe 1.25/1.10, el resto queda a 1, 1 icono y restauración a
+  los 8 s. Ahora hay 46 ultis.
+- **Sonido de Refuerzo**: la definitiva de Eevee llama a
+  `playSonidoMovimiento('Refuerzo', 0.4)` y usa
+  `assets/sounds/movimientos/refuerzo.mp3`. Manifiesto regenerado
+  (`node tools/generar-sonidos.js`, 109 sonidos) y fallback sintetizado
+  (`refuerzo` → acorde ascendente) por si falta el archivo. Verificado:
+  petición 200, 0 fallos y 0 excepciones.
+- **Icono de Refuerzo en el aliado**: la ulti muestra el PNG (`mov:Refuerzo`)
+  solo sobre el aliado reforzado, sea del tipo que sea, durante los 8 s del
+  buff. Va arriba en el centro para no tapar nombre, HP ni objetos; al recastar
+  no se duplica (se retira el icono del objetivo anterior). Verificado: 1 icono
+  en Lucario, 0 a los 8 s y 0 excepciones.
+- **Bug: el objetivo se volvía invisible (Lanzallamas y otros)**:
+  `.board-cell.mov-zone-marcada` aplicaba la animación `movZonePop` a la propia
+  casilla, y esa animación va de `opacity: 0` a `opacity: 0`. Cualquier
+  movimiento que marque la casilla del objetivo con `movMarcarCasillaConTipo`
+  durante menos de 1,5 s (Lanzallamas, 900 ms) desvanecía al Pokémon que había
+  dentro durante todo el efecto. Ahora la casilla mantiene siempre
+  `opacity: 1`/`transform: none` y el pop + glow se dibuja en `::after` (misma
+  técnica que ya usaba la variante larga `mov-zone-parpadeo`). También se
+  reactiva el `::after` de las zonas largas y de `casilla-nieve`, que
+  `arena-horizontal.css` ocultaba con `display: none !important`. Solo cambia
+  CSS (`css/efectos-movimientos.css`), sin tocar JS. Verificado en headless:
+  durante los 900 ms la celda y su sprite siguen a `opacity: 1` y el overlay
+  hace 0 → 1 → 0; al terminar se retira sin dejar estilos.
+- **Carga inicial (móvil) — bundle de JS/CSS**: `index.html` cargaba 71
+  `<script>` y 19 CSS en cascada. Ahora se empaquetan en `js/bundle.js` y
+  `css/bundle.css` (1 petición cada uno, mismo orden que antes) y se cargan con
+  `defer`. Medido con red emulada de 400 KB/s y 100 ms de latencia: la carga
+  baja de ~4,6 s a ~3,9 s y de 108 a 23 recursos; el DOMContentLoaded pasa de
+  ~4,53 s a ~3,55 s. El hash `?v=` se calcula solo para evitar caché vieja.
+  - Regenerar tras editar cualquier JS/CSS: `node tools/build-bundle.js`.
+  - La lista y el orden están en `tools/bundle-manifest.json`; al añadir un
+    archivo nuevo, añadirlo ahí antes de regenerar.
+  - El servidor también regenera el bundle al arrancar, como red de
+    seguridad (si el disco es de solo lectura, avisa y usa el existente).
+- **Barra de definitiva en móvil**: medía 3 px con borde de 1 px arriba/abajo,
+  así que el relleno quedaba en **1 px** y casi no se veía cargar. Ahora mide
+  4 px, sin borde, y el relleno ocupa los 4 px completos (verificado de 667×375
+  a 926×428). El resto de barras (HP/energía) no cambia.
+- **Sistema de logros + mapas desbloqueables**: 21 logros en 8 categorías
+  (progresión, unidades, sinergias, objetos, combate, PvE y online), con XP de
+  perfil, toasts de desbloqueo y panel 🏆. El perfil del menú ya no es decorativo:
+  la barra de XP sube con cada logro (`Nv.` calculado con `sqrt`).
+  - Persistencia: `localStorage['pktft_logros_v1']` (logros, contadores,
+    récords y XP) y `localStorage['pktft_mapa_v1']` (mapa elegido).
+  - 21 logros desbloquean 17 mapas (más `Automático` y `Pradera`). La selección
+    de mapa está en la pantalla de selección de jugador (`MAPA … CAMBIAR ›`).
+    `aplicarTerrenoActual()` respeta el mapa elegido en todas las rondas; con
+    `Automático` se mantiene el comportamiento por rival/PvE.
+  - Archivos nuevos: `js/systems/logros.js` (datos + estado + eventos),
+    `js/ui/logrosPanel.js` (panel, selector de mapas, toasts y XP) y
+    `css/logros.css`. Añadidos a `tools/bundle-manifest.json`; regenerar con
+    `node tools/build-bundle.js`.
+  - Eventos enganchados: `combate_fin` (victorias, PvE, daño/curación,
+    intocable, contra las cuerdas), `torneo_ganado`, `fusion` (3★ y coste 5),
+    `objeto_equipado` (solo unidades del jugador), `sinergias`, `nivel`,
+    `baul` y `online_fin`.
+  - El modo creativo/sandbox no cuenta. Los objetos que equipa la IA tampoco.
+  - Verificado en headless: desbloqueo por evento real, persistencia tras
+    recargar, mapa aplicado al iniciar partida, mapa bloqueado no seleccionable,
+    panel y selector en móvil (667×375–926×428) y escritorio (1366×768–2133×1200),
+    0 excepciones JS.
+  - **Fondo del menú principal**: `Automático` y `Pradera` están siempre
+    desbloqueados, y el menú conserva SIEMPRE el fondo original de Pradera. El
+    mapa elegido se aplica solo dentro de la partida. Al volver al menú se
+    restaura Pradera (no queda el último terreno del rival).
+  - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
+    así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
+    navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.

@@ -374,8 +374,13 @@ function movAplicarDaño(atacante, objetivo, cantidad, esCritico = false) {
     const bonusMove = (typeof atacante.bonusMoveDamage === 'number' && !isNaN(atacante.bonusMoveDamage))
         ? atacante.bonusMoveDamage : 1;
 
+    // 📐 Factor de estrellas descrito (X/X/3X). Caduca a los 8 s para no
+    // afectar a daños posteriores (veneno, regeneración, básicos...).
+    const factorEstrellas = (atacante._factorEstrellas && performance.now() < (atacante._factorHasta || 0))
+        ? atacante._factorEstrellas : 1;
+
     // Multiplicador total
-    const multiplicadorTotal = bonusMove;
+    const multiplicadorTotal = bonusMove * factorEstrellas;
 
     const dañoRaw = Math.floor(cantidad * multiplicadorTotal);
 
@@ -863,7 +868,8 @@ function movMostrarEfectoVisual(objetivo, opciones = {}) {
         sizeIcono = 'normal',
         persistente = false,
         pulso = false,
-        claseExtra = null
+        claseExtra = null,
+        conservarIconos = false
     } = opciones;
 
     let elemento = null;
@@ -875,7 +881,9 @@ function movMostrarEfectoVisual(objetivo, opciones = {}) {
 
     if (!elemento) return;
 
-    elemento.querySelectorAll('.mov-effect-icon').forEach(el => el.remove());
+    if (!conservarIconos) {
+        elemento.querySelectorAll('.mov-effect-icon').forEach(el => el.remove());
+    }
 
     elemento.classList.add('mov-effect-cell');
     if (color) elemento.classList.add(color);
@@ -941,6 +949,16 @@ function movMostrarEfectoVisual(objetivo, opciones = {}) {
                 elemento.appendChild(iconEl);
             }
         }, 100);
+
+        // Permite quitar el icono (y cancelar su re-add) desde una ulti que
+        // refresca el mismo buff, sin dejar iconos duplicados.
+        iconEl._movEffectCleanup = function () {
+            if (reAddInterval) {
+                clearInterval(reAddInterval);
+                reAddInterval = null;
+            }
+            if (iconEl && iconEl.parentNode) iconEl.remove();
+        };
     }
 
         // 🆕 FIX: si es persistente, NO eliminar el icono con setTimeout.
@@ -1180,14 +1198,21 @@ function ejecutarMovimiento(atacante, objetivoPrincipal, indiceMovimiento, enemi
     if (!enemigosVivos || enemigosVivos.length === 0) return false;
 
     let nombreMovimiento = null;
+    let iconoMovimiento = null;
     if (typeof getMovimientosPokemon === 'function') {
         const movs = getMovimientosPokemon(atacante.pokemon.nombre);
         if (movs && movs[indiceMovimiento]) {
             nombreMovimiento = movs[indiceMovimiento].nombre;
+            iconoMovimiento = movs[indiceMovimiento].iconoKey || null;
         }
     }
 
     if (!nombreMovimiento) return false;
+
+    // 📐 Escalado por estrellas según la descripción del movimiento
+    if (typeof aplicarFactorDescripcion === 'function') {
+        aplicarFactorDescripcion(atacante, nombreMovimiento, iconoMovimiento, atacante.nivel);
+    }
 
     const idBase = normalizarNombreMovimiento(nombreMovimiento);
     const idPokemon = normalizarNombreMovimiento(atacante.pokemon.nombre);

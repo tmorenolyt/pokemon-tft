@@ -15,25 +15,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/base.css?v=11" />
-    <link rel="stylesheet" href="css/menu.css?v=11" />
-    <link rel="stylesheet" href="css/pokedex.css?v=4" />
-    <link rel="stylesheet" href="css/arena.css?v=2" />
-    <link rel="stylesheet" href="css/tienda.css?v=2" />
-    <link rel="stylesheet" href="css/carta.css?v=2" />
-    <link rel="stylesheet" href="css/combate.css?v=3" />
-    <link rel="stylesheet" href="css/panel-datos.css?v=2" />
-    <link rel="stylesheet" href="css/creative.css?v=2" />
-    <link rel="stylesheet" href="css/comic.css?v=2" />
-    <link rel="stylesheet" href="css/tienda-overlay.css?v=7" />
-    <link rel="stylesheet" href="css/efectos-movimientos.css?v=2" />
-    <link rel="stylesheet" href="css/nueva-verde.css?v=2" />
-    <link rel="stylesheet" href="css/drag-drop.css?v=5" />
-    <link rel="stylesheet" href="css/arena-horizontal.css?v=46" />
-    <link rel="stylesheet" href="css/ajustes.css?v=1" />
-    <link rel="stylesheet" href="css/torneo.css?v=1" />
-    <link rel="stylesheet" href="css/tutorial.css?v=1" />
-    <link rel="stylesheet" href="css/mobile.css?v=1" />
+    <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
+         Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
+    <link rel="stylesheet" href="css/bundle.css?v=5e2486f1d7" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -198,7 +182,8 @@
         </div>
     </div>
     <div class="top-actions">
-        <button class="menu-icon-btn" title="Perfil">👤</button>
+        <button class="menu-icon-btn" title="Perfil" id="btnPerfilMenu">👤</button>
+        <button class="menu-icon-btn" title="Logros" id="btnLogros">🏆</button>
         <button class="menu-icon-btn" title="Pokédex" id="btnCompendio">📖</button>
         <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenu">⚙️</button>
     </div>
@@ -247,7 +232,7 @@
 
                 <!-- FOOTER -->
                 <footer class="footer">
-                    <div class="profile-capsule" id="profileCapsuleBtn">
+                    <div class="profile-capsule" id="profileCapsuleBtn" role="button" tabindex="0" title="Ver perfil y logros">
                         <div class="profile-avatar" id="footerAvatar">🧢</div>
                         <div class="profile-details">
                             <div class="profile-name-row">
@@ -279,7 +264,8 @@
                         </div>
                     </div>
                     <div class="top-actions">
-                        <button class="menu-icon-btn" title="Perfil">👤</button>
+                        <button class="menu-icon-btn" title="Perfil" id="btnPerfilSeleccion">👤</button>
+                        <button class="menu-icon-btn" title="Logros" id="btnLogrosSeleccion">🏆</button>
                         <button class="menu-icon-btn" title="Pokédex" id="btnCompendioSeleccion">📖</button>
                         <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuSeleccion">⚙️</button>
                     </div>
@@ -291,6 +277,16 @@
                     <div class="sel-title-container">
                         <h1 id="selTituloModo">1 JUGADOR VS 2 JUGADORES</h1>
                         <p id="selSubtituloModo">Selecciona tu avatar y tu nombre</p>
+                    </div>
+
+                    <!-- MAPA / ESCENARIO -->
+                    <div class="map-selector" id="mapSelectorBar" role="button" tabindex="0" title="Elegir mapa">
+                        <div class="map-selector-thumb" id="mapSelectorThumb"></div>
+                        <div class="map-selector-text">
+                            <span class="map-selector-label">MAPA</span>
+                            <span class="map-selector-name" id="mapSelectorName">Automático</span>
+                        </div>
+                        <button class="map-selector-btn" id="btnElegirMapa" type="button">CAMBIAR ›</button>
                     </div>
 
                     <!-- Contenedor VS -->
@@ -1116,83 +1112,10 @@
         </div>
     </div>
 
-    <script src="js/data/spritesDisponibles.js"></script>  <!-- 🆕 manifiesto de sprites -->
-    <script src="js/data/criasDisponibles.js"></script>     <!-- 🆕 gritos existentes -->
-    <script src="js/config.js"></script>
-    <script src="js/data/sinergias.js"></script>
-    <script src="js/data/objetos.js"></script>
-    <script src="js/data/objetosRecomendados.js"></script>
-    <script src="js/data/pokemon.js"></script>
-    <script src="js/data/movimientosPokemon.js"></script>
-    <script src="js/data/movimientosSecundarios.js"></script>
-    <script src="js/data/ultisPokemon.js"></script>
-    <script src="js/data/movimientosInfo.js"></script>
-    <script src="js/data/movimientoIcons.js"></script>
-    <script src="js/data/spriteScale.js"></script>
-    <script src="js/data/monstruosPvE.js"></script>          <!-- 🆕 PvE -->
-    <script src="js/data/sonidosMovimientos.js"></script>    <!-- 🆕 evita 404 de sonidos -->
-
-    <script src="js/classes/Unidad.js"></script>
-
-    <script src="js/systems/pool.js"></script>
-    <script src="js/systems/tienda.js"></script>
-    <script src="js/systems/fusiones.js"></script>
-    <script src="js/systems/sinergiasCombate.js"></script>
-    <script src="js/systems/objetos.js"></script>
-    <script src="js/systems/movimientos.js"></script>
-    <script src="js/systems/movimientos-registro-1.js"></script>
-    <script src="js/systems/movimientos-registro-2.js"></script>
-    <script src="js/systems/movimientos-registro-3.js"></script>
-    <script src="js/systems/ultis-registro-1.js"></script>
-    <script src="js/systems/ultis-registro-2.js"></script>
-    <script src="js/systems/ultis-registro-3.js"></script>
-    <script src="js/systems/nuevaVerde.js"></script>
-    <script src="js/systems/pve.js"></script>                <!-- 🆕 PvE (antes de combate.js) -->
-    <!-- ⚔️ Combate partido por responsabilidades (antes de combate.js) -->
-    <script src="js/systems/combate/navegacion.js"></script>
-    <script src="js/systems/combate/estado.js"></script>
-    <script src="js/systems/combate/hud.js"></script>
-    <script src="js/systems/combate/combatir.js"></script>
-    <script src="js/systems/combate.js"></script>
-    <!-- 🤖 IA enemiga partida por responsabilidades (antes de enemigo.js) -->
-    <script src="js/systems/enemigo/evaluacion.js"></script>
-    <script src="js/systems/enemigo/tablero.js"></script>
-    <script src="js/systems/enemigo/objetos.js"></script>
-    <script src="js/systems/enemigo/compras.js"></script>
-    <script src="js/systems/enemigo.js"></script>
-    <script src="js/systems/tiendaOverlay.js"></script>
-
-    <script src="js/ui/sinergiaCarta.js"></script>
-    <script src="js/ui/animaciones.js"></script>
-    <script src="js/ui/animacionShiny.js"></script>
-    <script src="js/ui/sonidosShiny.js"></script>
-    <script src="js/ui/comicBubble.js"></script>
-    <script src="js/ui/console.js"></script>
-    <script src="js/ui/menu.js"></script>
-    <script src="js/ui/render.js"></script>
-    <script src="js/ui/panelDatosCombate.js"></script>
-    <script src="js/ui/dragDrop.js"></script>
-    <script src="js/ui/dragObjetos.js"></script>
-    <script src="js/ui/ajustes.js"></script>
-
-    <script src="js/creative/creativePanel.js"></script>
-
-    <script src="js/ui/previewSubirNivel.js"></script>
-    <script src="js/ui/wakeLock.js"></script>   <!-- 🔆 pantalla encendida en móvil -->
-    <script src="js/ui/fullscreen.js"></script>  <!-- ⛶ pantalla completa en móvil -->
-    <script src="js/ui/rendimiento.js"></script>  <!-- ⚡ gráficos ligeros -->
-    <!-- 🎮 main.js partido por responsabilidades (antes de main.js) -->
-    <script src="js/main/audio.js"></script>
-    <script src="js/main/ronda.js"></script>
-    <script src="js/main/rivales.js"></script>
-    <script src="js/main/carta.js"></script>
-    <script src="js/main/postcombate.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/ui/tutorial1j.js"></script>
-     <!-- <script src="js/audioGestor.js"></script> -->
-    <script src="js/systems/modod2j.js"></script>
-    <script src="js/systems/torneo.js"></script>
-    <script src="js/online/amistoso.js"></script>
-    <script src="js/ui/mobile.js"></script>
+    <!-- JS empaquetado en un solo archivo (mismo orden que antes).
+         Generado por tools/build-bundle.js — edita los archivos de js/
+         y ejecuta `node tools/build-bundle.js` para regenerarlo.
+         js/audioGestor.js sigue desactivado. -->
+    <script defer src="js/bundle.js?v=5e2486f1d7"></script>
 </body>
 </html>

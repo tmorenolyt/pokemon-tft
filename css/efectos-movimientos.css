@@ -436,8 +436,11 @@
     z-index: 55;
 }
 
-.casilla-nieve::after {
+.board-cell.casilla-nieve::after {
     content: '';
+    /* `arena-horizontal.css` desactiva los ::after de las casillas;
+       esta regla (más específica) vuelve a mostrar la marca de nieve. */
+    display: block !important;
     position: absolute;
     inset: 0;
     border-radius: 10px;
@@ -459,9 +462,38 @@
 
 .board-cell.mov-zone-marcada {
     transition: box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    animation: movZonePop 0.9s ease-out forwards;
     position: relative;
     z-index: 5;
+}
+
+/* 🆕 FIX: la animación de pop NO se aplica a la celda.
+   Antes `.mov-zone-marcada` animaba `opacity: 0` en la propia
+   casilla, así que el Pokémon que había dentro desaparecía
+   durante ~0,9 s (bug visible con Lanzallamas y cualquier
+   movimiento que marque la casilla del objetivo con
+   movMarcarCasillaConTipo). Ahora el pop se dibuja en ::after
+   y la celda (y su sprite) se mantienen siempre a opacity: 1. */
+.board-cell.mov-zone-marcada:not(.mov-zone-parpadeo) {
+    /* Solo protegemos la opacidad: el shake de impacto
+       (.mov-effect-cell.strong) puede seguir reproduciéndose. */
+    opacity: 1 !important;
+}
+
+/* `arena-horizontal.css` oculta todos los ::after de las casillas;
+   esta regla (más específica y también !important) reactiva solo
+   el overlay de la zona de movimiento. */
+.board-cell.mov-zone-marcada:not(.mov-zone-parpadeo)::after {
+    content: '';
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    pointer-events: none;
+    border: 3px solid rgb(var(--zonac, 156, 163, 175));
+    box-shadow: 0 0 18px rgba(var(--zonac, 156, 163, 175), 0.85),
+                inset 0 0 20px rgba(var(--zonac, 156, 163, 175), 0.35);
+    animation: movZonePop 0.9s ease-out forwards;
+    z-index: 6;
 }
 
 @keyframes movZonePop {
@@ -1039,9 +1071,7 @@
    ============================================================ */
 
 .board-cell.mov-zone-marcada.mov-zone-parpadeo {
-    animation: none !important;
     opacity: 1 !important;
-    transform: none !important;
     background: transparent !important;
     box-shadow: none !important;
     border-color: transparent !important;
@@ -1049,6 +1079,7 @@
 
 .board-cell.mov-zone-marcada.mov-zone-parpadeo::after {
     content: '';
+    display: block !important;
     position: absolute;
     inset: 0;
     border-radius: 10px;
@@ -1058,4 +1089,34 @@
                 inset 0 0 20px rgba(var(--zonac, 56, 189, 248), 0.35);
     animation: movZonePop var(--zona-dur, 4s) ease-out forwards;
     z-index: 6;
+}
+/* ============================================================
+   REFUERZO (Eevee) - icono de buff sobre cada aliado
+   Se queda visible los 8 s del buff (la animación base se apagaba
+   a los 0,8 s) y va arriba en el centro para no tapar HP/nombre.
+   ============================================================ */
+.mov-effect-icon.refuerzo-buff {
+    top: 1px;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    margin-left: -18px;
+    transform-origin: top center;
+    animation: movRefuerzoPop 0.3s ease-out forwards;
+}
+
+@keyframes movRefuerzoPop {
+    0%   { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(0.9); }
+}
+
+@media (max-width: 1100px) {
+    .mov-effect-icon.refuerzo-buff {
+        margin-left: -12px;
+        animation-name: movRefuerzoPopSmall;
+    }
+    @keyframes movRefuerzoPopSmall {
+        0%   { opacity: 0; transform: scale(0.3); }
+        100% { opacity: 1; transform: scale(0.6); }
+    }
 }

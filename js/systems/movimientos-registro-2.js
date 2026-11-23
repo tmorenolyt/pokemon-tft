@@ -2038,52 +2038,7 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
     // MOVIMIENTOS COSTE 5 - SECUNDARIOS
     // ============================================================
 
-    "giro-fuego-ho-oh": {
-        nombre: "Giro Fuego Ho-Oh",
-        tipo: MOV_TIPO.AREA,
-        alcance: 1,
-        area: 1,
-        prioridad: MOV_PRIORIDAD.MAS_CERCANO,
-        sonido: "Giro Fuego Ho-Oh",
-        volumenSonido: 0.4,
-        efecto: { color: MOV_COLOR.ORANGE, shape: null, icono: 'mov:Giro Fuego Ho-Oh', intensidad: 'strong', sizeIcono: 'large' },
-        efectoSecundario: { color: MOV_COLOR.ORANGE, icono: 'mov:Giro Fuego Ho-Oh', intensidad: 'soft', sizeIcono: 'small' },
-        ejecutar: function(atacante, objetivo, contexto) {
-            const log = (msg) => { if (typeof addConsoleMessage === 'function') addConsoleMessage(msg, 'battle'); else console.log(msg); };
-            log(`🔥 ${atacante.pokemon.nombre} usa GIRO FUEGO HO-OH!`);
-            const escudo = Math.floor(atacante.maxHp * 1.00);
-            if (escudo > 0) {
-                aplicarEscudoConFade(atacante, escudo);
-            }
-            if (typeof playSonidoMovimiento === 'function') playSonidoMovimiento('Giro Fuego Ho-Oh', 0.4);
-            const DURACION = 3;
-            const dañoTotal = Math.max(1, Math.floor((atacante.ataque || 0) * 2.25));
-            const dañoPorTick = Math.max(1, Math.floor(dañoTotal / DURACION));
-            for (let i = 0; i < DURACION; i++) {
-                setTimeout(() => {
-                    if (atacante.hp <= 0 || atacante.muerto) return;
-                    const enemigosVivos = contexto.enemigos.filter(e => e && e.hp > 0 && !e.muerto);
-                    const or = movObtenerPosicionGlobal(atacante);
-                    const enemigosCercanos = [];
-                    if (or) {
-                        for (const c of movCasillasEnArea(or, 1)) {
-                            const u = movUnidadEnPosicion(c, enemigosVivos);
-                            if (u && !enemigosCercanos.includes(u)) enemigosCercanos.push(u);
-                        }
-                    }
-                    for (const enemigo of enemigosCercanos) {
-                        if (enemigo.hp <= 0 || enemigo.muerto) continue;
-                        if (typeof movMostrarEfectoVisual === 'function') movMostrarEfectoVisual(enemigo, { color: MOV_COLOR.ORANGE, icono: 'mov:Giro Fuego Ho-Oh', intensidad: i === 0 ? 'strong' : 'soft', sizeIcono: i === 0 ? 'large' : 'small', duracionMs: 400 });
-                        movAplicarDaño(atacante, enemigo, dañoPorTick, false);
-                    }
-                }, i * 1000);
-            }
-            setTimeout(() => { if (typeof movMostrarEfectoVisual === 'function') movMostrarEfectoVisual(atacante, { color: MOV_COLOR.ORANGE, icono: 'mov:Giro Fuego Ho-Oh', intensidad: 'strong', sizeIcono: 'large', duracionMs: 1200 }); }, 100);
-            return true;
-        }
-    },
-
-    "psicoonda": {
+"psicoonda": {
         nombre: "Psicoonda",
         tipo: MOV_TIPO.PROYECTIL,
         alcance: 8,

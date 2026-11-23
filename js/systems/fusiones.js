@@ -496,6 +496,14 @@ function verificarTodasLasFusiones() {
 
                     if (nuevoNivel === 3) {
                         mostrarFlash3EstrellasJugador(evolucionData.nombre || nombreOriginal);
+                        // ⭐ Logro: primera unidad 3★ / 5 en una partida / coste 5
+                        if (typeof Logros !== 'undefined') {
+                            Logros.evento('fusion', {
+                                nivel: 3,
+                                coste: Number(costeOriginal) || 0,
+                                nombre: evolucionData.nombre || nombreOriginal
+                            });
+                        }
                     }
                 } else {
                     for (let item of items) {

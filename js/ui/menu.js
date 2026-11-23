@@ -184,6 +184,12 @@ function volverAlMenu() {
     document.getElementById('vistaSeleccion').classList.remove('activa');
     document.getElementById('vistaMenu').classList.add('activa');
 
+    // 🗺️ El menú principal siempre muestra un mapa desbloqueado
+    // (el elegido o Pradera), nunca el último terreno de una partida.
+    if (window.LogrosUI && typeof LogrosUI.actualizarMapSelector === 'function') {
+        LogrosUI.actualizarMapSelector();
+    }
+
     if (typeof playButtonSound === 'function') playButtonSound();
 }
 
@@ -1005,7 +1011,7 @@ function construirPokedexDetalleHtml(p, nivelSeleccionado = 1) {
 
         // 🆕 Descripción del movimiento
         const nombreLimpio = typeof limpiarNombreMovimiento === 'function' ? limpiarNombreMovimiento(movPrincipal.nombre) : movPrincipal.nombre;
-        const descData = typeof getDescripcionMovimiento === 'function' ? getDescripcionMovimiento(nombreLimpio) : null;
+        const descData = typeof getDescripcionMovimiento === 'function' ? getDescripcionMovimiento(nombreLimpio, movPrincipal.iconoKey) : null;
         const descripcionHtml = descData && descData.descripcion
             ? `<div class="mov-desc">${descData.descripcion}</div>`
             : `<div class="mov-desc mov-desc-vacia">Sin descripción disponible.</div>`;
@@ -1032,7 +1038,7 @@ function construirPokedexDetalleHtml(p, nivelSeleccionado = 1) {
 
         // 🆕 Descripción del movimiento
         const nombreLimpio = typeof limpiarNombreMovimiento === 'function' ? limpiarNombreMovimiento(movSecundario.nombre) : movSecundario.nombre;
-        const descData = typeof getDescripcionMovimiento === 'function' ? getDescripcionMovimiento(nombreLimpio) : null;
+        const descData = typeof getDescripcionMovimiento === 'function' ? getDescripcionMovimiento(nombreLimpio, movSecundario.iconoKey) : null;
         const descripcionHtml = descData && descData.descripcion
             ? `<div class="mov-desc">${descData.descripcion}</div>`
             : `<div class="mov-desc mov-desc-vacia">Sin descripción disponible.</div>`;

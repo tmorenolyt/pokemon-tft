@@ -1820,7 +1820,7 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
     // MOVIMIENTOS COSTE 5 - SECUNDARIOS
     // ============================================================
 
-    "giro-fuego-ho-oh": {
+    "giro-fuego-hooh": {
         nombre: "Giro Fuego Ho-Oh",
         tipo: MOV_TIPO.AREA,
         alcance: 1,
@@ -1839,8 +1839,11 @@ Object.assign(MOVIMIENTOS_REGISTRO, {
                 atacante.escudoActual = (atacante.escudoActual || 0) + escudo;
                 if (typeof actualizarEscudoVisual === 'function') actualizarEscudoVisual(atacante);
             }
+            // ❄️ Durante 3 s comparte el 70% del daño recibido por los aliados.
+            atacante._giroFuegoHasta = performance.now() + 3000;
             if (typeof playSonidoMovimiento === 'function') playSonidoMovimiento('Giro Fuego Ho-Oh', 0.4);
-            // daño continuo: total 225% de Ataque repartido en 3 ticks (1/seg)
+            // Daño base 225% de Ataque; el factor de estrellas de la descripción
+            // lo eleva a 2250% a 3★ y lo reparte en 3 ticks (1/seg).
             const DURACION = 3;
             const dañoTotal = Math.max(1, Math.floor((atacante.ataque || 0) * 2.25));
             const dañoPorTick = Math.max(1, Math.floor(dañoTotal / DURACION));

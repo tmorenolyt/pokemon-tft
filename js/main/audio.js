@@ -312,6 +312,7 @@ function usarFallbackSonidoMovimiento(idSonido, volumen = 0.15) {
     if (!audioContext) return;
     const fallbacks = {
         'latigo-cepa': { frecuencias: [660, 990, 1320], duracion: 0.35, tipo: 'sawtooth' },
+        'refuerzo': { frecuencias: [523, 659, 784, 1046], duracion: 0.4, tipo: 'triangle' },
         'lanzallamas': { frecuencias: [200, 400, 300, 500], duracion: 0.6, tipo: 'sawtooth' },
         'vendaval': { frecuencias: [900, 1200, 700, 1400], duracion: 0.55, tipo: 'triangle' },
         'trampa-rocas': { frecuencias: [120, 90, 140, 80], duracion: 0.5, tipo: 'square' },

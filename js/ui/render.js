@@ -16,7 +16,7 @@ function obtenerRangoAtaque(unidad) {
     if (!movimientos || movimientos.length === 0) return 1;
     const movPrincipal = movimientos[0];
     const nombreLimpio = limpiarNombreMovimiento(movPrincipal.nombre);
-    const info = getDescripcionMovimiento(nombreLimpio);
+    const info = getDescripcionMovimiento(nombreLimpio, movPrincipal.iconoKey);
     if (!info || !info.alcance) return 1;
     const match = String(info.alcance).match(/(\d+)/);
     if (!match) return 1;
@@ -930,6 +930,13 @@ function moverUnidad(origenTipo, origenIdx, destinoTipo, destinoIdx) {
 
 function actualizarObjetosVerticales(lado = 'jugador') {
     const esEnemigo = lado === 'enemigo';
+
+    // 📦 Logro "Baúl lleno" (solo el baúl del jugador)
+    if (!esEnemigo && typeof Logros !== 'undefined') {
+        const maxBaul = (typeof CONFIG !== 'undefined' && CONFIG.MAX_BAUL) ? CONFIG.MAX_BAUL : 8;
+        Logros.evento('baul', { cantidad: baulObjetos.length, max: maxBaul });
+    }
+
     const gridId = esEnemigo ? 'objetosVerticalGridEnemigo' : 'objetosVerticalGrid';
     const lista = esEnemigo ? (typeof enemyBaulObjetos !== 'undefined' ? enemyBaulObjetos : []) : baulObjetos;
     const colorBorde = esEnemigo ? '#ef4444' : '#fbbf24';

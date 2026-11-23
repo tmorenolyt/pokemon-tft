@@ -603,6 +603,21 @@ class Unidad {
             this.debilidadTimer = 0;
         }
 
+        // ❄️ Giro Fuego de Ho-Oh: el 70% del daño de los aliados se comparte
+        // con Ho-Oh durante los 3 s del vórtice (el aliado recibe el 30%).
+        if (!this._recibiendoCompartido && dañoReal > 0) {
+            const hooh = (typeof buscarHoOhGiroFuego === 'function') ? buscarHoOhGiroFuego(this) : null;
+            if (hooh && hooh !== this) {
+                const compartido = Math.floor(dañoReal * 0.7);
+                if (compartido > 0) {
+                    dañoReal -= compartido;
+                    this._recibiendoCompartido = true;
+                    try { hooh.recibirDaño(compartido, atacante); } catch (e) { }
+                    this._recibiendoCompartido = false;
+                }
+            }
+        }
+
         if (this.escudoActual > 0) {
             let dañoEscudo = Math.min(this.escudoActual, dañoReal);
             this.escudoActual -= dañoEscudo;
@@ -887,3 +902,20 @@ class Unidad {
 // EXPONER GLOBALMENTE
 // ============================================================
 window.Unidad = Unidad;
+
+// Busca un Ho-Oh aliado con Giro Fuego activo (para compartir daño).
+function buscarHoOhGiroFuego(unidad) {
+    if (!unidad) return null;
+    const ahora = performance.now();
+    let lista = null;
+    try {
+        if (typeof tablero !== 'undefined' && tablero && tablero.includes(unidad)) lista = tablero;
+        else if (typeof enemyBoard !== 'undefined' && enemyBoard && enemyBoard.includes(unidad)) lista = enemyBoard;
+    } catch (e) { }
+    if (!lista) return null;
+    for (const u of lista) {
+        if (u && u !== unidad && u.hp > 0 && !u.muerto && u._giroFuegoHasta > ahora) return u;
+    }
+    return null;
+}
+window.buscarHoOhGiroFuego = buscarHoOhGiroFuego;

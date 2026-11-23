@@ -42,6 +42,7 @@ const MOVIMIENTO_ICONS = {
     "Finta": "finta.png",
     "Garra Umbría": "garra-umbria.png",
     "Ataque Rápido": "ataque-rapido.png",
+    "Refuerzo": "refuerzo.png",
     "Meteoros": "meteoros.png",
 
     // ============================================================
