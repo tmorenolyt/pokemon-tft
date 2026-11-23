@@ -160,6 +160,9 @@ class Unidad {
         this.damageTaken = 0;
         this.healingDone = 0;
         this.damageBlocked = 0;
+        // 🆕 Mayor golpe en un solo impacto (para el panel de datos)
+        this.maxHitDealt = 0;
+        this.maxHitTaken = 0;
         this.equipo = 'player';
         this.tipoAtaque = 'fisico';
 
@@ -642,6 +645,10 @@ class Unidad {
         }
 
         this.damageTaken += dañoReal;
+
+        // 🆕 Mayor golpe recibido / mayor golpe del atacante (un solo impacto)
+        if (dañoReal > (this.maxHitTaken || 0)) this.maxHitTaken = dañoReal;
+        if (atacante && dañoReal > (atacante.maxHitDealt || 0)) atacante.maxHitDealt = dañoReal;
 
         if (dañoReal > 0 && typeof actualizarCopiaEstadisticas === 'function') {
             actualizarCopiaEstadisticas(this, 'damageTaken', dañoReal);

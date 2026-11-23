@@ -98,7 +98,7 @@ async function combatir() {
         for (let i = 0; i < enemyBoard.length; i++) {
             const u = enemyBoard[i];
             if (u) {
-                u.damageDealt = 0; u.damageTaken = 0; u.healingDone = 0; u.damageBlocked = 0;
+                u.damageDealt = 0; u.damageTaken = 0; u.healingDone = 0; u.damageBlocked = 0; u.maxHitDealt = 0; u.maxHitTaken = 0;
                 u.equipo = 'enemy'; u.muerto = false;
                 if (typeof u.hp !== 'number' || isNaN(u.hp) || u.hp <= 0) u.hp = u.maxHp || 1;
                 u.metronomoBonus = 1; u.energiaLista = false;
@@ -173,7 +173,7 @@ async function combatir() {
                 copia.defensa = tablero[i].defensa; copia.defensaEspecial = tablero[i].defensaEspecial;
                 copia.velocidadAtaque = tablero[i].velocidadAtaque;
                 copia.energy = tablero[i].energy || 0; copia.energyGauge = tablero[i].energyGauge || 70;
-                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0;
+                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0; copia.maxHitDealt = 0; copia.maxHitTaken = 0;
                 copia.objetos = tablero[i].objetos ? [...tablero[i].objetos] : [];
                 copia.equipo = 'player'; copia.muerto = false; copia.metronomoBonus = 1; copia.energiaLista = false;
                 copia.actualizarStats();
@@ -191,7 +191,7 @@ async function combatir() {
                 copia.defensa = enemyBoard[i].defensa; copia.defensaEspecial = enemyBoard[i].defensaEspecial;
                 copia.velocidadAtaque = enemyBoard[i].velocidadAtaque;
                 copia.energy = enemyBoard[i].energy || 0; copia.energyGauge = enemyBoard[i].energyGauge || 70;
-                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0;
+                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0; copia.maxHitDealt = 0; copia.maxHitTaken = 0;
                 copia.objetos = enemyBoard[i].objetos ? [...enemyBoard[i].objetos] : [];
                 copia.equipo = 'enemy'; copia.muerto = false; copia.metronomoBonus = 1; copia.energiaLista = false;
                 copia.actualizarStats();
@@ -215,7 +215,7 @@ async function combatir() {
             if (n.objetos && n.objetos.includes("Roca del Rey") && n.reduceDefense === 0) {
                 n.reduceDefense = 0.45; n.duracionReduccion = 3;
             }
-            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0;
+            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0; n.maxHitDealt = 0; n.maxHitTaken = 0;
             n.muerto = false; n.equipo = 'player'; n.metronomoBonus = 1; n.energiaLista = false;
             n.energy = n.pokemon.startingEnergy || 0; n.critGuaranteed = false;
             n._regenAccumulator = 0; n.regenTimer = 0; n._deathLogged = false; n._reviviendo = false; n._regenLogged = false;
@@ -250,7 +250,7 @@ async function combatir() {
             if (n.objetos && n.objetos.includes("Roca del Rey") && n.reduceDefense === 0) {
                 n.reduceDefense = 0.45; n.duracionReduccion = 3;
             }
-            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0;
+            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0; n.maxHitDealt = 0; n.maxHitTaken = 0;
             n.muerto = false; n.equipo = 'enemy'; n.metronomoBonus = 1; n.energiaLista = false;
             n.energy = n.pokemon.startingEnergy || 0; n.critGuaranteed = false;
             n._regenAccumulator = 0; n.regenTimer = 0; n._deathLogged = false; n._reviviendo = false; n._regenLogged = false;
@@ -1500,6 +1500,12 @@ async function combatir() {
                 rivalEnTorneo._estadoRonda = victoria ? 'loss' : 'win';
                 rivalEnTorneo._danoRonda = victoria ? daño : null;
             }
+
+            // 🏆 ¿Era el último rival vivo? Entonces la victoria total debe
+            // salir ya, sin dejar varios segundos la pantalla del rival.
+            if (window.torneoRivales && window.torneoRivales.length > 0) {
+                window._torneoTerminado = !window.torneoRivales.some(r => !r.eliminado);
+            }
         }
 
         if (!esPvE && typeof mostrarReaccionEnemigo === 'function') {
@@ -1619,7 +1625,9 @@ ronda = fase;
 
         document.querySelectorAll('.board-cell.muerto').forEach(cell => { cell.style.display = 'none'; });
 
-        await new Promise(r => setTimeout(r, 5500));
+        // Si el torneo ha terminado, no dejar 5,5 s de celebración mostrando
+        // el tablero/baúl del rival: pasar rápido a la pantalla de victoria.
+        await new Promise(r => setTimeout(r, window._torneoTerminado ? 400 : 5500));
 
         document.querySelectorAll('.salto-victoria').forEach(cell => { cell.classList.remove('salto-victoria'); cell.style.animationDelay = ''; });
         document.body.classList.remove('celebrando');

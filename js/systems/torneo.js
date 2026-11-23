@@ -1043,6 +1043,201 @@ function calcularPoderRival(rival) {
 }
 
 // ============================================================
+// 🏆 SNAPSHOT DEL RIVAL ACTIVO (para la pantalla final)
+// ============================================================
+function snapshotRivalActivo() {
+    if (!window.rivalActual || !window.torneoRivales) return null;
+    const r = window.torneoRivales.find(x => x.nombre === window.rivalActual.nombre);
+    if (!r) return null;
+
+    const hp = Number(enemyHealth);
+    r.vida = Number.isFinite(hp) ? Math.max(0, hp) : r.vida;
+    r.oro = (typeof enemyGold === 'number') ? enemyGold : r.oro;
+    r.nivel = (typeof enemyLevel === 'number') ? enemyLevel : r.nivel;
+    r.racha = (enemyWinStreak || 0) - (enemyLossStreak || 0);
+    r.eliminado = (typeof r.vida === 'number') ? r.vida <= 0 : r.eliminado;
+
+    if (typeof enemyBoard !== 'undefined' && typeof enemyBanquillo !== 'undefined') {
+        const tableroSnap = enemyBoard.map(u => u ? u.clonarParaCombate() : null);
+        const banquilloSnap = enemyBanquillo.map(u => u ? u.clonarParaCombate() : null);
+        // Si el tablero ya se limpió tras el combate, conservar el último
+        // snapshot bueno (con sus objetos) en vez de dejar el equipo vacío.
+        if (tableroSnap.some(Boolean) || banquilloSnap.some(Boolean)) {
+            r._equipoGuardado = { tablero: tableroSnap, banquillo: banquilloSnap };
+        }
+    }
+    return r;
+}
+
+// ============================================================
+// ⚖️ IGUALAR OBJETOS DE LOS RIVALES VIVOS CON EL JUGADOR
+// ============================================================
+// El jugador puede acabar con 3 objetos por unidad; algunos rivales
+// (sobre todo los que no han sido el rival activo) se quedaban con menos.
+// Aquí, al final de cada ronda, se rellena su equipo hasta el mismo número
+// de objetos equipados, respetando sus huecos (2 normales + 1 disco).
+function _contarObjetosEquipados(unidades) {
+    return (unidades || []).reduce((n, u) => n + ((u && Array.isArray(u.objetos)) ? u.objetos.length : 0), 0);
+}
+
+function _slotsObjetosRival(u) {
+    if (!u) return 0;
+    return 2 + ((u.nivel || 1) >= 2 ? 1 : 0);
+}
+
+function _objetoUtilRival(rival, unidad, yaEnUnidad) {
+    const tipos = (rival.estrategia && rival.estrategia.tipos) || [];
+    const candidatos = [];
+    for (const nombre in OBJETOS) {
+        const d = OBJETOS[nombre];
+        if (!d || !d.efecto) continue;
+        if (d.efecto.esDiscoUlti) continue; // los discos van aparte
+        if (yaEnUnidad.includes(nombre)) continue;
+        if (d.requerido && (!unidad.pokemon || !(unidad.pokemon.tipos || []).includes(d.requerido))) continue;
+
+        let score = 0;
+        if (d.efecto.tipoBonus) {
+            if (tipos.includes(d.efecto.tipoBonus)) score += 100;
+            else score -= 50;
+        }
+        if (d.efecto.damagePercent || d.efecto.attackPercent || d.efecto.spAttackPercent) score += 12;
+        if (d.efecto.hpBonus || d.efecto.defense || d.efecto.spDefense) score += 10;
+        if (d.efecto.regenPorSegundo || d.efecto.escudoPorcentaje) score += 14;
+        candidatos.push({ nombre, score });
+    }
+    candidatos.sort((a, b) => b.score - a.score);
+    if (!candidatos.length) return null;
+    // Evitar colocar chips de otra estrategia si no hay nada mejor.
+    if (candidatos[0].score < -40) return null;
+    return candidatos[0].nombre;
+}
+
+// 🎯 Objetivo de objetos según la ronda (rondas de tienda de objetos):
+// 3, 7, 9, 13, 15, 19, 21, 25, 27, 31... → 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+// No depende de cuántos tenga el jugador; es el cupo normal de la partida.
+function objetosObjetivoPorRonda(rondaParam) {
+    const r = Math.max(1, Number(rondaParam) || 1);
+    let n = 0;
+    for (let x = 3; x <= r; x += 6) n++;
+    for (let x = 7; x <= r; x += 6) n++;
+    return n;
+}
+
+function _quitarObjetosRival(unidades, cantidad) {
+    let sobrante = Math.max(0, cantidad);
+    // Primero normales (desde el final), luego discos si aún sobran.
+    for (const u of unidades) {
+        if (!u || !Array.isArray(u.objetos)) continue;
+        for (let i = u.objetos.length - 1; i >= 0 && sobrante > 0; i--) {
+            const od = OBJETOS[u.objetos[i]];
+            if (od && od.efecto && od.efecto.esDiscoUlti) continue;
+            u.objetos.splice(i, 1);
+            sobrante--;
+            if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+        }
+    }
+    for (const u of unidades) {
+        if (!u || !Array.isArray(u.objetos)) continue;
+        for (let i = u.objetos.length - 1; i >= 0 && sobrante > 0; i--) {
+            const od = OBJETOS[u.objetos[i]];
+            if (!(od && od.efecto && od.efecto.esDiscoUlti)) continue;
+            u.objetos.splice(i, 1);
+            sobrante--;
+            if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+        }
+    }
+    return cantidad - sobrante;
+}
+
+function igualarObjetosRivales() {
+    if (!window.torneoRivales || window.torneoRivales.length === 0) return;
+
+    const rondaActual = (typeof ronda !== 'undefined' && Number(ronda) > 0)
+        ? Number(ronda)
+        : (typeof fase !== 'undefined' ? Number(fase) : 1);
+    const objetivoRonda = objetosObjetivoPorRonda(rondaActual);
+
+    for (const r of window.torneoRivales) {
+        // Incluimos también a los eliminados: no vuelven a combatir, pero
+        // aparecen en el ranking final y deben mostrar un equipo coherente.
+        const g = r._equipoGuardado;
+        if (!g || !Array.isArray(g.tablero)) continue;
+
+        const unidades = [...(g.tablero || []), ...(g.banquillo || [])].filter(Boolean);
+        if (unidades.length === 0) continue;
+
+        for (const u of unidades) u._nivelEquipoRival = r.nivel || 1;
+
+        let actuales = _contarObjetosEquipados(unidades);
+        const objetosAntes = actuales;
+        // 🎯 Cupo = 1 objeto por ronda de tienda + los Discos Definitivos
+        // que le corresponden por nivel (1 desde nivel 5, 2 desde nivel 8).
+        const discosObjetivo = (typeof maxDiscosPorNivelEquipo === 'function')
+            ? maxDiscosPorNivelEquipo(r.nivel || 1)
+            : 0;
+        // Huecos reales: 2 normales por unidad + como máximo los discos
+        // que permite el nivel del equipo (no uno por cada unidad 2★).
+        const normalSlots = unidades.reduce((n) => n + 2, 0);
+        const discSlots = unidades.reduce((n, u) => n + ((u.nivel || 1) >= 2 ? 1 : 0), 0);
+        const maxSlots = normalSlots + Math.min(discSlots, discosObjetivo);
+        const objetivo = Math.min(objetivoRonda + discosObjetivo, maxSlots);
+
+        // Si lleva MÁS objetos que el cupo de la ronda, quitar el exceso.
+        if (actuales > objetivo) {
+            const quitados = _quitarObjetosRival(unidades, actuales - objetivo);
+            actuales -= quitados;
+            if (quitados > 0) {
+                console.log(`⚖️ [OBJETOS] ${r.nombre}: ${objetosAntes} → ${actuales} (cupo ${objetivoRonda} tienda + ${discosObjetivo} discos = ${objetivo})`);
+            }
+            continue;
+        }
+
+        let faltan = objetivo - actuales;
+        if (faltan <= 0) continue;
+
+        // 1) Discos disponibles según el nivel del rival
+        const maxDiscos = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(r.nivel || 1) : 0;
+        let discos = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades(unidades) : 0;
+        if (discos < maxDiscos) {
+            for (const u of unidades) {
+                if (faltan <= 0 || discos >= maxDiscos) break;
+                if (!u || u.esZacian || u.esArticuno || u.noEquiparObjetos) continue;
+                if ((u.nivel || 1) < 2) continue;
+                if (!u.objetos) u.objetos = [];
+                if (u.objetos.some(o => { const od = OBJETOS[o]; return od && od.efecto && od.efecto.esDiscoUlti; })) continue;
+                u.objetos.push('Disco Definitivo');
+                if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+                discos++; actuales++; faltan--;
+            }
+        }
+
+        // 2) Objetos normales (máx. 2 por unidad)
+        for (const u of unidades) {
+            if (faltan <= 0) break;
+            if (!u || u.esZacian || u.esArticuno || u.noEquiparObjetos) continue;
+            if (!u.objetos) u.objetos = [];
+            const normales = u.objetos.filter(o => { const od = OBJETOS[o]; return !(od && od.efecto && od.efecto.esDiscoUlti); });
+            let huecos = Math.max(0, 2 - normales.length);
+            while (huecos > 0 && faltan > 0) {
+                const obj = _objetoUtilRival(r, u, u.objetos);
+                if (!obj) break;
+                u.objetos.push(obj);
+                if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+                huecos--; actuales++; faltan--;
+            }
+        }
+
+        if (actuales > objetosAntes) {
+            console.log(`⚖️ [OBJETOS] ${r.nombre}: ${objetosAntes} → ${actuales} objetos equipados (cupo ${objetivoRonda} tienda + ${discosObjetivo} discos = ${objetivo})`);
+        }
+    }
+}
+
+window.snapshotRivalActivo = snapshotRivalActivo;
+window.igualarObjetosRivales = igualarObjetosRivales;
+window.objetosObjetivoPorRonda = objetosObjetivoPorRonda;
+
+// ============================================================
 // SIMULAR COMBATES ENTRE RIVALES (rondas PvP)
 // ============================================================
 function simularCombatesRivales(rivalDelJugador, parejasRonda) {
@@ -1051,6 +1246,13 @@ function simularCombatesRivales(rivalDelJugador, parejasRonda) {
 
     if (typeof fase !== 'undefined' && fase <= 1) {
         console.log(`👾 Ronda ${fase} (PvE de arranque): no se simulan combates entre rivales.`);
+        return;
+    }
+
+    // 🏆 Si ya no queda ningún rival vivo, no simular un combate fantasma
+    // que retrase la pantalla de victoria total.
+    if (!window.torneoRivales.some(r => !r.eliminado)) {
+        console.log('🏆 Torneo terminado: no se simulan más combates.');
         return;
     }
 
@@ -1885,7 +2087,7 @@ function comprobarFinTorneo() {
             if (typeof mostrarVictoriaJuego === 'function') {
                 mostrarVictoriaJuego();
             }
-        }, 1000);
+        }, window._torneoTerminado ? 100 : 1000);
 
         return true;
     }

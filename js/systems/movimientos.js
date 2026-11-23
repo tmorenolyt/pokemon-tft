@@ -416,6 +416,7 @@ function movAplicarDaño(atacante, objetivo, cantidad, esCritico = false) {
     const murio = objetivo.recibirDaño(daño, atacante);
 
     atacante.damageDealt = (atacante.damageDealt || 0) + daño;
+    if (daño > (atacante.maxHitDealt || 0)) atacante.maxHitDealt = daño;
 
     if (typeof actualizarCopiaEstadisticas === 'function') {
         actualizarCopiaEstadisticas(atacante, 'damageDealt', daño);

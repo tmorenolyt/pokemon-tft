@@ -403,6 +403,7 @@ function reiniciarJuego() {
 
     // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
     window._logroTorneoContado = false;
+    window._torneoTerminado = false;
     if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
 
     if (typeof resetNuevaVerde === 'function') resetNuevaVerde();
@@ -611,6 +612,7 @@ function init() {
 
     // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
     window._logroTorneoContado = false;
+    window._torneoTerminado = false;
     if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
     
     // 🆕 Sincronizar Aura de Miedo al iniciar

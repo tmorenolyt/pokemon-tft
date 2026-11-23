@@ -635,6 +635,40 @@ protegido solo por `ACCESS_KEY`.
     `COMIC_FRASES_ELIMINADO_RIVAL` (en `comicBubble.js`) y estilo
     `bubble-eliminado` (borde dorado). Si no está eliminado, sigue usando el
     `lose` normal. El bocadillo de despedida dura 4,5 s en vez de 3,5 s.
+  - **Manifest sin CORS en file://**: el `<link rel="manifest">` se inyecta
+    solo por HTTP(S). Al abrir `index.html` con `file://` ya no se pide
+    `manifest.webmanifest` ni aparece el error de CORS.
+  - **Daño por derrota**: se mantiene la fórmula original `base + 1 por CADA
+    unidad viva del ganador` (con cap global de 20). Se probó un tope de +3 y
+    se revirtió: el usuario se refería al daño de los Pokémon en combate, no
+    al HP que se pierde al final de ronda.
+  - **Cupo de objetos por ronda**: el objetivo de cada participante es
+    **1 objeto por ronda de tienda + los Discos Definitivos de su nivel**
+    (1 desde nivel 5, 2 desde nivel 8). Las rondas de tienda son
+    3, 7, 9, 13, 15, 19, 21, 25, 27... → 1, 2, 3, 4, 5, 6, 7, 8, 9...
+    Al final de cada ronda, `igualarObjetosRivales()` deja a **todos los
+    rivales** (también los eliminados, para el ranking final) exactamente en
+    ese cupo: rellena si van por debajo y quita el exceso si van por encima.
+    Los huecos reales son 2 normales por unidad + los discos que permite el
+    nivel del equipo (no un disco por cada unidad 2★). Así un rival nunca
+    queda por debajo ni por encima de lo que toca por ronda/nivel. El jugador
+    conserva los objetos extra que gane por recompensas/ventas.
+  - **Daño de Pokémon**: se auditó y se probaron recortes en Snorlax y Hoopa,
+    pero el usuario pidió **restaurarlos**: se mantienen los valores originales
+    (Snorlax 3★: 2500% + rodada extra de 800%; Hoopa 3★: 100% HP, 100 energía y
+    +250% Atk/AtkEsp).
+    - El panel de datos de combate vuelve a mostrar **“Daño infligido”** y
+      **solo el número**, sin el texto “total acumulado” ni el **💥 mayor
+      golpe** (se quitaron porque no gustaban). El filtro de estadísticas ya no
+      descarta golpes legítimos >5000 (el umbral anti-bug pasa a 100.000). El
+      seguimiento interno de `maxHitDealt`/`maxHitTaken` se mantiene, pero no se muestra.
+  - **Victoria total inmediata**: si el último combate elimina al último
+    rival, `ejecutarFinDeRonda` no hace la transición (no limpia el tablero ni
+    asigna otro rival): snapshot final + igualar objetos + `comprobarFinTorneo`
+    directo. La celebración baja a 400 ms y la pantalla de resultados aparece
+    ~0,8 s después del combate (antes se veían varios segundos el rival y su
+    baúl). También se evita el combate fantasma de `simularCombatesRivales`
+    cuando ya no queda nadie vivo.
   - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
     así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
     navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.

@@ -57,6 +57,24 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
         return;
     }
 
+    // 🏆 Si este combate eliminó al último rival, NO hacer la transición de
+    // ronda (limpiar el tablero/baúl del rival, asignar otro, etc.):
+    // snapshot final + igualar objetos + pantalla de victoria total ya.
+    // Así no se ven durante segundos el rival siguiente ni su baúl.
+    if (window._torneoTerminado === true) {
+        try { if (typeof snapshotRivalActivo === 'function') snapshotRivalActivo(); } catch (e) { }
+        try { if (typeof igualarObjetosRivales === 'function') igualarObjetosRivales(); } catch (e) { }
+        // comprobarFinTorneo también registra el logro de torneo ganado.
+        if (typeof comprobarFinTorneo === 'function') {
+            comprobarFinTorneo();
+        } else if (typeof mostrarVictoriaJuego === 'function') {
+            mostrarVictoriaJuego();
+        }
+        window._finRondaEnCurso = false;
+        if (typeof liberarEstadoCombate === 'function') liberarEstadoCombate();
+        return;
+    }
+
     // 🆕 FIX: usar la SIGUIENTE ronda (nuevaRondaEsPvE), no el combate
     // que acaba de terminar (esPvE). Si la ronda 1 fue PvE pero la 2
     // es PvP, hay que asignar rival igualmente.
@@ -236,6 +254,15 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
         // Así el ranking muestra "Tú vs Valerie / Erika vs Rojo / ..."
         // hasta que empiece la ronda 3.
         if (typeof actualizarRankingTorneo === 'function') actualizarRankingTorneo();
+
+        // 🏆 Si este combate eliminó al último rival, no esperar los 5 s del
+        // ranking: snapshot final + pantalla de victoria total ya.
+        if (window._torneoTerminado) {
+            try { if (typeof snapshotRivalActivo === 'function') snapshotRivalActivo(); } catch (e) { }
+            try { if (typeof igualarObjetosRivales === 'function') igualarObjetosRivales(); } catch (e) { }
+            if (typeof comprobarFinTorneo === 'function' && comprobarFinTorneo()) return;
+        }
+
         await esperar(TIEMPOS_FIN_RONDA.TORNEO_MS);
 
         // 🆕 Después de unos segundos, ocultar los ✔ / ✖ / -X de los rivales
@@ -348,6 +375,12 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
                     }
                 }
             }
+        }
+
+        // ⚖️ Igualar el número de objetos equipados de los rivales vivos con
+        // el del equipo del jugador en esta ronda (rivales más justos).
+        if (typeof igualarObjetosRivales === 'function') {
+            try { igualarObjetosRivales(); } catch (e) { console.warn('⚠️ igualarObjetosRivales:', e); }
         }
 
     } finally {

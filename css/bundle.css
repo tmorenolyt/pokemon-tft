@@ -6849,6 +6849,7 @@ body.celebrando .btn-abrir-tienda {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
 }
 
 /* 🆕 Número más grande: 0.8rem (antes 0.7rem) */

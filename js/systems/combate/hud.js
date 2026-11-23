@@ -6,10 +6,11 @@
 function actualizarCopiaEstadisticas(unidad, statKey, valor) {
     if (!unidad) return;
     
-    // 🆕 FIX CRÍTICO: Evitar que el contador se desborde.
-    // Si el valor es mayor a 5000 de golpe, es un bug de DoT (quemadura/veneno).
-    // Lo ignoramos para que no sume 37 millones al panel.
-    if (typeof valor !== 'number' || isNaN(valor) || valor > 5000) {
+    // 🆕 Evitar que un bug de DoT desborde el panel (se vio un caso de 37M).
+    // El umbral era 5000, pero un golpe legítimo de 3★ (Snorlax, Ho-Oh...)
+    // puede superarlo y se perdía en las estadísticas. 100.000 sigue
+    // filtrando el bug sin ocultar hits reales.
+    if (typeof valor !== 'number' || isNaN(valor) || valor < 0 || valor > 100000) {
         return;
     }
 
@@ -261,6 +262,7 @@ function actualizarStatsEnVivo(jugadores, rivales) {
             nombre: j.pokemon.nombre, spriteId: j.pokemon.spriteId || j.pokemon.id,
             nivel: j.nivel || 1, damageDealt: j.damageDealt || 0, damageTaken: j.damageTaken || 0,
             healingDone: j.healingDone || 0, damageBlocked: j.damageBlocked || 0,
+            maxHitDealt: j.maxHitDealt || 0, maxHitTaken: j.maxHitTaken || 0,
             hp: j.hp || 0, maxHp: j.maxHp || 0, muerto: j.muerto || false, equipo: 'jugador',
             tipoAtaque, esFrontline: esPokemonFrontline(j), esZacian: j.esZacian || false, esMelee: esPokemonMelee(j)
         });
@@ -275,6 +277,7 @@ function actualizarStatsEnVivo(jugadores, rivales) {
             nombre: r.pokemon.nombre, spriteId: r.pokemon.spriteId || r.pokemon.id,
             nivel: r.nivel || 1, damageDealt: r.damageDealt || 0, damageTaken: r.damageTaken || 0,
             healingDone: r.healingDone || 0, damageBlocked: r.damageBlocked || 0,
+            maxHitDealt: r.maxHitDealt || 0, maxHitTaken: r.maxHitTaken || 0,
             hp: r.hp || 0, maxHp: r.maxHp || 0, muerto: r.muerto || false, equipo: 'enemigo',
             tipoAtaque, esFrontline: esPokemonFrontline(r), esZacian: r.esZacian || false, esMelee: esPokemonMelee(r)
         });
@@ -302,6 +305,7 @@ function registrarEstadisticasCombate(jugadores, rivales, victoria, duracion) {
                 damageTaken: copiaActualizada ? copiaActualizada.damageTaken || 0 : j.damageTaken || 0,
                 healingDone: copiaActualizada ? copiaActualizada.healingDone || 0 : j.healingDone || 0,
                 damageBlocked: copiaActualizada ? copiaActualizada.damageBlocked || 0 : j.damageBlocked || 0,
+                maxHitDealt: j.maxHitDealt || 0, maxHitTaken: j.maxHitTaken || 0,
                 hp: j.hp || 0, maxHp: j.maxHp || 0, muerto: j.muerto || false, equipo: 'jugador',
                 tipoAtaque, esFrontline: esPokemonFrontline(j), esZacian: j.esZacian || false, esMelee: esPokemonMelee(j)
             });
@@ -324,6 +328,7 @@ function registrarEstadisticasCombate(jugadores, rivales, victoria, duracion) {
                 damageTaken: copiaActualizada ? copiaActualizada.damageTaken || 0 : r.damageTaken || 0,
                 healingDone: copiaActualizada ? copiaActualizada.healingDone || 0 : r.healingDone || 0,
                 damageBlocked: copiaActualizada ? copiaActualizada.damageBlocked || 0 : r.damageBlocked || 0,
+                maxHitDealt: r.maxHitDealt || 0, maxHitTaken: r.maxHitTaken || 0,
                 hp: r.hp || 0, maxHp: r.maxHp || 0, muerto: r.muerto || false, equipo: 'enemigo',
                 tipoAtaque, esFrontline: esPokemonFrontline(r), esZacian: r.esZacian || false, esMelee: esPokemonMelee(r)
             });

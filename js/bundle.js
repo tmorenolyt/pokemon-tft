@@ -5008,6 +5008,9 @@ class Unidad {
         this.damageTaken = 0;
         this.healingDone = 0;
         this.damageBlocked = 0;
+        // 🆕 Mayor golpe en un solo impacto (para el panel de datos)
+        this.maxHitDealt = 0;
+        this.maxHitTaken = 0;
         this.equipo = 'player';
         this.tipoAtaque = 'fisico';
 
@@ -5490,6 +5493,10 @@ class Unidad {
         }
 
         this.damageTaken += dañoReal;
+
+        // 🆕 Mayor golpe recibido / mayor golpe del atacante (un solo impacto)
+        if (dañoReal > (this.maxHitTaken || 0)) this.maxHitTaken = dañoReal;
+        if (atacante && dañoReal > (atacante.maxHitDealt || 0)) atacante.maxHitDealt = dañoReal;
 
         if (dañoReal > 0 && typeof actualizarCopiaEstadisticas === 'function') {
             actualizarCopiaEstadisticas(this, 'damageTaken', dañoReal);
@@ -10753,6 +10760,7 @@ function movAplicarDaño(atacante, objetivo, cantidad, esCritico = false) {
     const murio = objetivo.recibirDaño(daño, atacante);
 
     atacante.damageDealt = (atacante.damageDealt || 0) + daño;
+    if (daño > (atacante.maxHitDealt || 0)) atacante.maxHitDealt = daño;
 
     if (typeof actualizarCopiaEstadisticas === 'function') {
         actualizarCopiaEstadisticas(atacante, 'damageDealt', daño);
@@ -23718,10 +23726,11 @@ function restaurarTodasUnidades() {
 function actualizarCopiaEstadisticas(unidad, statKey, valor) {
     if (!unidad) return;
     
-    // 🆕 FIX CRÍTICO: Evitar que el contador se desborde.
-    // Si el valor es mayor a 5000 de golpe, es un bug de DoT (quemadura/veneno).
-    // Lo ignoramos para que no sume 37 millones al panel.
-    if (typeof valor !== 'number' || isNaN(valor) || valor > 5000) {
+    // 🆕 Evitar que un bug de DoT desborde el panel (se vio un caso de 37M).
+    // El umbral era 5000, pero un golpe legítimo de 3★ (Snorlax, Ho-Oh...)
+    // puede superarlo y se perdía en las estadísticas. 100.000 sigue
+    // filtrando el bug sin ocultar hits reales.
+    if (typeof valor !== 'number' || isNaN(valor) || valor < 0 || valor > 100000) {
         return;
     }
 
@@ -23973,6 +23982,7 @@ function actualizarStatsEnVivo(jugadores, rivales) {
             nombre: j.pokemon.nombre, spriteId: j.pokemon.spriteId || j.pokemon.id,
             nivel: j.nivel || 1, damageDealt: j.damageDealt || 0, damageTaken: j.damageTaken || 0,
             healingDone: j.healingDone || 0, damageBlocked: j.damageBlocked || 0,
+            maxHitDealt: j.maxHitDealt || 0, maxHitTaken: j.maxHitTaken || 0,
             hp: j.hp || 0, maxHp: j.maxHp || 0, muerto: j.muerto || false, equipo: 'jugador',
             tipoAtaque, esFrontline: esPokemonFrontline(j), esZacian: j.esZacian || false, esMelee: esPokemonMelee(j)
         });
@@ -23987,6 +23997,7 @@ function actualizarStatsEnVivo(jugadores, rivales) {
             nombre: r.pokemon.nombre, spriteId: r.pokemon.spriteId || r.pokemon.id,
             nivel: r.nivel || 1, damageDealt: r.damageDealt || 0, damageTaken: r.damageTaken || 0,
             healingDone: r.healingDone || 0, damageBlocked: r.damageBlocked || 0,
+            maxHitDealt: r.maxHitDealt || 0, maxHitTaken: r.maxHitTaken || 0,
             hp: r.hp || 0, maxHp: r.maxHp || 0, muerto: r.muerto || false, equipo: 'enemigo',
             tipoAtaque, esFrontline: esPokemonFrontline(r), esZacian: r.esZacian || false, esMelee: esPokemonMelee(r)
         });
@@ -24014,6 +24025,7 @@ function registrarEstadisticasCombate(jugadores, rivales, victoria, duracion) {
                 damageTaken: copiaActualizada ? copiaActualizada.damageTaken || 0 : j.damageTaken || 0,
                 healingDone: copiaActualizada ? copiaActualizada.healingDone || 0 : j.healingDone || 0,
                 damageBlocked: copiaActualizada ? copiaActualizada.damageBlocked || 0 : j.damageBlocked || 0,
+                maxHitDealt: j.maxHitDealt || 0, maxHitTaken: j.maxHitTaken || 0,
                 hp: j.hp || 0, maxHp: j.maxHp || 0, muerto: j.muerto || false, equipo: 'jugador',
                 tipoAtaque, esFrontline: esPokemonFrontline(j), esZacian: j.esZacian || false, esMelee: esPokemonMelee(j)
             });
@@ -24036,6 +24048,7 @@ function registrarEstadisticasCombate(jugadores, rivales, victoria, duracion) {
                 damageTaken: copiaActualizada ? copiaActualizada.damageTaken || 0 : r.damageTaken || 0,
                 healingDone: copiaActualizada ? copiaActualizada.healingDone || 0 : r.healingDone || 0,
                 damageBlocked: copiaActualizada ? copiaActualizada.damageBlocked || 0 : r.damageBlocked || 0,
+                maxHitDealt: r.maxHitDealt || 0, maxHitTaken: r.maxHitTaken || 0,
                 hp: r.hp || 0, maxHp: r.maxHp || 0, muerto: r.muerto || false, equipo: 'enemigo',
                 tipoAtaque, esFrontline: esPokemonFrontline(r), esZacian: r.esZacian || false, esMelee: esPokemonMelee(r)
             });
@@ -24359,7 +24372,7 @@ async function combatir() {
         for (let i = 0; i < enemyBoard.length; i++) {
             const u = enemyBoard[i];
             if (u) {
-                u.damageDealt = 0; u.damageTaken = 0; u.healingDone = 0; u.damageBlocked = 0;
+                u.damageDealt = 0; u.damageTaken = 0; u.healingDone = 0; u.damageBlocked = 0; u.maxHitDealt = 0; u.maxHitTaken = 0;
                 u.equipo = 'enemy'; u.muerto = false;
                 if (typeof u.hp !== 'number' || isNaN(u.hp) || u.hp <= 0) u.hp = u.maxHp || 1;
                 u.metronomoBonus = 1; u.energiaLista = false;
@@ -24434,7 +24447,7 @@ async function combatir() {
                 copia.defensa = tablero[i].defensa; copia.defensaEspecial = tablero[i].defensaEspecial;
                 copia.velocidadAtaque = tablero[i].velocidadAtaque;
                 copia.energy = tablero[i].energy || 0; copia.energyGauge = tablero[i].energyGauge || 70;
-                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0;
+                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0; copia.maxHitDealt = 0; copia.maxHitTaken = 0;
                 copia.objetos = tablero[i].objetos ? [...tablero[i].objetos] : [];
                 copia.equipo = 'player'; copia.muerto = false; copia.metronomoBonus = 1; copia.energiaLista = false;
                 copia.actualizarStats();
@@ -24452,7 +24465,7 @@ async function combatir() {
                 copia.defensa = enemyBoard[i].defensa; copia.defensaEspecial = enemyBoard[i].defensaEspecial;
                 copia.velocidadAtaque = enemyBoard[i].velocidadAtaque;
                 copia.energy = enemyBoard[i].energy || 0; copia.energyGauge = enemyBoard[i].energyGauge || 70;
-                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0;
+                copia.damageDealt = 0; copia.damageTaken = 0; copia.healingDone = 0; copia.damageBlocked = 0; copia.maxHitDealt = 0; copia.maxHitTaken = 0;
                 copia.objetos = enemyBoard[i].objetos ? [...enemyBoard[i].objetos] : [];
                 copia.equipo = 'enemy'; copia.muerto = false; copia.metronomoBonus = 1; copia.energiaLista = false;
                 copia.actualizarStats();
@@ -24476,7 +24489,7 @@ async function combatir() {
             if (n.objetos && n.objetos.includes("Roca del Rey") && n.reduceDefense === 0) {
                 n.reduceDefense = 0.45; n.duracionReduccion = 3;
             }
-            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0;
+            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0; n.maxHitDealt = 0; n.maxHitTaken = 0;
             n.muerto = false; n.equipo = 'player'; n.metronomoBonus = 1; n.energiaLista = false;
             n.energy = n.pokemon.startingEnergy || 0; n.critGuaranteed = false;
             n._regenAccumulator = 0; n.regenTimer = 0; n._deathLogged = false; n._reviviendo = false; n._regenLogged = false;
@@ -24511,7 +24524,7 @@ async function combatir() {
             if (n.objetos && n.objetos.includes("Roca del Rey") && n.reduceDefense === 0) {
                 n.reduceDefense = 0.45; n.duracionReduccion = 3;
             }
-            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0;
+            n.damageDealt = 0; n.damageTaken = 0; n.healingDone = 0; n.damageBlocked = 0; n.maxHitDealt = 0; n.maxHitTaken = 0;
             n.muerto = false; n.equipo = 'enemy'; n.metronomoBonus = 1; n.energiaLista = false;
             n.energy = n.pokemon.startingEnergy || 0; n.critGuaranteed = false;
             n._regenAccumulator = 0; n.regenTimer = 0; n._deathLogged = false; n._reviviendo = false; n._regenLogged = false;
@@ -25761,6 +25774,12 @@ async function combatir() {
                 rivalEnTorneo._estadoRonda = victoria ? 'loss' : 'win';
                 rivalEnTorneo._danoRonda = victoria ? daño : null;
             }
+
+            // 🏆 ¿Era el último rival vivo? Entonces la victoria total debe
+            // salir ya, sin dejar varios segundos la pantalla del rival.
+            if (window.torneoRivales && window.torneoRivales.length > 0) {
+                window._torneoTerminado = !window.torneoRivales.some(r => !r.eliminado);
+            }
         }
 
         if (!esPvE && typeof mostrarReaccionEnemigo === 'function') {
@@ -25880,7 +25899,9 @@ ronda = fase;
 
         document.querySelectorAll('.board-cell.muerto').forEach(cell => { cell.style.display = 'none'; });
 
-        await new Promise(r => setTimeout(r, 5500));
+        // Si el torneo ha terminado, no dejar 5,5 s de celebración mostrando
+        // el tablero/baúl del rival: pasar rápido a la pantalla de victoria.
+        await new Promise(r => setTimeout(r, window._torneoTerminado ? 400 : 5500));
 
         document.querySelectorAll('.salto-victoria').forEach(cell => { cell.classList.remove('salto-victoria'); cell.style.animationDelay = ''; });
         document.body.classList.remove('celebrando');
@@ -42981,6 +43002,24 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
         return;
     }
 
+    // 🏆 Si este combate eliminó al último rival, NO hacer la transición de
+    // ronda (limpiar el tablero/baúl del rival, asignar otro, etc.):
+    // snapshot final + igualar objetos + pantalla de victoria total ya.
+    // Así no se ven durante segundos el rival siguiente ni su baúl.
+    if (window._torneoTerminado === true) {
+        try { if (typeof snapshotRivalActivo === 'function') snapshotRivalActivo(); } catch (e) { }
+        try { if (typeof igualarObjetosRivales === 'function') igualarObjetosRivales(); } catch (e) { }
+        // comprobarFinTorneo también registra el logro de torneo ganado.
+        if (typeof comprobarFinTorneo === 'function') {
+            comprobarFinTorneo();
+        } else if (typeof mostrarVictoriaJuego === 'function') {
+            mostrarVictoriaJuego();
+        }
+        window._finRondaEnCurso = false;
+        if (typeof liberarEstadoCombate === 'function') liberarEstadoCombate();
+        return;
+    }
+
     // 🆕 FIX: usar la SIGUIENTE ronda (nuevaRondaEsPvE), no el combate
     // que acaba de terminar (esPvE). Si la ronda 1 fue PvE pero la 2
     // es PvP, hay que asignar rival igualmente.
@@ -43160,6 +43199,15 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
         // Así el ranking muestra "Tú vs Valerie / Erika vs Rojo / ..."
         // hasta que empiece la ronda 3.
         if (typeof actualizarRankingTorneo === 'function') actualizarRankingTorneo();
+
+        // 🏆 Si este combate eliminó al último rival, no esperar los 5 s del
+        // ranking: snapshot final + pantalla de victoria total ya.
+        if (window._torneoTerminado) {
+            try { if (typeof snapshotRivalActivo === 'function') snapshotRivalActivo(); } catch (e) { }
+            try { if (typeof igualarObjetosRivales === 'function') igualarObjetosRivales(); } catch (e) { }
+            if (typeof comprobarFinTorneo === 'function' && comprobarFinTorneo()) return;
+        }
+
         await esperar(TIEMPOS_FIN_RONDA.TORNEO_MS);
 
         // 🆕 Después de unos segundos, ocultar los ✔ / ✖ / -X de los rivales
@@ -43272,6 +43320,12 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
                     }
                 }
             }
+        }
+
+        // ⚖️ Igualar el número de objetos equipados de los rivales vivos con
+        // el del equipo del jugador en esta ronda (rivales más justos).
+        if (typeof igualarObjetosRivales === 'function') {
+            try { igualarObjetosRivales(); } catch (e) { console.warn('⚠️ igualarObjetosRivales:', e); }
         }
 
     } finally {
@@ -44449,11 +44503,13 @@ function mostrarVictoriaJuego() {
     playVictoriaSound();
     addConsoleMessage('🏆 ¡VICTORIA TOTAL!', 'success');
 
+    // 🏆 Si venimos del último combate del torneo, no dejar 2 s mostrando
+    // el tablero/baúl del rival: la pantalla de victoria sale casi ya.
     setTimeout(() => {
         if (typeof mostrarPantallaResultadosFinales === 'function') {
             mostrarPantallaResultadosFinales();
         }
-    }, 2000);
+    }, window._torneoTerminado ? 150 : 2000);
 }
 
 function renderizarEstadisticasFinales() {
@@ -44942,6 +44998,7 @@ function reiniciarJuego() {
 
     // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
     window._logroTorneoContado = false;
+    window._torneoTerminado = false;
     if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
 
     if (typeof resetNuevaVerde === 'function') resetNuevaVerde();
@@ -45150,6 +45207,7 @@ function init() {
 
     // 🏆 Nueva partida: reiniciar contadores "de run" de los logros.
     window._logroTorneoContado = false;
+    window._torneoTerminado = false;
     if (typeof Logros !== 'undefined') Logros.evento('run_inicio');
     
     // 🆕 Sincronizar Aura de Miedo al iniciar
@@ -47179,6 +47237,201 @@ function calcularPoderRival(rival) {
 }
 
 // ============================================================
+// 🏆 SNAPSHOT DEL RIVAL ACTIVO (para la pantalla final)
+// ============================================================
+function snapshotRivalActivo() {
+    if (!window.rivalActual || !window.torneoRivales) return null;
+    const r = window.torneoRivales.find(x => x.nombre === window.rivalActual.nombre);
+    if (!r) return null;
+
+    const hp = Number(enemyHealth);
+    r.vida = Number.isFinite(hp) ? Math.max(0, hp) : r.vida;
+    r.oro = (typeof enemyGold === 'number') ? enemyGold : r.oro;
+    r.nivel = (typeof enemyLevel === 'number') ? enemyLevel : r.nivel;
+    r.racha = (enemyWinStreak || 0) - (enemyLossStreak || 0);
+    r.eliminado = (typeof r.vida === 'number') ? r.vida <= 0 : r.eliminado;
+
+    if (typeof enemyBoard !== 'undefined' && typeof enemyBanquillo !== 'undefined') {
+        const tableroSnap = enemyBoard.map(u => u ? u.clonarParaCombate() : null);
+        const banquilloSnap = enemyBanquillo.map(u => u ? u.clonarParaCombate() : null);
+        // Si el tablero ya se limpió tras el combate, conservar el último
+        // snapshot bueno (con sus objetos) en vez de dejar el equipo vacío.
+        if (tableroSnap.some(Boolean) || banquilloSnap.some(Boolean)) {
+            r._equipoGuardado = { tablero: tableroSnap, banquillo: banquilloSnap };
+        }
+    }
+    return r;
+}
+
+// ============================================================
+// ⚖️ IGUALAR OBJETOS DE LOS RIVALES VIVOS CON EL JUGADOR
+// ============================================================
+// El jugador puede acabar con 3 objetos por unidad; algunos rivales
+// (sobre todo los que no han sido el rival activo) se quedaban con menos.
+// Aquí, al final de cada ronda, se rellena su equipo hasta el mismo número
+// de objetos equipados, respetando sus huecos (2 normales + 1 disco).
+function _contarObjetosEquipados(unidades) {
+    return (unidades || []).reduce((n, u) => n + ((u && Array.isArray(u.objetos)) ? u.objetos.length : 0), 0);
+}
+
+function _slotsObjetosRival(u) {
+    if (!u) return 0;
+    return 2 + ((u.nivel || 1) >= 2 ? 1 : 0);
+}
+
+function _objetoUtilRival(rival, unidad, yaEnUnidad) {
+    const tipos = (rival.estrategia && rival.estrategia.tipos) || [];
+    const candidatos = [];
+    for (const nombre in OBJETOS) {
+        const d = OBJETOS[nombre];
+        if (!d || !d.efecto) continue;
+        if (d.efecto.esDiscoUlti) continue; // los discos van aparte
+        if (yaEnUnidad.includes(nombre)) continue;
+        if (d.requerido && (!unidad.pokemon || !(unidad.pokemon.tipos || []).includes(d.requerido))) continue;
+
+        let score = 0;
+        if (d.efecto.tipoBonus) {
+            if (tipos.includes(d.efecto.tipoBonus)) score += 100;
+            else score -= 50;
+        }
+        if (d.efecto.damagePercent || d.efecto.attackPercent || d.efecto.spAttackPercent) score += 12;
+        if (d.efecto.hpBonus || d.efecto.defense || d.efecto.spDefense) score += 10;
+        if (d.efecto.regenPorSegundo || d.efecto.escudoPorcentaje) score += 14;
+        candidatos.push({ nombre, score });
+    }
+    candidatos.sort((a, b) => b.score - a.score);
+    if (!candidatos.length) return null;
+    // Evitar colocar chips de otra estrategia si no hay nada mejor.
+    if (candidatos[0].score < -40) return null;
+    return candidatos[0].nombre;
+}
+
+// 🎯 Objetivo de objetos según la ronda (rondas de tienda de objetos):
+// 3, 7, 9, 13, 15, 19, 21, 25, 27, 31... → 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+// No depende de cuántos tenga el jugador; es el cupo normal de la partida.
+function objetosObjetivoPorRonda(rondaParam) {
+    const r = Math.max(1, Number(rondaParam) || 1);
+    let n = 0;
+    for (let x = 3; x <= r; x += 6) n++;
+    for (let x = 7; x <= r; x += 6) n++;
+    return n;
+}
+
+function _quitarObjetosRival(unidades, cantidad) {
+    let sobrante = Math.max(0, cantidad);
+    // Primero normales (desde el final), luego discos si aún sobran.
+    for (const u of unidades) {
+        if (!u || !Array.isArray(u.objetos)) continue;
+        for (let i = u.objetos.length - 1; i >= 0 && sobrante > 0; i--) {
+            const od = OBJETOS[u.objetos[i]];
+            if (od && od.efecto && od.efecto.esDiscoUlti) continue;
+            u.objetos.splice(i, 1);
+            sobrante--;
+            if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+        }
+    }
+    for (const u of unidades) {
+        if (!u || !Array.isArray(u.objetos)) continue;
+        for (let i = u.objetos.length - 1; i >= 0 && sobrante > 0; i--) {
+            const od = OBJETOS[u.objetos[i]];
+            if (!(od && od.efecto && od.efecto.esDiscoUlti)) continue;
+            u.objetos.splice(i, 1);
+            sobrante--;
+            if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+        }
+    }
+    return cantidad - sobrante;
+}
+
+function igualarObjetosRivales() {
+    if (!window.torneoRivales || window.torneoRivales.length === 0) return;
+
+    const rondaActual = (typeof ronda !== 'undefined' && Number(ronda) > 0)
+        ? Number(ronda)
+        : (typeof fase !== 'undefined' ? Number(fase) : 1);
+    const objetivoRonda = objetosObjetivoPorRonda(rondaActual);
+
+    for (const r of window.torneoRivales) {
+        // Incluimos también a los eliminados: no vuelven a combatir, pero
+        // aparecen en el ranking final y deben mostrar un equipo coherente.
+        const g = r._equipoGuardado;
+        if (!g || !Array.isArray(g.tablero)) continue;
+
+        const unidades = [...(g.tablero || []), ...(g.banquillo || [])].filter(Boolean);
+        if (unidades.length === 0) continue;
+
+        for (const u of unidades) u._nivelEquipoRival = r.nivel || 1;
+
+        let actuales = _contarObjetosEquipados(unidades);
+        const objetosAntes = actuales;
+        // 🎯 Cupo = 1 objeto por ronda de tienda + los Discos Definitivos
+        // que le corresponden por nivel (1 desde nivel 5, 2 desde nivel 8).
+        const discosObjetivo = (typeof maxDiscosPorNivelEquipo === 'function')
+            ? maxDiscosPorNivelEquipo(r.nivel || 1)
+            : 0;
+        // Huecos reales: 2 normales por unidad + como máximo los discos
+        // que permite el nivel del equipo (no uno por cada unidad 2★).
+        const normalSlots = unidades.reduce((n) => n + 2, 0);
+        const discSlots = unidades.reduce((n, u) => n + ((u.nivel || 1) >= 2 ? 1 : 0), 0);
+        const maxSlots = normalSlots + Math.min(discSlots, discosObjetivo);
+        const objetivo = Math.min(objetivoRonda + discosObjetivo, maxSlots);
+
+        // Si lleva MÁS objetos que el cupo de la ronda, quitar el exceso.
+        if (actuales > objetivo) {
+            const quitados = _quitarObjetosRival(unidades, actuales - objetivo);
+            actuales -= quitados;
+            if (quitados > 0) {
+                console.log(`⚖️ [OBJETOS] ${r.nombre}: ${objetosAntes} → ${actuales} (cupo ${objetivoRonda} tienda + ${discosObjetivo} discos = ${objetivo})`);
+            }
+            continue;
+        }
+
+        let faltan = objetivo - actuales;
+        if (faltan <= 0) continue;
+
+        // 1) Discos disponibles según el nivel del rival
+        const maxDiscos = (typeof maxDiscosPorNivelEquipo === 'function') ? maxDiscosPorNivelEquipo(r.nivel || 1) : 0;
+        let discos = (typeof contarDiscosEnUnidades === 'function') ? contarDiscosEnUnidades(unidades) : 0;
+        if (discos < maxDiscos) {
+            for (const u of unidades) {
+                if (faltan <= 0 || discos >= maxDiscos) break;
+                if (!u || u.esZacian || u.esArticuno || u.noEquiparObjetos) continue;
+                if ((u.nivel || 1) < 2) continue;
+                if (!u.objetos) u.objetos = [];
+                if (u.objetos.some(o => { const od = OBJETOS[o]; return od && od.efecto && od.efecto.esDiscoUlti; })) continue;
+                u.objetos.push('Disco Definitivo');
+                if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+                discos++; actuales++; faltan--;
+            }
+        }
+
+        // 2) Objetos normales (máx. 2 por unidad)
+        for (const u of unidades) {
+            if (faltan <= 0) break;
+            if (!u || u.esZacian || u.esArticuno || u.noEquiparObjetos) continue;
+            if (!u.objetos) u.objetos = [];
+            const normales = u.objetos.filter(o => { const od = OBJETOS[o]; return !(od && od.efecto && od.efecto.esDiscoUlti); });
+            let huecos = Math.max(0, 2 - normales.length);
+            while (huecos > 0 && faltan > 0) {
+                const obj = _objetoUtilRival(r, u, u.objetos);
+                if (!obj) break;
+                u.objetos.push(obj);
+                if (typeof recalcularEfectosObjetos === 'function') recalcularEfectosObjetos(u);
+                huecos--; actuales++; faltan--;
+            }
+        }
+
+        if (actuales > objetosAntes) {
+            console.log(`⚖️ [OBJETOS] ${r.nombre}: ${objetosAntes} → ${actuales} objetos equipados (cupo ${objetivoRonda} tienda + ${discosObjetivo} discos = ${objetivo})`);
+        }
+    }
+}
+
+window.snapshotRivalActivo = snapshotRivalActivo;
+window.igualarObjetosRivales = igualarObjetosRivales;
+window.objetosObjetivoPorRonda = objetosObjetivoPorRonda;
+
+// ============================================================
 // SIMULAR COMBATES ENTRE RIVALES (rondas PvP)
 // ============================================================
 function simularCombatesRivales(rivalDelJugador, parejasRonda) {
@@ -47187,6 +47440,13 @@ function simularCombatesRivales(rivalDelJugador, parejasRonda) {
 
     if (typeof fase !== 'undefined' && fase <= 1) {
         console.log(`👾 Ronda ${fase} (PvE de arranque): no se simulan combates entre rivales.`);
+        return;
+    }
+
+    // 🏆 Si ya no queda ningún rival vivo, no simular un combate fantasma
+    // que retrase la pantalla de victoria total.
+    if (!window.torneoRivales.some(r => !r.eliminado)) {
+        console.log('🏆 Torneo terminado: no se simulan más combates.');
         return;
     }
 
@@ -48021,7 +48281,7 @@ function comprobarFinTorneo() {
             if (typeof mostrarVictoriaJuego === 'function') {
                 mostrarVictoriaJuego();
             }
-        }, 1000);
+        }, window._torneoTerminado ? 100 : 1000);
 
         return true;
     }

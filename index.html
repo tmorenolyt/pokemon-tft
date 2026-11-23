@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0f22" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <!-- El manifest solo se carga por HTTP(S): con file:// el navegador
+         bloquea la petición por CORS y ensuciaba la consola. -->
+    <script>
+        if (location.protocol === 'http:' || location.protocol === 'https:') {
+            var _manifestLink = document.createElement('link');
+            _manifestLink.rel = 'manifest';
+            _manifestLink.href = 'manifest.webmanifest';
+            document.head.appendChild(_manifestLink);
+        }
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=5fc2e343f0" />
+    <link rel="stylesheet" href="css/bundle.css?v=b371ee2463" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -1117,6 +1126,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=5fc2e343f0"></script>
+    <script defer src="js/bundle.js?v=b371ee2463"></script>
 </body>
 </html>

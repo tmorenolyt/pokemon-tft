@@ -196,11 +196,13 @@ function mostrarVictoriaJuego() {
     playVictoriaSound();
     addConsoleMessage('🏆 ¡VICTORIA TOTAL!', 'success');
 
+    // 🏆 Si venimos del último combate del torneo, no dejar 2 s mostrando
+    // el tablero/baúl del rival: la pantalla de victoria sale casi ya.
     setTimeout(() => {
         if (typeof mostrarPantallaResultadosFinales === 'function') {
             mostrarPantallaResultadosFinales();
         }
-    }, 2000);
+    }, window._torneoTerminado ? 150 : 2000);
 }
 
 function renderizarEstadisticasFinales() {
