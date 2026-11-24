@@ -30903,7 +30903,8 @@ async function abrirTienda(mostrarObjetos = false) {
 
     // Preparar tienda de Pokémon
     if (!tiendaBloqueada) {
-        if (!tienda || tienda.length === 0 || (fase >= 3 && tienda.length < 4)) {
+        // Solo se genera tienda si NO hay ninguna carta (evita rerolls gratis).
+        if (!tienda || tienda.length === 0) {
             generarTienda();
             _shinyYaSonadoEstaTienda = false;
         }
@@ -31619,7 +31620,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
         else tablero[ubicacionTemporal.indice] = nuevaCopia;
 
         oro -= pokemon.coste;
-        tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨ (Fusión en curso)`, 'success');
@@ -31647,24 +31648,10 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
             return;
         }
 
-        // 🆕 FIX: Solo ocultar la tarjeta en el DOM
-        const grid = document.getElementById('tiendaGridTienda');
-        if (grid) {
-            const wrapper = document.getElementById('tiendaWrapper');
-            let cartaDom = wrapper ? wrapper.querySelector(`.shop-card[data-index="${idx}"]`) : grid.querySelector(`.shop-card[data-index="${idx}"]`);
-
-            if (cartaDom) {
-                cartaDom.className = 'shop-card shop-card-empty';
-                cartaDom.innerHTML = `
-                    <div style="font-size:2rem; color:#4a6a8a; opacity:0.5;">▢</div>
-                    <div style="font-size:0.6rem; color:#4a6a8a; margin-top:6px; opacity:0.5;">VACÍO</div>
-                `;
-                cartaDom.style.cursor = 'default';
-                cartaDom.onclick = null;
-            }
-        }
-
         renderizar();
+        // Repintar la tienda SIN el hueco del Pokémon comprado
+        try { if (tiendaAbierta && typeof renderizarTiendaIndependiente === 'function') renderizarTiendaIndependiente(true); } catch (e) { }
+
 
         await new Promise(r => setTimeout(r, 80));
         if (typeof window._animacionEvolucionActiva !== 'undefined' && window._animacionEvolucionActiva) {
@@ -31709,7 +31696,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
     if (ubicado) {
         oro -= pokemon.coste;
-        tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon.id) playPokemonCry(pokemon.id);
@@ -31717,24 +31704,10 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
         verificarTodasLasFusiones();
         
-        // 🆕 FIX: Solo ocultar la tarjeta en el DOM
-        const grid = document.getElementById('tiendaGridTienda');
-        if (grid) {
-            const wrapper = document.getElementById('tiendaWrapper');
-            let cartaDom = wrapper ? wrapper.querySelector(`.shop-card[data-index="${idx}"]`) : grid.querySelector(`.shop-card[data-index="${idx}"]`);
-
-            if (cartaDom) {
-                cartaDom.className = 'shop-card shop-card-empty';
-                cartaDom.innerHTML = `
-                    <div style="font-size:2rem; color:#4a6a8a; opacity:0.5;">▢</div>
-                    <div style="font-size:0.6rem; color:#4a6a8a; margin-top:6px; opacity:0.5;">VACÍO</div>
-                `;
-                cartaDom.style.cursor = 'default';
-                cartaDom.onclick = null;
-            }
-        }
-        
         renderizar();
+        // Repintar la tienda SIN el hueco del Pokémon comprado
+        try { if (tiendaAbierta && typeof renderizarTiendaIndependiente === 'function') renderizarTiendaIndependiente(true); } catch (e) { }
+
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨`, 'success');
         else addConsoleMessage(`🛒 ${pokemon.nombre} comprado! (${pokemon.coste}💰)`, 'buy');
@@ -43309,6 +43282,16 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
     }
     window._finRondaEnCurso = true;
 
+    // 🌐 ONLINE: el servidor gobierna el torneo (ranking de 8, emparejamientos,
+    // HP, fin de partida). No se ejecuta la transición local del torneo de 1J
+    // (evitaba que apareciera una IA con el nombre del amigo, game over local,
+    // simulación de rivales IA y repintado del ranking con datos locales).
+    if (window._modoOnline) {
+        window._finRondaEnCurso = false;
+        try { if (typeof reanudarFondoPreparacion === 'function') reanudarFondoPreparacion(); } catch (e) { }
+        return;
+    }
+
     // 🆕 FIX TORNEO: capturar la ronda que acaba de terminar ANTES de
     // asignar el rival de la siguiente. Si no, la simulación excluye al
     // rival nuevo y hace pelear dos veces al que acaba de combatir.
@@ -44792,6 +44775,10 @@ function cambiarTabPostCombate(tab) {
 }
 
 function gameOver() {
+    // 🌐 Online: un humano eliminado pasa a espectador; el final del torneo
+    // lo pinta el servidor con las 8 posiciones (torneoFin).
+    if (window._modoOnline) return;
+
     // 🏅 Posición final del jugador: se apunta el orden de eliminación para
     //    que el resumen final ordene a los eliminados por cuándo cayeron.
     try {
@@ -44819,6 +44806,9 @@ function gameOver() {
 }
 
 function mostrarVictoriaJuego() {
+    // 🌐 Online: la victoria final la pinta el servidor (torneoFin).
+    if (window._modoOnline) return;
+
     const overlayAntiguo = document.getElementById('gameOverOverlay');
     if (overlayAntiguo) {
         overlayAntiguo.classList.remove('visible');
@@ -48147,6 +48137,11 @@ window._registrarEliminacionesPendientes = _registrarEliminacionesPendientes;
 // ACTUALIZAR RANKING DE VIDA
 // ============================================================
 function actualizarRankingTorneo() {
+    // 🌐 Online: el ranking lo pinta amistoso.js con los 8 participantes del
+    // servidor. Si el pintor local escribiera aquí, machacaría al amigo y
+    // mostraría a los rivales IA locales como si siguieran vivos.
+    if (window._modoOnline) return;
+
     const panel = document.getElementById('rankingTorneo');
     if (!panel) return;
 
@@ -48595,6 +48590,7 @@ window.cerrarEspia = cerrarEspia;
 // COMPROBAR SI EL TORNEO HA TERMINADO
 // ============================================================
 function comprobarFinTorneo() {
+    if (window._modoOnline) return false; // online: lo decide el servidor
     if (!window.torneoRivales || window.torneoRivales.length === 0) return false;
 
     const rivalesVivos = window.torneoRivales.filter(r => !r.eliminado);
@@ -48880,27 +48876,74 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     let _rondaPveAsegurada = -1;
     let _combateEnCursoLocal = false; // evita lanzar 2 combates en la misma ronda
 
+    // 🧩 Serializa una unidad para enviarla por la red.
+    //    Incluye shiny para que el amigo vea su variante real.
+    function _serializarUnidad(u, pos) {
+        if (!u || !u.pokemon) return null;
+        const esShiny = (u.esShiny === true) || (u.pokemon.shiny === true);
+        return {
+            pos: (typeof pos === 'number') ? pos : undefined,
+            nombre: u.pokemon.nombre,
+            nivel: u.nivel || 1,
+            baseId: u.baseId,
+            costeOriginal: u.costeOriginal,
+            spriteId: u.pokemon.spriteId,
+            shiny: esShiny,
+            objetos: (u.objetos || []).slice()
+        };
+    }
+
     function serializarTablero() {
         const out = [];
         if (typeof tablero === 'undefined' || !tablero) return out;
         for (let i = 0; i < tablero.length; i++) {
             const u = tablero[i];
             if (!u || u.esArticuno) continue;
-            out.push({ pos: i, nombre: u.pokemon.nombre, nivel: u.nivel || 1, baseId: u.baseId, costeOriginal: u.costeOriginal, spriteId: u.pokemon.spriteId, objetos: (u.objetos || []).slice() });
+            out.push(_serializarUnidad(u, i));
         }
         return out;
     }
-    function cargarEnemigo(snap) {
+
+    function serializarBanquillo() {
+        const out = [];
+        if (typeof banquillo === 'undefined' || !banquillo) return out;
+        for (let i = 0; i < banquillo.length; i++) {
+            const u = banquillo[i];
+            if (!u) continue;
+            const s = _serializarUnidad(u, i);
+            if (s) out.push(s);
+        }
+        return out;
+    }
+
+    function serializarBaul() {
+        try { return (typeof baulObjetos !== 'undefined' && Array.isArray(baulObjetos)) ? baulObjetos.slice() : []; }
+        catch (e) { return []; }
+    }
+
+    function _crearUnidadEnemiga(item) {
+        if (!item) return null;
+        const data = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(item.nombre) : null;
+        if (!data) return null;
+        let u;
+        try { u = new Unidad(data, item.nivel || 1, item.baseId || data.id, item.costeOriginal || data.coste); } catch (e) { return null; }
+        u.equipo = 'enemy';
+        if (item.shiny === true) {
+            u.esShiny = true;
+            u.pokemon.shiny = true;
+        }
+        try { if (u.actualizarStats) u.actualizarStats(); } catch (e) { }
+        if (Array.isArray(item.objetos) && typeof aplicarObjeto === 'function') item.objetos.forEach(o => { try { aplicarObjeto(u, o); } catch (e) { } });
+        return u;
+    }
+
+    // snap = tablero del amigo · bench = su banquillo · baul = sus objetos
+    function cargarEnemigo(snap, bench, baul) {
         if (typeof enemyBoard === 'undefined' || !enemyBoard) return false;
         for (let i = 0; i < enemyBoard.length; i++) enemyBoard[i] = null;
         for (const item of (snap || [])) {
-            const data = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(item.nombre) : null;
-            if (!data) continue;
-            let u;
-            try { u = new Unidad(data, item.nivel || 1, item.baseId || data.id, item.costeOriginal || data.coste); } catch (e) { continue; }
-            u.equipo = 'enemy';
-            try { if (u.actualizarStats) u.actualizarStats(); } catch (e) { }
-            if (Array.isArray(item.objetos) && typeof aplicarObjeto === 'function') item.objetos.forEach(o => { try { aplicarObjeto(u, o); } catch (e) { } });
+            const u = _crearUnidadEnemiga(item);
+            if (!u) continue;
             // 🪞 Espejar columnas: el tablero del amigo está en A-D (col 0-3);
             // como enemigo debe verse reflejado (su col 0 -> H, su col 3 -> E).
             const rawPos = Math.max(0, Math.min(19, item.pos | 0));
@@ -48909,6 +48952,31 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             if (enemyBoard[pos]) { const libre = enemyBoard.findIndex(x => !x); if (libre >= 0) enemyBoard[libre] = u; else break; }
             else enemyBoard[pos] = u;
         }
+
+        // 🎒 Banquillo del amigo (así se ve igual que en su pantalla)
+        if (typeof enemyBanquillo !== 'undefined' && Array.isArray(enemyBanquillo)) {
+            for (let i = 0; i < enemyBanquillo.length; i++) enemyBanquillo[i] = null;
+            if (Array.isArray(bench)) {
+                bench.forEach(item => {
+                    const u = _crearUnidadEnemiga(item);
+                    if (!u) return;
+                    const idx = Math.max(0, Math.min(enemyBanquillo.length - 1, (item.pos | 0)));
+                    if (!enemyBanquillo[idx]) enemyBanquillo[idx] = u;
+                    else { const libre = enemyBanquillo.findIndex(x => !x); if (libre >= 0) enemyBanquillo[libre] = u; }
+                });
+            }
+        }
+
+        // 📦 Baúl de objetos del rival
+        if (typeof enemyBaulObjetos !== 'undefined') {
+            if (Array.isArray(baul)) {
+                const maxB = (typeof CONFIG !== 'undefined' && CONFIG.MAX_BAUL) ? CONFIG.MAX_BAUL : 8;
+                enemyBaulObjetos = baul.slice(0, maxB);
+            } else if (baul === null) {
+                enemyBaulObjetos = [];
+            }
+        }
+
         try { if (typeof renderizar === 'function') renderizar(); } catch (e) { }
         return true;
     }
@@ -48922,13 +48990,13 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     function enviarEstado() {
         try {
             fetch('/api/board', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ room: sala, pid, name: nombreActual(), avatar: avatarActual(), hp: hpActual(), nivel: (typeof nivelJugador !== 'undefined' ? nivelJugador : null), racha: (typeof racha !== 'undefined' ? racha : null), oro: (typeof oro !== 'undefined' ? oro : null), round: (typeof fase !== 'undefined' ? fase : null), board: serializarTablero() }) });
+                body: JSON.stringify({ room: sala, pid, name: nombreActual(), avatar: avatarActual(), hp: hpActual(), nivel: (typeof nivelJugador !== 'undefined' ? nivelJugador : null), racha: (typeof racha !== 'undefined' ? racha : null), oro: (typeof oro !== 'undefined' ? oro : null), round: (typeof fase !== 'undefined' ? fase : null), board: serializarTablero(), bench: serializarBanquillo(), baul: serializarBaul() }) });
         } catch (e) { }
     }
     function iniciarSync() { if (syncTimer) clearInterval(syncTimer); enviarEstado(); syncTimer = setInterval(enviarEstado, 1000); }
 
     function enviarReady() {
-        try { fetch('/api/ready', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, team: serializarTablero() }) }); } catch (e) { }
+        try { fetch('/api/ready', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ room: sala, pid, team: serializarTablero(), bench: serializarBanquillo(), baul: serializarBaul() }) }); } catch (e) { }
     }
 
     // ---------- COMBATIR = Listo ----------
@@ -49034,6 +49102,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             return;
         }
 
+        window._rivalEspectado = null;
+        window._onlineEspiando = false;
         estadoOnline = 'combat';
         _combateEnCursoLocal = true;
         try { const b = document.getElementById('btnCombatirFijo'); if (b) b.disabled = true; } catch (e) { }
@@ -49049,24 +49119,49 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         if (msg.roundType !== 'pve' && asig && asig.tipo === 'ia') {
             // 🤖 Contra una IA del torneo: carga su equipo y pelea en vivo
             const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1);
-            cargarEnemigo(equipoIA);
+            cargarEnemigo(equipoIA, [], []);
+            const rvTorneo = (window._torneoOnline && (window._torneoOnline.participantes || []).find(p => p.id === asig.rivalId)) || null;
+            window._rivalOnlineActual = {
+                id: asig.rivalId || ('ia-ronda-' + (msg.round || fase)), tipo: 'ia', fantasma: !!asig.fantasma,
+                nombre: asig.nombre, avatar: asig.avatar, nivel: asig.nivel || 2, seed: asig.seed || 0,
+                hp: (rvTorneo && typeof rvTorneo.hp === 'number') ? rvTorneo.hp : null,
+                racha: 0, oro: null
+            };
             try {
                 window.rivalActual = { nombre: asig.nombre, avatar: asig.avatar, esMonstruo: false };
-                const nEl = document.getElementById('enemyName'); if (nEl) nEl.textContent = asig.nombre;
                 if (typeof renderizar === 'function') renderizar();
             } catch (e) { }
             setStatus('⚔️ Combate contra ' + asig.nombre + ' (IA)');
         } else if (msg.roundType === 'pvp') {
-            cargarEnemigo((msg.boards && msg.boards[otro]) || []);
-            setStatus('⚔️ Combate contra ' + (amigo && amigo.name ? amigo.name : 'tu amigo'));
+            cargarEnemigo(
+                (msg.boards && msg.boards[otro]) || [],
+                (amigo && Array.isArray(amigo.bench)) ? amigo.bench : [],
+                (amigo && Array.isArray(amigo.baul)) ? amigo.baul : []
+            );
+            try {
+                const t = window._torneoOnline;
+                const rv = t && (t.participantes || []).find(p => p.id === otro);
+                window._rivalOnlineActual = {
+                    id: otro, tipo: 'humano', nombre: (rv && rv.nombre) || (amigo && amigo.name) || 'Tu amigo',
+                    avatar: (rv && rv.avatar) || (amigo && amigo.avatar) || 'rojo',
+                    nivel: (rv && rv.nivel) || (amigo && amigo.nivel) || 1,
+                    hp: (rv && rv.hp != null ? rv.hp : (amigo ? amigo.hp : null)),
+                    racha: amigo ? amigo.racha : 0, oro: amigo ? amigo.oro : null
+                };
+                window.rivalActual = { nombre: window._rivalOnlineActual.nombre, avatar: window._rivalOnlineActual.avatar, esMonstruo: false };
+                if (typeof renderizar === 'function') renderizar();
+            } catch (e) { }
+            setStatus('⚔️ Combate contra ' + ((amigo && amigo.name) || 'tu amigo'));
         } else {
             // PvE: el monstruo ya lo pone el juego para la ronda; solo spawnear si falta
             try {
                 const hayMonstruo = (typeof enemyBoard !== 'undefined' && enemyBoard) ? enemyBoard.some(u => u && u.esMonstruo) : false;
                 if (!hayMonstruo && typeof spawnearMonstruoPvE === 'function') spawnearMonstruoPvE(msg.round);
             } catch (e) { }
+            window._rivalOnlineActual = { tipo: 'monstruo', nombre: 'Monstruo', esMonstruo: true };
             setStatus('👾 Ronda PvE: combate contra el monstruo');
         }
+        try { actualizarPanel(); } catch (e) { }
         setTimeout(() => {
             try { if (origCombatir) origCombatir(); } catch (e) { }
             const iv = setInterval(() => {
@@ -49074,6 +49169,111 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 if (!sigue) { clearInterval(iv); finalizarRonda(); }
             }, 600);
         }, 350);
+    }
+
+    // ============================================================
+    // 🏆 RIVAL DE LA RONDA (participante del torneo online)
+    // ============================================================
+    function _participanteTorneo(id) {
+        const t = window._torneoOnline;
+        if (!t || !Array.isArray(t.participantes)) return null;
+        return t.participantes.find(p => p.id === id) || null;
+    }
+
+    function _miRivalTorneo() {
+        const t = window._torneoOnline;
+        if (!t || !t.rivales) return null;
+        const rid = t.rivales[pid];
+        return rid ? _participanteTorneo(rid) : null;
+    }
+
+    // Mantiene actualizado a quién te enfrentas (humano o IA) según el torneo.
+    function _actualizarRivalOnline() {
+        if (window._modoSpectador) return;
+        const rv = _miRivalTorneo();
+        if (!rv) { window._rivalOnlineActual = null; return; }
+        const esHumano = (rv.tipo === 'humano');
+        const a = (esHumano && amigo && amigo.pid === rv.id) ? amigo : null;
+        window._rivalOnlineActual = {
+            id: rv.id, tipo: rv.tipo, nombre: rv.nombre, avatar: rv.avatar,
+            nivel: rv.nivel || 2, seed: rv.seed || 0,
+            hp: (rv.hp != null ? rv.hp : (a ? a.hp : null)),
+            racha: a ? a.racha : 0,
+            oro: a ? a.oro : null,
+            fantasma: false
+        };
+    }
+
+    // Pinta el equipo del rival de esta ronda (tablero + banco + baúl).
+    function _mostrarRivalOnline() {
+        // Solo en preparación: recargar el tablero en pleno combate rompería
+        // las unidades que están peleando.
+        if (estadoOnline !== 'prep') return;
+        if (window._modoSpectador || window._onlineEspiando) return;
+        if (esPvERonda()) return;
+        const rv = window._rivalOnlineActual;
+        if (!rv) return;
+
+        if (rv.tipo === 'humano') {
+            if (!amigo || !Array.isArray(amigo.board)) return;
+            const sig = JSON.stringify([amigo.board, amigo.bench || [], amigo.baul || []]);
+            if (sig === window._ultimoAmigoBoardStr) return;
+            window._ultimoAmigoBoardStr = sig;
+            cargarEnemigo(amigo.board, amigo.bench, amigo.baul);
+        } else {
+            const sig = 'ia|' + rv.id + '|' + rv.nivel + '|' + rv.seed;
+            if (sig === window._ultimaFirmaRivalIA) return;
+            window._ultimaFirmaRivalIA = sig;
+            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1), [], []);
+        }
+        try {
+            window.rivalActual = { nombre: rv.nombre, avatar: rv.avatar, esMonstruo: false };
+            if (typeof renderizar === 'function') renderizar();
+        } catch (e) { }
+    }
+
+    // 👁️ Espiar cualquier participante desde el ranking (incluido espectador)
+    function espiarParticipanteOnline(p) {
+        if (!p || p.id === pid) return;
+        // No cambiar el tablero en mitad de un combate en vivo.
+        if (estadoOnline === 'combat' && !window._modoSpectador) return;
+        if (p.tipo === 'humano') {
+            if (!amigo || amigo.pid !== p.id || !Array.isArray(amigo.board)) {
+                setStatus('👁️ Aún no hay datos del equipo de ' + p.nombre);
+                return;
+            }
+            cargarEnemigo(amigo.board, amigo.bench, amigo.baul);
+        } else {
+            cargarEnemigo(construirEquipoIA(p.nivel || 2, p.seed || 1), [], []);
+        }
+        window._rivalEspectado = {
+            id: p.id, tipo: p.tipo, nombre: p.nombre, avatar: p.avatar,
+            nivel: p.nivel || 2, seed: p.seed || 0, hp: p.hp, racha: 0, oro: null
+        };
+        window._onlineEspiando = true;
+        window.rivalActual = { nombre: p.nombre, avatar: p.avatar, esMonstruo: false };
+        setStatus('👁️ Viendo el equipo de ' + p.nombre + (window._modoSpectador ? ' · espectador' : ''));
+    }
+    window.espiarParticipanteOnline = espiarParticipanteOnline;
+
+    // El pintor local de torneo (torneo.js) escribe onclick en las filas;
+    // en online usamos un listener delegado en captura para espiar.
+    function _hookRankingOnline() {
+        const panel = document.getElementById('rankingTorneo');
+        if (!panel || panel.__onlineClickHook) return;
+        panel.__onlineClickHook = true;
+        panel.addEventListener('click', function (e) {
+            if (!window._modoOnline) return;
+            const row = e.target && e.target.closest ? e.target.closest('.ranking-item[data-online-pid]') : null;
+            if (!row) return;
+            const id = row.getAttribute('data-online-pid');
+            if (!id || id === pid) return;
+            const p = _participanteTorneo(id);
+            if (!p) return;
+            e.preventDefault();
+            e.stopPropagation();
+            espiarParticipanteOnline(p);
+        }, true);
     }
 
     // ---------- SSE ----------
@@ -49110,27 +49310,24 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 // 🏆 Torneo online (2 humanos + 6 IA): pintar ranking de 8
                 window._torneoOnline = msg.torneo || null;
                 try { pintarRankingTorneoOnline(msg.torneo); } catch (e) { }
+                try { _actualizarRivalOnline(); } catch (e) { }
 
                 // 👁️ ¿Estoy eliminado? → modo espectador
                 try {
                     const yo = msg.torneo && (msg.torneo.participantes || []).find(p => p.id === pid);
                     const eliminado = !!(yo && yo.eliminado);
                     window._modoSpectador = eliminado;
+                    if (eliminado) { window._rivalOnlineActual = null; window._onlineEspiando = false; window._rivalEspectado = null; }
                     if (eliminado !== window._modoEspectadorActivo) {
                         window._modoEspectadorActivo = eliminado;
                         aplicarModoEspectador(eliminado);
                     }
                 } catch (e) { }
 
+                // Durante la preparación se ve el equipo del PRÓXIMO rival
+                // (humano o IA), no siempre el del amigo.
+                try { _mostrarRivalOnline(); } catch (e) { }
                 actualizarPanel();
-                // Mostrar el tablero del amigo en vivo SOLO en rondas PvP (en PvE va el monstruo)
-                if (estadoOnline === 'prep' && !esPvERonda() && amigo && Array.isArray(amigo.board) && amigo.board.length) {
-                    const sig = JSON.stringify(amigo.board);
-                    if (sig !== window._ultimoAmigoBoardStr) {
-                        window._ultimoAmigoBoardStr = sig;
-                        cargarEnemigo(amigo.board); // actualiza el rival al comprar/mover
-                    }
-                }
             } else if (msg.type === 'torneoFin') {
                 try { mostrarFinTorneoOnline(msg.posiciones); } catch (e) { }
             } else if (msg.type === 'torneoReset') {
@@ -49142,6 +49339,11 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 estadoOnline = 'prep';
                 _combateEnCursoLocal = false;
                 window._ultimoAmigoBoardStr = null;
+                window._ultimaFirmaRivalIA = null;
+                window._rivalEspectado = null;
+                window._onlineEspiando = false;
+                window._ultimaVictoriaJugador = undefined;
+                window._ultimoDanoRecibidoJugador = 0;
                 // Sincronizar la ronda del cliente con la del servidor (PvE/PvP bien)
                 try { if (typeof msg.round === 'number') { fase = msg.round; ronda = msg.round; } } catch (e) { }
                 // HP autoritativa del servidor (la misma en ambos clientes)
@@ -49151,13 +49353,43 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                         if (mio && typeof mio.hp === 'number') { vidaJugador = mio.hp; }
                     }
                 } catch (e) { }
-                if (typeof msg.round === 'number') setStatus('Ronda ' + msg.round + ': prepara y pulsa COMBATIR (Listo).');
-                else setStatus('Prepara y pulsa COMBATIR (Listo).');
-                // Asegurar que la tienda de la ronda nueva se abra en AMBOS clientes.
-                // (Si el flujo local ya la abrió, esto no hace nada.)
-                setTimeout(() => { asegurarTiendaDeRonda(); }, 700);
-                setTimeout(() => { asegurarTiendaDeRonda(); }, 3000);
-                setTimeout(() => { asegurarTiendaDeRonda(); }, 9000);
+                // Ranking/parejas de la ronda nueva
+                try {
+                    if (msg.torneo) {
+                        window._torneoOnline = msg.torneo;
+                        pintarRankingTorneoOnline(msg.torneo);
+                        const yoT = (msg.torneo.participantes || []).find(p => p.id === pid);
+                        if (yoT && yoT.eliminado && !window._modoSpectador) {
+                            window._modoSpectador = true;
+                            aplicarModoEspectador(true);
+                        }
+                    }
+                    _actualizarRivalOnline();
+                } catch (e) { }
+                if (window._modoSpectador) {
+                    setStatus('👁️ Eliminado · espectando la partida');
+                } else if (typeof msg.round === 'number') {
+                    setStatus('Ronda ' + msg.round + ': prepara y pulsa COMBATIR (Listo).');
+                } else {
+                    setStatus('Prepara y pulsa COMBATIR (Listo).');
+                }
+                // Abrir la tienda de la ronda nueva UNA sola vez por ronda.
+                try {
+                    window._tiendaRondaOnline = window._tiendaRondaOnline || {};
+                    const r = (typeof msg.round === 'number') ? msg.round : (typeof fase !== 'undefined' ? fase : 0);
+                    if (!window._modoSpectador && r && !window._tiendaRondaOnline[r]) {
+                        window._tiendaRondaOnline[r] = true;
+                        setTimeout(() => {
+                            try {
+                                if (window._modoSpectador) return;
+                                const yoT = window._torneoOnline && (window._torneoOnline.participantes || []).find(p => p.id === pid);
+                                if (yoT && yoT.eliminado) { window._modoSpectador = true; return; }
+                                if (typeof mostrarTiendaPostRonda === 'function') mostrarTiendaPostRonda();
+                                else if (typeof asegurarTiendaDeRonda === 'function') asegurarTiendaDeRonda();
+                            } catch (e) { }
+                        }, 700);
+                    }
+                } catch (e) { }
             } else if (msg.type === 'matchEnd') {
                 estadoOnline = 'ended';
                 _combateEnCursoLocal = false;
@@ -49196,6 +49428,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 <div style="flex:1;text-align:center;"><div id="amistosoAmigoNombre" style="font-size:.72rem;color:#8fb0d6;">AMIGO</div><div id="amistosoAmigoHp" style="font-weight:800;color:#f87171;">—</div></div>
             </div>
             <div id="amistosoStatus" style="color:#8fb0d6;margin:6px 0;font-size:.78rem;">Conectando…</div>
+            <div id="amistosoReady" style="font-size:.72rem;font-weight:700;color:#8fb0d6;border-top:1px solid #2a4066;padding-top:6px;">TÚ: ⏳ Preparando · AMIGO: ⏳ Preparando</div>
         `;
         setInterval(actualizarPanel, 1200);
     }
@@ -49215,19 +49448,22 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         const maxHp = torneo.maxHp || 50;
 
         const miPar = (torneo.parejas || []).find(par => Array.isArray(par) && par.includes(pid));
-        const rivalId = miPar ? miPar.find(x => x !== pid) : null;
+        const rivalId = (torneo.rivales && torneo.rivales[pid]) || (miPar ? miPar.find(x => x !== pid) : null);
 
         let html = '<div class="ranking-header">🏆 RANKING <span style="font-size:.6rem;color:#8fb0d6;">R' + (torneo.ronda || 1) + '</span></div>';
 
         lista.forEach((p, i) => {
             const esYo = p.id === pid;
-            const esRival = p.id === rivalId;
+            const esRival = (p.id === rivalId) && !esYo;
             const clases = ['ranking-item', esYo ? 'jugador' : '', p.eliminado ? 'eliminado' : '', esRival ? 'pareja-activa' : ''].join(' ');
             const pct = Math.max(0, Math.min(100, (Math.max(0, p.hp) / maxHp) * 100));
             const carpeta = (p.tipo === 'humano') ? 'jugador' : 'rivales';
             const estrellita = (p.tipo === 'ia') ? ' 🤖' : '';
+            const danoHtml = (typeof p.danoRonda === 'number' && p.danoRonda > 0)
+                ? `<div class="ranking-dano">-${p.danoRonda}</div>` : '';
             html += `
-                <div class="${clases}" title="${_esc(p.nombre)}${estrellita}">
+                <div class="${clases}" data-online-pid="${_esc(p.id)}" title="${_esc(p.nombre)}${estrellita}${p.eliminado ? ' · eliminado' : ''}">
+                    ${danoHtml}
                     <div class="ranking-pos">${i + 1}</div>
                     <div class="ranking-avatar-wrap">
                         <img class="ranking-avatar" src="assets/avatars/${carpeta}/${p.avatar}.webp" onerror="this.style.display='none'">
@@ -49303,7 +49539,11 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             const tiempoEl = document.getElementById('resultadosTiempo');
             if (!overlay || !lista) return;
 
-            if (titulo) { titulo.textContent = '🏆 TORNEO FINALIZADO'; titulo.style.color = '#fbbf24'; }
+            if (titulo) {
+                const ganeTorneo = !!(posiciones && posiciones[0] && posiciones[0].id === pid);
+                titulo.textContent = ganeTorneo ? '🏆 ¡VICTORIA TOTAL!' : '🏆 TORNEO FINALIZADO';
+                titulo.style.color = '#fbbf24';
+            }
             if (tiempoEl) tiempoEl.textContent = '';
 
             // Limpiar cosas que molestarían encima del resumen
@@ -49332,7 +49572,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 equipo.forEach(it => {
                     const d = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(it.nombre) : null;
                     if (!d) return;
-                    const sprite = (typeof getSpriteUrl === 'function') ? getSpriteUrl(it.spriteId || d.spriteId, it.nombre) : '';
+                    const sprite = (typeof getSpriteUrl === 'function') ? getSpriteUrl(it.spriteId || d.spriteId, it.nombre, it.shiny === true) : '';
                     const estrellas = (typeof getEstrellasUrl === 'function') ? getEstrellasUrl(it.nivel || 1) : '';
 
                     const objetos = Array.isArray(it.objetos) ? it.objetos : [];
@@ -49469,11 +49709,11 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
 
             const equipoLocal = (typeof tablero !== 'undefined' && tablero ? tablero : [])
                 .filter(u => u && !u.esArticuno)
-                .map(u => ({ nombre: u.pokemon.nombre, nivel: u.nivel || 1, spriteId: u.pokemon.spriteId, tipos: u.pokemon.tipos || [], clase: u.pokemon.clase || '' }));
+                .map(u => ({ nombre: u.pokemon.nombre, nivel: u.nivel || 1, spriteId: u.pokemon.spriteId, shiny: u.esShiny === true, tipos: u.pokemon.tipos || [], clase: u.pokemon.clase || '' }));
 
             const equipoAmigo = (amigo && Array.isArray(amigo.board) ? amigo.board : []).map(function (it) {
                 let d = null; try { d = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(it.nombre) : null; } catch (e) { }
-                return { nombre: it.nombre, nivel: it.nivel || 1, spriteId: it.spriteId || (d && d.spriteId), tipos: (d && d.tipos) || [], clase: (d && d.clase) || '' };
+                return { nombre: it.nombre, nivel: it.nivel || 1, spriteId: it.spriteId || (d && d.spriteId), shiny: it.shiny === true, tipos: (d && d.tipos) || [], clase: (d && d.clase) || '' };
             });
 
             const jugadores = [
@@ -49522,7 +49762,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
 
                 let equipoHtml = '';
                 (jugador.equipo || []).forEach(function (u) {
-                    const spriteUrl = (typeof getSpriteUrl === 'function') ? getSpriteUrl(u.spriteId, u.nombre) : '';
+                    const spriteUrl = (typeof getSpriteUrl === 'function') ? getSpriteUrl(u.spriteId, u.nombre, u.shiny === true) : '';
                     const estrellas = (typeof getEstrellasUrl === 'function') ? `<img class="estrellas-final" src="${getEstrellasUrl(u.nivel || 1)}">` : '';
                     equipoHtml += `<div class="unidad-final" title="${u.nombre}"><img src="${spriteUrl}" onerror="this.style.display='none'">${estrellas}</div>`;
                 });
@@ -49623,10 +49863,11 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         _rondaPveAsegurada = fase;
     }
 
-    function pintarAvatarEnemigo(av) {
+    function pintarAvatarEnemigo(av, tipo) {
         const ea = document.getElementById('enemyAvatar');
         if (!ea || !av) return;
-        const src = 'assets/avatars/jugador/' + av + '.webp';
+        const carpeta = (tipo === 'ia') ? 'rivales' : 'jugador';
+        const src = 'assets/avatars/' + carpeta + '/' + av + '.webp';
         const img = ea.querySelector('img');
         if (img && img.getAttribute('src') === src) return;
         ea.innerHTML = '';
@@ -49652,65 +49893,94 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         const rk = document.getElementById('rankingTorneo');
         if (rk && !window._torneoOnline) rk.style.display = 'none';
         refrescarBaulPropio();
-        // Online: el baúl enemigo no debe tener objetos (no hay IA rival)
-        try { if (window._modoOnline && typeof enemyBaulObjetos !== 'undefined' && Array.isArray(enemyBaulObjetos) && enemyBaulObjetos.length > 0) { enemyBaulObjetos = []; if (typeof renderizar === 'function') renderizar(); } } catch (e) { }
+
         const rondaEl = document.getElementById('amistosoRonda'); if (rondaEl && typeof fase !== 'undefined') rondaEl.textContent = fase;
         const miHp = document.getElementById('amistosoMiHp'); if (miHp) miHp.textContent = (typeof vidaJugador !== 'undefined' ? vidaJugador : '—') + ' HP';
         const nomEl = document.getElementById('amistosoAmigoNombre'); if (nomEl) nomEl.textContent = amigo ? ((amigo.name || 'Amigo')).toUpperCase() : 'AMIGO';
         const hpEl = document.getElementById('amistosoAmigoHp'); if (hpEl) hpEl.textContent = (amigo && typeof amigo.hp === 'number') ? (amigo.hp + ' HP') : '—';
-        // Nombre + avatar REAL de tu amigo en el panel rival
-        if (!esPvERonda() && amigo) {
-            const en = document.getElementById('enemyName'); if (en) en.textContent = amigo.name || 'Amigo';
-            if (amigo.avatar) pintarAvatarEnemigo(amigo.avatar);
-            if (typeof amigo.nivel === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = amigo.nivel; }
-            if (typeof amigo.oro === 'number') { const g = document.getElementById('enemyGoldInfo'); if (g) g.textContent = amigo.oro; }
+
+        // Rival que se está mostrando: el espiado o el de esta ronda.
+        const rv = window._rivalEspectado || window._rivalOnlineActual || null;
+
+        // Nombre + avatar REAL del rival mostrado (amigo o IA del torneo)
+        if (!esPvERonda() && rv && !rv.esMonstruo) {
+            const en = document.getElementById('enemyName'); if (en) en.textContent = rv.nombre || 'Rival';
+            if (rv.avatar) pintarAvatarEnemigo(rv.avatar, rv.tipo);
+            if (typeof rv.nivel === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = rv.nivel; }
+            const g = document.getElementById('enemyGoldInfo');
+            if (g) g.textContent = (rv.tipo === 'humano' && rv.oro != null) ? rv.oro : '—';
         } else if (esPvERonda() && typeof actualizarInfoEnemigo === 'function') {
             // PvE: mostrar el nombre/foto del monstruo (no el jugador)
             try { actualizarInfoEnemigo(); } catch (e) { }
         }
-        // Contador del banco rival = nivel/máximo de tu amigo (solo PvP; en PvE manda el monstruo)
-        if (!esPvERonda() && amigo && typeof amigo.nivel === 'number') {
-            try { if (typeof enemyLevel !== 'undefined') enemyLevel = amigo.nivel; } catch (e) { }
-            const maxU = (typeof maxEnemyUnits === 'function') ? maxEnemyUnits() : amigo.nivel;
-            const cnt = (typeof enemyBoard !== 'undefined' && enemyBoard) ? enemyBoard.filter(Boolean).length : (Array.isArray(amigo.board) ? amigo.board.length : 0);
+
+        // Contador del banco rival según el rival mostrado
+        if (!esPvERonda() && rv && !rv.esMonstruo && typeof rv.nivel === 'number') {
+            try { if (typeof enemyLevel !== 'undefined') enemyLevel = rv.nivel; } catch (e) { }
+            const maxU = (typeof maxEnemyUnits === 'function') ? maxEnemyUnits() : rv.nivel;
+            const cnt = (typeof enemyBoard !== 'undefined' && enemyBoard) ? enemyBoard.filter(Boolean).length : 0;
             const ebMax = document.getElementById('enemyBoardMax'); if (ebMax) ebMax.textContent = maxU;
             const ebCount = document.getElementById('enemyBoardCount'); if (ebCount) ebCount.textContent = cnt;
             const hdr = document.getElementById('bankHeaderEnemy'); if (hdr) { if (cnt >= maxU) hdr.classList.add('is-full'); else hdr.classList.remove('is-full'); }
         }
-        // Racha del rival = racha real de tu amigo (solo PvP)
-        if (!esPvERonda() && amigo && typeof amigo.racha === 'number') {
-            const rEl = document.getElementById('enemyStreakInfo');
-            const rIcon = document.getElementById('enemyStreakIcon');
-            const rVal = document.getElementById('enemyStreakValueInfo');
-            if (rEl) rEl.style.display = '';
-            if (rIcon && rVal) {
-                const r = amigo.racha;
+
+        // Racha: solo tiene sentido para el amigo humano
+        const rEl = document.getElementById('enemyStreakInfo');
+        if (rEl) {
+            if (!esPvERonda() && rv && rv.tipo === 'humano' && typeof rv.racha === 'number') {
+                const r = rv.racha;
+                const rIcon = document.getElementById('enemyStreakIcon');
+                const rVal = document.getElementById('enemyStreakValueInfo');
+                rEl.style.display = '';
                 let ic = '🤝', cl = 'racha-cero', tx = '0';
                 if (r > 0) { ic = '🏆'; cl = 'racha-positiva'; tx = '+' + r; }
                 else if (r < 0) { ic = '💀'; cl = 'racha-negativa'; tx = '' + r; }
-                rIcon.textContent = ic; rVal.textContent = tx;
+                if (rIcon) rIcon.textContent = ic;
+                if (rVal) rVal.textContent = tx;
                 rEl.classList.remove('racha-positiva', 'racha-negativa', 'racha-cero'); rEl.classList.add(cl);
+            } else {
+                rEl.style.display = 'none';
             }
         }
-        // ❤️ HP correcta en los paneles (vida de PARTIDA, no la de la IA)
+
+        // ❤️ HP de PARTIDA del rival mostrado
         try {
             if (typeof vidaJugador !== 'undefined') {
                 const ph = document.getElementById('playerHealthDisplayInfo'); if (ph) ph.textContent = vidaJugador;
                 const pb = document.getElementById('playerHealthBarInfo'); if (pb) pb.style.width = Math.max(0, Math.min(100, (vidaJugador / 50) * 100)) + '%';
             }
             if (typeof oro !== 'undefined') { const pg = document.getElementById('playerGoldInfo'); if (pg) pg.textContent = oro; }
-            if (!esPvERonda() && amigo && typeof amigo.hp === 'number') {
-                const eh = document.getElementById('enemyHealthDisplayInfo'); if (eh) eh.textContent = amigo.hp;
-                const eb = document.getElementById('enemyHealthBarInfo'); if (eb) eb.style.width = Math.max(0, Math.min(100, (amigo.hp / 50) * 100)) + '%';
+            if (!esPvERonda() && rv && !rv.esMonstruo && typeof rv.hp === 'number') {
+                const eh = document.getElementById('enemyHealthDisplayInfo'); if (eh) eh.textContent = rv.hp;
+                const eb = document.getElementById('enemyHealthBarInfo'); if (eb) eb.style.width = Math.max(0, Math.min(100, (rv.hp / 50) * 100)) + '%';
             }
             // Evitar 'victoria' falsa por enemyHealth de la IA
             if (typeof enemyHealth !== 'undefined') enemyHealth = 50;
         } catch (e) { }
+
+        // 🟢 ¿Está listo el amigo?
+        const readyEl = document.getElementById('amistosoReady');
+        if (readyEl) {
+            if (window._modoSpectador) {
+                readyEl.innerHTML = '👁️ <b style="color:#fbbf24;">ESPECTANDO</b> · ranking en vivo';
+            } else {
+                const yoListo = (estadoOnline === 'waiting' || estadoOnline === 'combat');
+                const elListo = !!(amigo && amigo.ready);
+                readyEl.innerHTML = 'TÚ: ' + (yoListo ? '✅ Listo' : '⏳ Preparando')
+                    + ' · ' + (amigo ? _esc(amigo.name || 'AMIGO') : 'AMIGO') + ': ' + (elListo ? '✅ Listo' : '⏳ Preparando');
+                readyEl.style.color = elListo ? '#4ade80' : '#8fb0d6';
+            }
+        }
+
         // Botón COMBATIR -> LISTO en online
         const btn = document.getElementById('btnCombatirFijo');
         if (btn) {
             const spans = btn.querySelectorAll('span');
-            const label = (estadoOnline === 'waiting') ? 'ESPERANDO…' : (estadoOnline === 'combat' ? 'COMBATE…' : (estadoOnline === 'ended' ? 'FIN' : 'LISTO'));
+            let label;
+            if (window._modoSpectador) { label = 'ESPECTANDO'; btn.disabled = true; btn.style.opacity = '.45'; }
+            else {
+                label = (estadoOnline === 'waiting') ? 'ESPERANDO…' : (estadoOnline === 'combat' ? 'COMBATE…' : (estadoOnline === 'ended' ? 'FIN' : 'LISTO'));
+            }
             if (spans[1]) spans[1].textContent = label;
         }
         // Aviso persistente si toca comprar objeto y no se ha comprado
@@ -49736,7 +50006,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         // así que no necesitamos los candados de puedeCombatir (ronda 2 / objetos).
         try { window.puedeCombatir = function () { return true; }; } catch (e) { }
         estadoOnline = 'prep';
-        panel(); conectar(); iniciarSync(); hookCombatir(); hookInfoEnemigo();
+        panel(); conectar(); iniciarSync(); hookCombatir(); hookInfoEnemigo(); _hookRankingOnline();
         const rk = document.getElementById('rankingTorneo'); if (rk) rk.style.display = 'none';
         setStatus('Conectado. Prepara tu tablero y pulsa COMBATIR (Listo).');
     }
@@ -49768,7 +50038,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         };
     };
 
-    window.amistoso = { iniciar, serializarTablero, cargarEnemigo };
+    window.amistoso = { iniciar, serializarTablero, serializarBanquillo, serializarBaul, cargarEnemigo };
 
     if (sala) {
         const go = () => iniciar(sala);

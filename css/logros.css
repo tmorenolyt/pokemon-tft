@@ -112,6 +112,8 @@
 .logros-modal {
     width: 100%;
     max-width: 920px;
+    /* Altura fija: al cambiar de pestaña no se mueve el menú de arriba. */
+    height: min(92vh, 780px);
     max-height: 92vh;
     display: flex;
     flex-direction: column;
@@ -237,6 +239,8 @@
     overflow-y: auto;
     padding: 2px;
     min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
 }
 
 .logro-card {
@@ -398,6 +402,8 @@
     overflow-y: auto;
     padding: 2px;
     min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
 }
 
 .mapa-card {
@@ -586,6 +592,7 @@
 
     .logros-overlay { padding: 6px; }
     .logros-modal {
+        height: calc(100dvh - 12px);
         max-height: calc(100dvh - 12px);
         padding: 8px 10px 10px;
         gap: 6px;

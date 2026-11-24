@@ -1628,6 +1628,11 @@ window._registrarEliminacionesPendientes = _registrarEliminacionesPendientes;
 // ACTUALIZAR RANKING DE VIDA
 // ============================================================
 function actualizarRankingTorneo() {
+    // 🌐 Online: el ranking lo pinta amistoso.js con los 8 participantes del
+    // servidor. Si el pintor local escribiera aquí, machacaría al amigo y
+    // mostraría a los rivales IA locales como si siguieran vivos.
+    if (window._modoOnline) return;
+
     const panel = document.getElementById('rankingTorneo');
     if (!panel) return;
 
@@ -2076,6 +2081,7 @@ window.cerrarEspia = cerrarEspia;
 // COMPROBAR SI EL TORNEO HA TERMINADO
 // ============================================================
 function comprobarFinTorneo() {
+    if (window._modoOnline) return false; // online: lo decide el servidor
     if (!window.torneoRivales || window.torneoRivales.length === 0) return false;
 
     const rivalesVivos = window.torneoRivales.filter(r => !r.eliminado);

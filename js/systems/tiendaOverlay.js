@@ -72,7 +72,8 @@ async function abrirTienda(mostrarObjetos = false) {
 
     // Preparar tienda de Pokémon
     if (!tiendaBloqueada) {
-        if (!tienda || tienda.length === 0 || (fase >= 3 && tienda.length < 4)) {
+        // Solo se genera tienda si NO hay ninguna carta (evita rerolls gratis).
+        if (!tienda || tienda.length === 0) {
             generarTienda();
             _shinyYaSonadoEstaTienda = false;
         }
@@ -788,7 +789,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
         else tablero[ubicacionTemporal.indice] = nuevaCopia;
 
         oro -= pokemon.coste;
-        tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨ (Fusión en curso)`, 'success');
@@ -816,24 +817,10 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
             return;
         }
 
-        // 🆕 FIX: Solo ocultar la tarjeta en el DOM
-        const grid = document.getElementById('tiendaGridTienda');
-        if (grid) {
-            const wrapper = document.getElementById('tiendaWrapper');
-            let cartaDom = wrapper ? wrapper.querySelector(`.shop-card[data-index="${idx}"]`) : grid.querySelector(`.shop-card[data-index="${idx}"]`);
-
-            if (cartaDom) {
-                cartaDom.className = 'shop-card shop-card-empty';
-                cartaDom.innerHTML = `
-                    <div style="font-size:2rem; color:#4a6a8a; opacity:0.5;">▢</div>
-                    <div style="font-size:0.6rem; color:#4a6a8a; margin-top:6px; opacity:0.5;">VACÍO</div>
-                `;
-                cartaDom.style.cursor = 'default';
-                cartaDom.onclick = null;
-            }
-        }
-
         renderizar();
+        // Repintar la tienda SIN el hueco del Pokémon comprado
+        try { if (tiendaAbierta && typeof renderizarTiendaIndependiente === 'function') renderizarTiendaIndependiente(true); } catch (e) { }
+
 
         await new Promise(r => setTimeout(r, 80));
         if (typeof window._animacionEvolucionActiva !== 'undefined' && window._animacionEvolucionActiva) {
@@ -878,7 +865,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
     if (ubicado) {
         oro -= pokemon.coste;
-        tienda[idx] = null; // 🆕 FIX: Dejar null en el array
+        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon.id) playPokemonCry(pokemon.id);
@@ -886,24 +873,10 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
         verificarTodasLasFusiones();
         
-        // 🆕 FIX: Solo ocultar la tarjeta en el DOM
-        const grid = document.getElementById('tiendaGridTienda');
-        if (grid) {
-            const wrapper = document.getElementById('tiendaWrapper');
-            let cartaDom = wrapper ? wrapper.querySelector(`.shop-card[data-index="${idx}"]`) : grid.querySelector(`.shop-card[data-index="${idx}"]`);
-
-            if (cartaDom) {
-                cartaDom.className = 'shop-card shop-card-empty';
-                cartaDom.innerHTML = `
-                    <div style="font-size:2rem; color:#4a6a8a; opacity:0.5;">▢</div>
-                    <div style="font-size:0.6rem; color:#4a6a8a; margin-top:6px; opacity:0.5;">VACÍO</div>
-                `;
-                cartaDom.style.cursor = 'default';
-                cartaDom.onclick = null;
-            }
-        }
-        
         renderizar();
+        // Repintar la tienda SIN el hueco del Pokémon comprado
+        try { if (tiendaAbierta && typeof renderizarTiendaIndependiente === 'function') renderizarTiendaIndependiente(true); } catch (e) { }
+
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨`, 'success');
         else addConsoleMessage(`🛒 ${pokemon.nombre} comprado! (${pokemon.coste}💰)`, 'buy');

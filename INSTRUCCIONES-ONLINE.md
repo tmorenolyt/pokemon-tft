@@ -290,6 +290,32 @@ protegido solo por `ACCESS_KEY`.
   partida desde el móvil. Además hay un botón **🔄 REVANCHA** en ese resumen:
   pide al servidor `/api/reset`, se reinicia el torneo **en la misma sala** y
   **los dos clientes vuelven solos** a la preparación (se recargan).
+- **🏆 Torneo ONLINE (fase 3) · correcciones de la partida real**:
+  - **Nicks**: el nombre del amigo se actualiza en el torneo aunque lo cambie
+    después de entrar (antes se quedaba en "Entrenador").
+  - **Fin con un humano vivo**: si cae uno, el torneo **continúa** con el otro
+    (el caído pasa a espectador). Antes el servidor mandaba `matchEnd` y el
+    resumen mostraba solo 2 jugadores; ahora el resumen final tiene **las 8
+    posiciones** con sus equipos, objetos y sinergias.
+  - **Rival real por ronda**: el panel enemigo muestra **el nombre, avatar y HP
+    del rival de esa ronda** (IA o humano), no siempre el del amigo. En la
+    preparación se ve el equipo del **próximo** rival (IA incluida).
+  - **Banco y baúl del amigo**: el cliente sincroniza `bench` y `baul`; se ven
+    sus Pokémon en el banquillo y sus objetos en el baúl enemigo.
+  - **Shiny del amigo**: se envía el flag `shiny` y se aplica al crear la
+    unidad enemiga (tablero, banco y resumen final).
+  - **Daño por ronda**: el servidor calcula el daño real de humanos e IA y el
+    ranking muestra el clásico **`-7` en rojo**.
+  - **Ranking estable**: el pintor local de torneo 1J ya **no sobrescribe** el
+    ranking online al comprar/rerenderizar (antes mostraba a todos los rivales
+    IA locales como vivos).
+  - **Espectador útil**: el botón COMBATIR queda desactivado, el ranking sigue
+    en vivo y **se puede espiar** a cualquier participante haciendo clic en su
+    fila (humano o IA) para cargar su equipo en el tablero enemigo.
+  - **Listo del amigo**: el panel online muestra en todo momento
+    `TÚ: ✅/⏳ · AMIGO: ✅/⏳`.
+  - **Mewtwo centrado**: el offset de sprite se multiplica por el flip, así el
+    GIF no se descentra al mostrarse en el lado enemigo.
 - **🏆 Torneo ONLINE (fase 2)**: el emparejamiento ya **mezcla a todos los
   vivos** (2 humanos + IA), así que hay rondas en las que **te toca una IA**.
   Cuando eso pasa, el servidor te manda el rival, su nivel y una semilla, y tu
@@ -698,3 +724,15 @@ protegido solo por `ACCESS_KEY`.
   - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
     así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
     navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.
+- **Tienda sin huecos**: al comprar una carta se quita del array y se repinta la
+  tienda (3 cartas si había 4), en vez de dejar una tarjeta **"VACÍO"**.
+  Reabrir la tienda ya **no genera cartas gratis**: solo se genera tienda nueva
+  cuando no queda ninguna carta o al empezar una ronda.
+- **Sin seleccionar texto al arrastrar**: `#juegoContainer`, la ficha del
+  Pokémon (`#cartaPanel`) y la tienda (`#tiendaOverlay`) llevan
+  `user-select: none` (con `input/textarea` seleccionables). Se acabó el
+  sombreado azul al arrastrar cartas o unidades.
+- **Logros con cabecera fija**: el modal de logros tiene altura fija
+  (`min(92vh, 780px)`, en móvil `100dvh - 12px`) y la rejilla hace scroll, así
+  que el título y las pestañas **no se mueven** al cambiar de categoría
+  (igual que la Pokédex).

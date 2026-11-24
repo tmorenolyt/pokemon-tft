@@ -510,10 +510,10 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
     z-index: 2;
     transform-origin: center center;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
 }
 
-.bank-cell:hover .unit-sprite { transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(calc(min(var(--sprite-scale, 1), 1.15) * 1.08)); }
+.bank-cell:hover .unit-sprite { transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(calc(min(var(--sprite-scale, 1), 1.15) * 1.08)); }
 
 .bank-cell .unit-name { font-size: 0.5rem; font-weight: 700; color: #ffffff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 6px; position: relative; z-index: 3; }
 .bank-cell .unit-traits-left { position: absolute; top: 2px; left: 2px; display: flex; gap: 1px; z-index: 4; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7)); }
@@ -687,12 +687,12 @@ body.combatiendo .side-column-enemy .traits-vertical.turno-inactivo {
     z-index: 2;
     margin-top: 6px;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
     transform-origin: center bottom;
     flex-shrink: 0;
 }
 
-.board-cell:hover .unit-sprite { transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(calc(var(--sprite-scale, 1) * 1.1)); }
+.board-cell:hover .unit-sprite { transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(calc(var(--sprite-scale, 1) * 1.1)); }
 
 .board-cell .unit-name {
     font-size: 0.55rem; font-weight: 800;
@@ -1089,7 +1089,7 @@ html body #enemigoBoard .board-cell .unit-sprite {
     height: 58px !important;
     object-fit: contain !important;
     image-rendering: pixelated !important;
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
 }
 
 /* 🆕 Banco: sprite más grande (antes 40px, ahora 58px) */
@@ -1100,7 +1100,7 @@ html body #enemyBanquilloGrid .bank-cell .unit-sprite {
     height: 58px !important;
     object-fit: contain !important;
     image-rendering: pixelated !important;
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
 }
 
 html body .board-cell .unit-stars-right img.estrellas-img,
@@ -1521,12 +1521,12 @@ html body .bank-cell.cost-5 { background: linear-gradient(145deg, #cea343, #b88a
     html body .board-cell .unit-sprite,
     html body #playerBoard .board-cell .unit-sprite,
     html body #enemigoBoard .board-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
     }
     html body .bank-cell .unit-sprite,
     html body #banquilloGrid .bank-cell .unit-sprite,
     html body #enemyBanquilloGrid .bank-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
     }
 }
 
@@ -1534,12 +1534,12 @@ html body .bank-cell.cost-5 { background: linear-gradient(145deg, #cea343, #b88a
     html body .board-cell .unit-sprite,
     html body #playerBoard .board-cell .unit-sprite,
     html body #enemigoBoard .board-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
     }
     html body .bank-cell .unit-sprite,
     html body #banquilloGrid .bank-cell .unit-sprite,
     html body #enemyBanquilloGrid .bank-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
     }
 }
 
@@ -1547,12 +1547,12 @@ html body .bank-cell.cost-5 { background: linear-gradient(145deg, #cea343, #b88a
     html body .board-cell .unit-sprite,
     html body #playerBoard .board-cell .unit-sprite,
     html body #enemigoBoard .board-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
     }
     html body .bank-cell .unit-sprite,
     html body #banquilloGrid .bank-cell .unit-sprite,
     html body #enemyBanquilloGrid .bank-cell .unit-sprite {
-        transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+        transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
     }
 }
 

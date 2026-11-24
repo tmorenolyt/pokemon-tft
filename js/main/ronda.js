@@ -39,6 +39,16 @@ async function ejecutarFinDeRonda(victoria, esPvE) {
     }
     window._finRondaEnCurso = true;
 
+    // 🌐 ONLINE: el servidor gobierna el torneo (ranking de 8, emparejamientos,
+    // HP, fin de partida). No se ejecuta la transición local del torneo de 1J
+    // (evitaba que apareciera una IA con el nombre del amigo, game over local,
+    // simulación de rivales IA y repintado del ranking con datos locales).
+    if (window._modoOnline) {
+        window._finRondaEnCurso = false;
+        try { if (typeof reanudarFondoPreparacion === 'function') reanudarFondoPreparacion(); } catch (e) { }
+        return;
+    }
+
     // 🆕 FIX TORNEO: capturar la ronda que acaba de terminar ANTES de
     // asignar el rival de la siguiente. Si no, la simulación excluye al
     // rival nuevo y hace pelear dos veces al que acaba de combatir.

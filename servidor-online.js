@@ -67,7 +67,8 @@ function roomState(room) {
             nivel: (typeof p.nivel === 'number' ? p.nivel : null),
             racha: (typeof p.racha === 'number' ? p.racha : null),
             oro: (typeof p.oro === 'number' ? p.oro : null),
-            ready: !!p.ready, board: p.board || null
+            ready: !!p.ready, board: p.board || null,
+            bench: p.bench || null, baul: p.baul || null
         })),
         started: room.started, seed: room.seed, results: room.results,
         torneo: room.torneo || null
@@ -96,6 +97,17 @@ function _danoBaseTorneo(r) {
     if (r >= 13) return 4;
     if (r >= 10) return 3;
     return 2;
+}
+
+// Mantiene el nombre/avatar del humano al día dentro del torneo.
+// (El torneo se crea al entrar y el nombre puede cambiarse después.)
+function actualizarParticipanteHumano(room, pid, name, avatar) {
+    const t = room.torneo;
+    if (!t || !Array.isArray(t.participantes)) return;
+    const p = t.participantes.find(x => x.id === pid && x.tipo === 'humano');
+    if (!p) return;
+    if (name) p.nombre = nombreSeguro(name);
+    if (avatar) p.avatar = avatar;
 }
 
 function crearTorneoOnline(room) {
@@ -171,13 +183,23 @@ function simularTorneoOnline(room, rondaJugada) {
     const mapa = new Map(t.participantes.map(p => [p.id, p]));
     const pve = _esRondaPvETorneo(r);
 
+    // 🩸 Daño de la ronda: partir de cero, pero conservando el daño que
+    // los humanos han hecho a las IA en esta misma ronda (se aplica antes
+    // de re-emparejar; si no, este reset lo borraría).
+    const danoHumanoAIA = t._danoHumanoAIA || {};
+    t._danoHumanoAIA = {};
+    t.participantes.forEach(p => { p.danoRonda = danoHumanoAIA[p.id] || 0; });
+
     // HP de los humanos: la que ha reportado el cliente
     t.participantes.forEach(p => {
         if (p.tipo !== 'humano') return;
         const pl = room.players[p.id];
         if (pl && typeof pl.hp === 'number') p.hp = pl.hp;
+        const dano = (room._danoReportado && room._danoReportado[p.id]) || 0;
+        p.danoRonda = Math.max(0, dano);
         if (p.hp <= 0) marcarEliminadoTorneo(t, p);
     });
+    room._danoReportado = {};
 
     // IA vs IA (en PvE no se pegan entre ellas)
     if (!pve) {
@@ -194,6 +216,7 @@ function simularTorneoOnline(room, rondaJugada) {
             const vivas = 1 + Math.floor(Math.random() * 4);
             const dano = Math.min(20, _danoBaseTorneo(r) + vivas);
             per.hp = Math.max(0, per.hp - dano);
+            per.danoRonda = dano;
             gan.victorias++;
             per.derrotas++;
             if (per.hp <= 0) marcarEliminadoTorneo(t, per);
@@ -235,7 +258,12 @@ function finalizarTorneoSiProcede(room) {
     const t = room.torneo;
     if (!t || t.finalizado) return;
     const vivosHumanos = (t.participantes || []).filter(p => p.tipo === 'humano' && !p.eliminado);
-    if (vivosHumanos.length > 0) return;
+    const vivosTotales = (t.participantes || []).filter(p => !p.eliminado);
+    // Opción A: el torneo acaba cuando ya no queda ningún humano vivo,
+    // o cuando solo queda UN participante vivo (ese gana el torneo).
+    // Así, si un humano cae y el otro sigue, la partida continúa con el que
+    // queda vivo (el caído pasa a espectador).
+    if (vivosHumanos.length > 0 && vivosTotales.length > 1) return;
 
     t.finalizado = true;
     const vivos = (t.participantes || []).filter(p => !p.eliminado).sort((a, b) => b.hp - a.hp);
@@ -266,6 +294,10 @@ function aplicarVictoriaHumanoSobreIA(room, pid, ronda, vivas) {
     const v = Math.max(1, parseInt(vivas, 10) || 1);
     const dano = Math.min(20, _danoBaseTorneo(ronda) + v);
     rv.hp = Math.max(0, rv.hp - dano);
+    rv.danoRonda = dano;
+    // Se conserva al re-emparejar (simularTorneoOnline reinicia danoRonda)
+    t._danoHumanoAIA = t._danoHumanoAIA || {};
+    t._danoHumanoAIA[rv.id] = dano;
     rv.derrotas = (rv.derrotas || 0) + 1;
     if (rv.hp <= 0) marcarEliminadoTorneo(t, rv);
     t.resultados.push({ ronda: ronda, ganador: 'humano', perdedor: rv.nombre, dano });
@@ -600,6 +632,7 @@ const server = http.createServer((req, res) => {
                 room.players[pid] = { name: nombreSeguro(body.name), ready: false, team: null, joinedAt: now, lastSeen: now, round: null };
             } else {
                 if (body.name) room.players[pid].name = nombreSeguro(body.name);
+                actualizarParticipanteHumano(room, pid, body.name, null);
                 room.players[pid].lastSeen = Date.now();
                 if (!room.players[pid].joinedAt) room.players[pid].joinedAt = Date.now();
             }
@@ -609,6 +642,8 @@ const server = http.createServer((req, res) => {
             if (Object.keys(room.players).length >= 2 && !room.torneo) {
                 try { crearTorneoOnline(room); } catch (e) { }
             }
+            // El nombre puede haber cambiado al volver a entrar.
+            actualizarParticipanteHumano(room, pid, body.name, null);
 
             broadcast(room, { type: 'state', ...roomState(room) });
             send(res, { ok: true, room: String(body.room || '').toUpperCase(), ...roomState(room) });
@@ -623,8 +658,11 @@ const server = http.createServer((req, res) => {
             const pid = String(body.pid || '');
             if (!room.players[pid]) { send(res, { ok: false, error: 'no join' }, 400); return; }
             if (Array.isArray(body.team)) room.players[pid].board = body.team;
+            if (Array.isArray(body.bench)) room.players[pid].bench = body.bench;
+            if (Array.isArray(body.baul)) room.players[pid].baul = body.baul;
             room.players[pid].ready = true;
             room.players[pid].lastSeen = Date.now();
+            actualizarParticipanteHumano(room, pid, room.players[pid].name, room.players[pid].avatar);
 
             // 🏆 Torneo online: crear si falta y refrescar emparejamiento de la ronda
             if (Object.keys(room.players).length >= 2) {
@@ -667,6 +705,18 @@ const server = http.createServer((req, res) => {
                             };
                         });
                     }
+                    // 🎭 Si un humano no tiene pareja (número impar de vivos),
+                    // pelea contra un rival fantasma en vez de tocarle un PvE.
+                    if (!pve) {
+                        pidsActivos.forEach(hpid => {
+                            if (asignaciones[hpid]) return;
+                            asignaciones[hpid] = {
+                                tipo: 'ia', rivalId: null, nombre: 'Rival Fantasma', avatar: 'rojo',
+                                nivel: Math.max(2, Math.min(8, room.round || 2)),
+                                seed: 7919 + (room.round || 1), fantasma: true
+                            };
+                        });
+                    }
                 } catch (e) { }
 
                 broadcast(room, { type: 'resolve', round: r, roundType: pve ? 'pve' : 'pvp', boards, players: pids, asignaciones });
@@ -682,7 +732,12 @@ const server = http.createServer((req, res) => {
             const room = getRoom(body.room);
             const pid = String(body.pid || '');
             if (!room.players[pid]) { send(res, { ok: false }, 400); return; }
+            // 🩸 Guardar el daño real de la ronda (HP anterior - HP reportado)
+            const hpAnterior = room.players[pid].hp;
             if (typeof body.hp === 'number') room.players[pid].hp = body.hp;
+            room._danoReportado = room._danoReportado || {};
+            room._danoReportado[pid] = (typeof hpAnterior === 'number' && typeof body.hp === 'number')
+                ? Math.max(0, hpAnterior - body.hp) : 0;
             room.done = room.done || {}; room.done[pid] = true;
             room._won = room._won || {}; room._won[pid] = (body.won === true);
             room._vivas = room._vivas || {}; room._vivas[pid] = (typeof body.vivas === 'number') ? body.vivas : 1;
@@ -701,8 +756,10 @@ const server = http.createServer((req, res) => {
                 // 🏆 Cerrar la ronda del torneo (IA vs IA, HP de los humanos)
                 try { simularTorneoOnline(room, room.round || 1); } catch (e) { }
 
-                // 🏆 ¿Se han quedado los dos humanos fuera? → fin (opción A)
+                // 🏆 Fin del torneo: solo cuando no queda ningún humano vivo
+                // o cuando solo queda un participante vivo (opción A).
                 try { finalizarTorneoSiProcede(room); } catch (e) { }
+                const torneoFinalizado = !!(room.torneo && room.torneo.finalizado);
 
                 room.done = {};
                 room.matchHp = room.matchHp || {};
@@ -714,7 +771,17 @@ const server = http.createServer((req, res) => {
                 room._won = {};
                 const hpArr = pids.map(x => ({ pid: x, hp: room.matchHp[x] }));
                 const dead = pids.filter(x => room.matchHp[x] <= 0);
-                if (dead.length >= 1) {
+                if (torneoFinalizado) {
+                    // La pantalla final la pinta 'torneoFin' con las 8 posiciones.
+                    room.phase = 'ended';
+                } else if (room.torneo) {
+                    // 🏆 Modo torneo: si un humano cae, el torneo sigue con el
+                    // que queda vivo (el caído pasa a espectador).
+                    room.round = (room.round || 1) + 1;
+                    room.phase = 'prep';
+                    pids.forEach(x => { room.players[x].ready = false; room.players[x].hp = room.matchHp[x]; });
+                    broadcast(room, { type: 'nextRound', round: room.round, hp: hpArr, torneo: room.torneo });
+                } else if (dead.length >= 1) {
                     room.phase = 'ended';
                     const win = (dead.length === 1) ? pids.find(x => x !== dead[0]) : null;
                     broadcast(room, { type: 'matchEnd', winner: win, players: pids, hp: hpArr, round: room.round || 1 });
@@ -722,7 +789,7 @@ const server = http.createServer((req, res) => {
                     room.round = (room.round || 1) + 1;
                     room.phase = 'prep';
                     pids.forEach(x => { room.players[x].ready = false; room.players[x].hp = room.matchHp[x]; });
-                    broadcast(room, { type: 'nextRound', round: room.round, hp: hpArr });
+                    broadcast(room, { type: 'nextRound', round: room.round, hp: hpArr, torneo: room.torneo });
                 }
             }
             send(res, { ok: true });
@@ -751,6 +818,9 @@ const server = http.createServer((req, res) => {
             if (typeof body.oro === 'number') pl.oro = body.oro;
             if (typeof body.round === 'number') pl.round = body.round;
             if (Array.isArray(body.board)) pl.board = body.board;
+            if (Array.isArray(body.bench)) pl.bench = body.bench;
+            if (Array.isArray(body.baul)) pl.baul = body.baul;
+            actualizarParticipanteHumano(room, pid, body.name, body.avatar);
             broadcast(room, { type: 'state', ...roomState(room) });
             send(res, { ok: true });
         });

@@ -457,12 +457,12 @@ body.evolucion-en-curso .board-grid:has(.bank-cell.evolucionando) {
     flex-shrink: 0;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(var(--sprite-scale, 1));
     transform-origin: center bottom;
 }
 
 .board-cell:hover .unit-sprite {
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(calc(var(--sprite-scale, 1) * 1.1));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(calc(var(--sprite-scale, 1) * 1.1));
 }
 
 .board-cell .unit-name {
@@ -743,12 +743,12 @@ body.evolucion-en-curso .board-grid:has(.bank-cell.evolucionando) {
     flex-shrink: 0;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(min(var(--sprite-scale, 1), 1.15));
     transform-origin: center center;
 }
 
 .bank-cell:hover .unit-sprite {
-    transform: translateX(var(--sprite-offset-x, 0px)) scaleX(var(--sprite-flip, 1)) scale(calc(min(var(--sprite-scale, 1), 1.15) * 1.08));
+    transform: translateX(calc(var(--sprite-offset-x, 0px) * var(--sprite-flip, 1))) scaleX(var(--sprite-flip, 1)) scale(calc(min(var(--sprite-scale, 1), 1.15) * 1.08));
 }
 
 .bank-cell .unit-name {

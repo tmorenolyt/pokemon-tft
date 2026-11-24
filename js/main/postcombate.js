@@ -160,6 +160,10 @@ function cambiarTabPostCombate(tab) {
 }
 
 function gameOver() {
+    // 🌐 Online: un humano eliminado pasa a espectador; el final del torneo
+    // lo pinta el servidor con las 8 posiciones (torneoFin).
+    if (window._modoOnline) return;
+
     // 🏅 Posición final del jugador: se apunta el orden de eliminación para
     //    que el resumen final ordene a los eliminados por cuándo cayeron.
     try {
@@ -187,6 +191,9 @@ function gameOver() {
 }
 
 function mostrarVictoriaJuego() {
+    // 🌐 Online: la victoria final la pinta el servidor (torneoFin).
+    if (window._modoOnline) return;
+
     const overlayAntiguo = document.getElementById('gameOverOverlay');
     if (overlayAntiguo) {
         overlayAntiguo.classList.remove('visible');

@@ -572,3 +572,34 @@ body.dragging-active * {
 .objeto-equipado-banquillo:active {
     cursor: grabbing !important;
 }
+/* ============================================================
+   SIN SELECCIÓN DE TEXTO EN EL JUEGO (arrastrar cartas/unidades)
+   ============================================================ */
+#juegoContainer,
+#juegoContainer *,
+#cartaPanel,
+#cartaPanel *,
+#tiendaOverlay,
+#tiendaOverlay * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+#juegoContainer img,
+#cartaPanel img,
+#tiendaOverlay img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+#juegoContainer input,
+#juegoContainer textarea,
+#tiendaOverlay input,
+#tiendaOverlay textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+}
