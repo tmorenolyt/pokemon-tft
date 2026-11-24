@@ -108,6 +108,14 @@ function actualizarParticipanteHumano(room, pid, name, avatar) {
     if (!p) return;
     if (name) p.nombre = nombreSeguro(name);
     if (avatar) p.avatar = avatar;
+    // Nivel/HP/racha: el cliente los manda cada segundo. Sin esto el torneo
+    // se quedaba con nivel 1 y el banco del amigo mostraba "3/1".
+    const pl = room.players && room.players[pid];
+    if (pl) {
+        if (typeof pl.nivel === 'number') p.nivel = pl.nivel;
+        if (typeof pl.hp === 'number') p.hp = pl.hp;
+        if (typeof pl.racha === 'number') p.racha = pl.racha;
+    }
 }
 
 function crearTorneoOnline(room) {
@@ -188,7 +196,7 @@ function simularTorneoOnline(room, rondaJugada) {
     // de re-emparejar; si no, este reset lo borraría).
     const danoHumanoAIA = t._danoHumanoAIA || {};
     t._danoHumanoAIA = {};
-    t.participantes.forEach(p => { p.danoRonda = danoHumanoAIA[p.id] || 0; });
+    t.participantes.forEach(p => { p.danoRonda = danoHumanoAIA[p.id] || 0; p.estadoRonda = null; });
 
     // HP de los humanos: la que ha reportado el cliente
     t.participantes.forEach(p => {
@@ -197,6 +205,10 @@ function simularTorneoOnline(room, rondaJugada) {
         if (pl && typeof pl.hp === 'number') p.hp = pl.hp;
         const dano = (room._danoReportado && room._danoReportado[p.id]) || 0;
         p.danoRonda = Math.max(0, dano);
+        // ✔/✖ de la ronda (mismo sistema que el ranking de 1J)
+        if (room._won && Object.prototype.hasOwnProperty.call(room._won, p.id)) {
+            p.estadoRonda = room._won[p.id] ? 'win' : 'loss';
+        }
         if (p.hp <= 0) marcarEliminadoTorneo(t, p);
     });
     room._danoReportado = {};
@@ -206,7 +218,15 @@ function simularTorneoOnline(room, rondaJugada) {
         t.parejas.forEach(par => {
             const a = mapa.get(par[0]), b = mapa.get(par[1]);
             if (!a || !b || a.eliminado || b.eliminado) return;
-            if (a.tipo === 'humano' || b.tipo === 'humano') return;
+            if (a.tipo === 'humano' || b.tipo === 'humano') {
+                // Humano vs IA: el ✔/✖ del humano ya se puso arriba; la IA
+                // recibe el resultado contrario.
+                const h = (a.tipo === 'humano') ? a : b;
+                const ia = (a.tipo === 'humano') ? b : a;
+                const ganoHumano = !!(room._won && room._won[h.id]);
+                if (ia.tipo === 'ia') ia.estadoRonda = ganoHumano ? 'loss' : 'win';
+                return;
+            }
 
             const pa = a.nivel * 100 + a.victorias * 50 + a.derrotas * 20;
             const pb = b.nivel * 100 + b.victorias * 50 + b.derrotas * 20;
@@ -217,6 +237,8 @@ function simularTorneoOnline(room, rondaJugada) {
             const dano = Math.min(20, _danoBaseTorneo(r) + vivas);
             per.hp = Math.max(0, per.hp - dano);
             per.danoRonda = dano;
+            gan.estadoRonda = 'win';
+            per.estadoRonda = 'loss';
             gan.victorias++;
             per.derrotas++;
             if (per.hp <= 0) marcarEliminadoTorneo(t, per);

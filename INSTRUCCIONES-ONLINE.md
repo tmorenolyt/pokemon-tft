@@ -314,6 +314,16 @@ protegido solo por `ACCESS_KEY`.
     fila (humano o IA) para cargar su equipo en el tablero enemigo.
   - **Listo del amigo**: el panel online muestra en todo momento
     `TÚ: ✅/⏳ · AMIGO: ✅/⏳`.
+  - **Nivel del amigo sincronizado**: el servidor actualiza nivel/HP/racha
+    del humano en el torneo en cada sincronización. El contador del banco ya
+    no muestra `3/1` con nivel 3: sale `3/3`.
+  - **Equipos IA como en 1J**: se colocan con `_PATRONES_COLOCACION.enemy`
+    (melees en E/F/G, backline en H/G/F) y no se espejan. La semilla de la
+    pareja es la misma en preparación y en combate, así **no cambian los
+    Pokémon** al pulsar COMBATIR.
+  - **Ranking idéntico al 1J**: ✔ verde al ganar, ✖ rojo al perder, `-X` de
+    daño, 🔥 de racha y ocultación de marcas a los 5 s. Además solo se repinta
+    cuando cambian los datos, así el `-7` ya **no parpadea**.
   - **Mewtwo centrado**: el offset de sprite se multiplica por el flip, así el
     GIF no se descentra al mostrarse en el lado enemigo.
 - **🏆 Torneo ONLINE (fase 2)**: el emparejamiento ya **mezcla a todos los

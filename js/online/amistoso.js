@@ -83,8 +83,10 @@
         return u;
     }
 
-    // snap = tablero del amigo · bench = su banquillo · baul = sus objetos
-    function cargarEnemigo(snap, bench, baul) {
+    // snap = tablero · bench = banquillo · baul = objetos.
+    // yaEsEnemigo = las posiciones ya están en coordenadas del tablero enemigo
+    // (equipos de IA); si es false, se espejan las columnas (tablero del amigo).
+    function cargarEnemigo(snap, bench, baul, yaEsEnemigo) {
         if (typeof enemyBoard === 'undefined' || !enemyBoard) return false;
         for (let i = 0; i < enemyBoard.length; i++) enemyBoard[i] = null;
         for (const item of (snap || [])) {
@@ -92,9 +94,10 @@
             if (!u) continue;
             // 🪞 Espejar columnas: el tablero del amigo está en A-D (col 0-3);
             // como enemigo debe verse reflejado (su col 0 -> H, su col 3 -> E).
+            // Los equipos de IA ya vienen en coordenadas enemigas (no espejar).
             const rawPos = Math.max(0, Math.min(19, item.pos | 0));
             const _fila = Math.floor(rawPos / 4), _colLocal = rawPos % 4;
-            const pos = _fila * 4 + (3 - _colLocal);
+            const pos = yaEsEnemigo ? rawPos : (_fila * 4 + (3 - _colLocal));
             if (enemyBoard[pos]) { const libre = enemyBoard.findIndex(x => !x); if (libre >= 0) enemyBoard[libre] = u; else break; }
             else enemyBoard[pos] = u;
         }
@@ -222,15 +225,36 @@
             elegidos.push(p);
         }
 
-        // Posiciones: melees delante (fila 0), ranged detrás (fila 3)
-        const front = [0, 1, 2, 3];
-        const back = [12, 13, 14, 15];
-        let iF = 0, iB = 0;
+        // Posiciones: usar el MISMO patrón de colocación que la IA del 1J.
+        // Si no, los melees salían en la fila trasera y los ranged delante
+        // (y al combatir se recolocaban).
+        const patronMelee = (window._PATRONES_COLOCACION && _PATRONES_COLOCACION.enemy && _PATRONES_COLOCACION.enemy.melee) || [];
+        const patronBack = (window._PATRONES_COLOCACION && _PATRONES_COLOCACION.enemy && _PATRONES_COLOCACION.enemy.backline) || [];
+        let iM = 0, iB = 0;
         const snap = [];
         elegidos.forEach(p => {
-            const esFront = (p.rol === 'frontline');
-            const pos = esFront ? front[iF++ % 4] : back[iB++ % 4];
-            snap.push({ nombre: p.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: [], pos });
+            const rol = (typeof rolColocacionDesdePokemonData === 'function')
+                ? rolColocacionDesdePokemonData(p)
+                : ((p.rol === 'frontline') ? 'melee' : 'backline');
+            const lista = (rol === 'backline') ? patronBack : patronMelee;
+            const coord = lista[(rol === 'backline') ? iB++ : iM++];
+            let pos = -1;
+            try {
+                if (coord && typeof getIndiceDesdeCoordenada === 'function') {
+                    const r = getIndiceDesdeCoordenada(coord);
+                    if (r && r.indice >= 0) pos = r.indice;
+                }
+            } catch (e) { }
+            if (pos < 0) {
+                // Respaldo: melee delante (filas 2-3), backline detrás (filas 0-1)
+                const base = (rol === 'backline') ? 0 : 8;
+                const usados = new Set(snap.map(s => s.pos));
+                for (let k = 0; k < 20; k++) {
+                    const cand = (base + k) % 20;
+                    if (!usados.has(cand)) { pos = cand; break; }
+                }
+            }
+            snap.push({ nombre: p.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: [], pos, lado: 'enemy' });
         });
         return snap;
     }
@@ -265,7 +289,7 @@
         if (msg.roundType !== 'pve' && asig && asig.tipo === 'ia') {
             // 🤖 Contra una IA del torneo: carga su equipo y pelea en vivo
             const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1);
-            cargarEnemigo(equipoIA, [], []);
+            cargarEnemigo(equipoIA, [], [], true);
             const rvTorneo = (window._torneoOnline && (window._torneoOnline.participantes || []).find(p => p.id === asig.rivalId)) || null;
             window._rivalOnlineActual = {
                 id: asig.rivalId || ('ia-ronda-' + (msg.round || fase)), tipo: 'ia', fantasma: !!asig.fantasma,
@@ -333,6 +357,24 @@
         return rid ? _participanteTorneo(rid) : null;
     }
 
+    // Semilla de la pareja actual: el servidor usa esta misma al resolver
+    // la ronda, así el equipo IA de preparación y el del combate coinciden.
+    function _seedRivalOnline(rv) {
+        if (!rv) return 1;
+        if (rv.tipo === 'humano') return 1;
+        try {
+            const t = window._torneoOnline;
+            if (t && Array.isArray(t.parejas) && t.seeds) {
+                const par = t.parejas.find(x => Array.isArray(x) && x.includes(pid) && x.includes(rv.id));
+                if (par) {
+                    const s = t.seeds[par.join('|')];
+                    if (s) return s;
+                }
+            }
+        } catch (e) { }
+        return rv.seed || 1;
+    }
+
     // Mantiene actualizado a quién te enfrentas (humano o IA) según el torneo.
     function _actualizarRivalOnline() {
         if (window._modoSpectador) return;
@@ -340,9 +382,10 @@
         if (!rv) { window._rivalOnlineActual = null; return; }
         const esHumano = (rv.tipo === 'humano');
         const a = (esHumano && amigo && amigo.pid === rv.id) ? amigo : null;
+        const nivelRival = (esHumano && a && typeof a.nivel === 'number') ? a.nivel : (rv.nivel || 2);
         window._rivalOnlineActual = {
             id: rv.id, tipo: rv.tipo, nombre: rv.nombre, avatar: rv.avatar,
-            nivel: rv.nivel || 2, seed: rv.seed || 0,
+            nivel: nivelRival, seed: _seedRivalOnline(rv),
             hp: (rv.hp != null ? rv.hp : (a ? a.hp : null)),
             racha: a ? a.racha : 0,
             oro: a ? a.oro : null,
@@ -370,7 +413,7 @@
             const sig = 'ia|' + rv.id + '|' + rv.nivel + '|' + rv.seed;
             if (sig === window._ultimaFirmaRivalIA) return;
             window._ultimaFirmaRivalIA = sig;
-            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1), [], []);
+            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1), [], [], true);
         }
         try {
             window.rivalActual = { nombre: rv.nombre, avatar: rv.avatar, esMonstruo: false };
@@ -390,7 +433,9 @@
             }
             cargarEnemigo(amigo.board, amigo.bench, amigo.baul);
         } else {
-            cargarEnemigo(construirEquipoIA(p.nivel || 2, p.seed || 1), [], []);
+            // Si es el rival de esta ronda, usa la semilla de la pareja
+            // (así el espionaje coincide con el equipo que pelea).
+            cargarEnemigo(construirEquipoIA(p.nivel || 2, _seedRivalOnline(p)), [], [], true);
         }
         window._rivalEspectado = {
             id: p.id, tipo: p.tipo, nombre: p.nombre, avatar: p.avatar,
@@ -475,6 +520,7 @@
                 try { _mostrarRivalOnline(); } catch (e) { }
                 actualizarPanel();
             } else if (msg.type === 'torneoFin') {
+                try { clearTimeout(window._timerTicksOnline); } catch (e) { }
                 try { mostrarFinTorneoOnline(msg.posiciones); } catch (e) { }
             } else if (msg.type === 'torneoReset') {
                 // 🔄 El rival (o tú) ha pedido revancha → recargar y volver a la sala
@@ -490,6 +536,8 @@
                 window._onlineEspiando = false;
                 window._ultimaVictoriaJugador = undefined;
                 window._ultimoDanoRecibidoJugador = 0;
+                window._ticksOnlineOcultos = false;
+                window._ultimaFirmaRankingOnline = '';
                 // Sincronizar la ronda del cliente con la del servidor (PvE/PvP bien)
                 try { if (typeof msg.round === 'number') { fase = msg.round; ronda = msg.round; } } catch (e) { }
                 // HP autoritativa del servidor (la misma en ambos clientes)
@@ -504,6 +552,7 @@
                     if (msg.torneo) {
                         window._torneoOnline = msg.torneo;
                         pintarRankingTorneoOnline(msg.torneo);
+                        _programarOcultarTicksOnline();
                         const yoT = (msg.torneo.participantes || []).find(p => p.id === pid);
                         if (yoT && yoT.eliminado && !window._modoSpectador) {
                             window._modoSpectador = true;
@@ -583,10 +632,39 @@
     // ============================================================
     // 🏆 RANKING DEL TORNEO ONLINE (2 humanos + 6 IA = 8)
     // ============================================================
+    // Firma del ranking: evita repintarlo cada segundo (el `-X` parpadeaba
+    // porque se reiniciaba su animación con cada mensaje 'state').
+    function _firmaRankingOnline(torneo, ocultarTicks) {
+        if (!torneo) return 'none';
+        try {
+            return JSON.stringify({
+                r: torneo.ronda, m: torneo.maxHp, v: torneo.rivales, o: !!ocultarTicks,
+                p: (torneo.participantes || []).map(p => [p.id, p.tipo, p.nombre, p.avatar, p.hp, p.nivel, p.racha, p.eliminado, p.danoRonda, p.estadoRonda])
+            });
+        } catch (e) { return '' + Math.random(); }
+    }
+
+    function _programarOcultarTicksOnline() {
+        try { clearTimeout(window._timerTicksOnline); } catch (e) { }
+        window._timerTicksOnline = setTimeout(function () {
+            window._ticksOnlineOcultos = true;
+            try { if (window._torneoOnline) pintarRankingTorneoOnline(window._torneoOnline); } catch (e) { }
+        }, 5000);
+    }
+
     function pintarRankingTorneoOnline(torneo) {
         const panel = document.getElementById('rankingTorneo');
         if (!panel) return;
-        if (!torneo || !Array.isArray(torneo.participantes)) { panel.style.display = 'none'; return; }
+        if (!torneo || !Array.isArray(torneo.participantes)) {
+            panel.style.display = 'none';
+            window._ultimaFirmaRankingOnline = 'none';
+            return;
+        }
+
+        const ocultarTicks = !!window._ticksOnlineOcultos;
+        const firma = _firmaRankingOnline(torneo, ocultarTicks);
+        if (firma === window._ultimaFirmaRankingOnline && panel.style.display !== 'none') return;
+        window._ultimaFirmaRankingOnline = firma;
 
         const vivos = torneo.participantes.filter(p => !p.eliminado).sort((a, b) => b.hp - a.hp);
         const muertos = torneo.participantes.filter(p => p.eliminado).sort((a, b) => b.hp - a.hp);
@@ -601,12 +679,19 @@
         lista.forEach((p, i) => {
             const esYo = p.id === pid;
             const esRival = (p.id === rivalId) && !esYo;
-            const clases = ['ranking-item', esYo ? 'jugador' : '', p.eliminado ? 'eliminado' : '', esRival ? 'pareja-activa' : ''].join(' ');
+            const claseRacha = (typeof p.racha === 'number' && p.racha >= 3) ? 'racha-alta' : '';
+            const clases = ['ranking-item', esYo ? 'jugador' : '', p.eliminado ? 'eliminado' : '', claseRacha, esRival ? 'pareja-activa' : ''].join(' ');
             const pct = Math.max(0, Math.min(100, (Math.max(0, p.hp) / maxHp) * 100));
             const carpeta = (p.tipo === 'humano') ? 'jugador' : 'rivales';
             const estrellita = (p.tipo === 'ia') ? ' 🤖' : '';
-            const danoHtml = (typeof p.danoRonda === 'number' && p.danoRonda > 0)
+            const danoHtml = (!ocultarTicks && typeof p.danoRonda === 'number' && p.danoRonda > 0)
                 ? `<div class="ranking-dano">-${p.danoRonda}</div>` : '';
+            let estadoHtml = '';
+            if (!ocultarTicks) {
+                if (p.estadoRonda === 'win') estadoHtml = '<span class="ranking-estado win">✔</span>';
+                else if (p.estadoRonda === 'loss') estadoHtml = '<span class="ranking-estado loss">✖</span>';
+                else if (p.estadoRonda === 'bye') estadoHtml = '<span class="ranking-estado bye">–</span>';
+            }
             html += `
                 <div class="${clases}" data-online-pid="${_esc(p.id)}" title="${_esc(p.nombre)}${estrellita}${p.eliminado ? ' · eliminado' : ''}">
                     ${danoHtml}
@@ -622,6 +707,7 @@
                             <div class="ranking-hp-bar"><div class="ranking-hp-fill" style="width:${pct}%"></div></div>
                         </div>
                     </div>
+                    ${estadoHtml}
                 </div>`;
         });
 
@@ -1048,11 +1134,16 @@
         // Rival que se está mostrando: el espiado o el de esta ronda.
         const rv = window._rivalEspectado || window._rivalOnlineActual || null;
 
+        // Nivel real: para un humano usar el suyo (en vivo), no el del torneo
+        // (que hasta el cambio de ronda podía seguir en 1 → banco "3/1").
+        const nivelMostrado = (rv && rv.tipo === 'humano' && amigo && typeof amigo.nivel === 'number')
+            ? amigo.nivel : (rv ? rv.nivel : null);
+
         // Nombre + avatar REAL del rival mostrado (amigo o IA del torneo)
         if (!esPvERonda() && rv && !rv.esMonstruo) {
             const en = document.getElementById('enemyName'); if (en) en.textContent = rv.nombre || 'Rival';
             if (rv.avatar) pintarAvatarEnemigo(rv.avatar, rv.tipo);
-            if (typeof rv.nivel === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = rv.nivel; }
+            if (typeof nivelMostrado === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = nivelMostrado; }
             const g = document.getElementById('enemyGoldInfo');
             if (g) g.textContent = (rv.tipo === 'humano' && rv.oro != null) ? rv.oro : '—';
         } else if (esPvERonda() && typeof actualizarInfoEnemigo === 'function') {
@@ -1061,9 +1152,9 @@
         }
 
         // Contador del banco rival según el rival mostrado
-        if (!esPvERonda() && rv && !rv.esMonstruo && typeof rv.nivel === 'number') {
-            try { if (typeof enemyLevel !== 'undefined') enemyLevel = rv.nivel; } catch (e) { }
-            const maxU = (typeof maxEnemyUnits === 'function') ? maxEnemyUnits() : rv.nivel;
+        if (!esPvERonda() && rv && !rv.esMonstruo && typeof nivelMostrado === 'number') {
+            try { if (typeof enemyLevel !== 'undefined') enemyLevel = nivelMostrado; } catch (e) { }
+            const maxU = (typeof maxEnemyUnits === 'function') ? maxEnemyUnits() : nivelMostrado;
             const cnt = (typeof enemyBoard !== 'undefined' && enemyBoard) ? enemyBoard.filter(Boolean).length : 0;
             const ebMax = document.getElementById('enemyBoardMax'); if (ebMax) ebMax.textContent = maxU;
             const ebCount = document.getElementById('enemyBoardCount'); if (ebCount) ebCount.textContent = cnt;
