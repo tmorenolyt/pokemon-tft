@@ -294,10 +294,13 @@
             ? TABLA_MAX_UNIDADES[nivel]
             : Math.max(1, Math.min(6, 1 + Math.floor((nivel || 2) / 2)));
         const nivelUnidad = (nivel >= 7) ? 3 : ((nivel >= 4) ? 2 : 1);
+        // Objetos del EQUIPO (no uno por Pokémon): en nivel 3 solo 1 objeto,
+        // y va aumentando poco a poco como en 1J.
+        const numObjetosEquipo = (nivel < 3) ? 0 : ((nivel <= 4) ? 1 : ((nivel <= 6) ? 2 : 3));
         const elegidos = [];
         const usados = new Set();
         // Mismo tope de coste por nivel que el 1J.
-        const costeMax = (nivel >= 7) ? 5 : ((nivel >= 6) ? 4 : ((nivel >= 4) ? 3 : 2));
+        const costeMax = (nivel <= 1) ? 1 : ((nivel >= 7) ? 5 : ((nivel >= 6) ? 4 : ((nivel >= 4) ? 3 : 2)));
 
         let intentos = 0;
         while (elegidos.length < n && intentos < 200) {
@@ -315,7 +318,7 @@
         const patronBack = (window._PATRONES_COLOCACION && _PATRONES_COLOCACION.enemy && _PATRONES_COLOCACION.enemy.backline) || [];
         let iM = 0, iB = 0;
         const snap = [];
-        elegidos.forEach(p => {
+        elegidos.forEach((p, idxUnidad) => {
             const rol = (typeof rolColocacionDesdePokemonData === 'function')
                 ? rolColocacionDesdePokemonData(p)
                 : ((p.rol === 'frontline') ? 'melee' : 'backline');
@@ -337,12 +340,11 @@
                     if (!usados.has(cand)) { pos = cand; break; }
                 }
             }
-            // Objetos: 1 a partir de nivel 3, 2 desde nivel 7 (como la IA de 1J)
+            // Solo los primeros N Pokémon del equipo llevan 1 objeto cada uno.
             const objs = [];
-            const nObj = (nivel >= 7) ? 2 : ((nivel >= 3) ? 1 : 0);
-            for (let k = 0; k < nObj; k++) {
+            if (idxUnidad < numObjetosEquipo) {
                 const obj = _objetoIA(est, rnd);
-                if (obj && !objs.includes(obj)) objs.push(obj);
+                if (obj) objs.push(obj);
             }
             const forma = _formaIA(p, nivelUnidad);
             snap.push({ nombre: forma.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: objs, pos, lado: 'enemy' });

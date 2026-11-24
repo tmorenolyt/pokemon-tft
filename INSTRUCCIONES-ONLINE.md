@@ -324,12 +324,16 @@ protegido solo por `ACCESS_KEY`.
     cada rival (tipos/clases/prioridad de `RIVALES_INFO`), no una elección
     aleatoria, y equipa chips/objetos acordes. Usa los mismos slots por nivel
     que el 1J (`TABLA_MAX_UNIDADES`) y a 2★/3★ muestra sus evoluciones.
-  - **Oro y racha de las IA**: economía como el torneo de 1J. Ingreso =
-    5 base + interés (máx. 3) + bonus de racha + remontada por nivel + 1 al
-    ganar; la ronda PvE de arranque (1) no da oro. Gastan en subir de nivel con
-    la tabla real (`4/8/20/24/36/48/60`), en compras/rerolls y con tope de
-    **65**. El panel del rival muestra oro y racha (antes salía `—` / oculto).
-    Las rachas encadenan negativas al perder, como en 1J.
+    Los objetos son **del equipo**, no uno por Pokémon: **1** en nivel 3-4,
+    **2** en nivel 5-6 y **3** en nivel 7-8 (máximo 1 por unidad).
+  - **Oro y racha de las IA**: economía como el torneo de 1J. Las IA empiezan
+    con **nivel 1, 1 unidad y 10💰**; la ronda 1 (PvE de arranque) no da oro.
+    A partir de ahí: ingreso `5 base + interés (máx. 3) + racha + remontada por
+    nivel + 1 al ganar`. En las rondas **PvP** pagan las subidas de nivel con la
+    tabla real (`4/8/20/24/36/48/60`), pagan las **unidades de los slots
+    nuevos** y gastan en compras/rerolls; tope **65**. Tras una ronda PvE solo
+    cobran (no compran ni suben), como en 1J. El panel del rival muestra oro y
+    racha. Las rachas encadenan negativas al perder.
   - **Ranking idéntico al 1J**: ✔ verde al ganar, ✖ rojo al perder, `-X` de
     daño, 🔥 de racha y ocultación de marcas a los 5 s. Además solo se repinta
     cuando cambian los datos, así el `-7` ya **no parpadea**.

@@ -134,8 +134,8 @@ function crearTorneoOnline(room) {
         partes.push({
             id: 'ia' + (i + 1), tipo: 'ia',
             nombre: ia.nombre, avatar: ia.avatar,
-            hp: 50, nivel: 2, victorias: 0, derrotas: 0, eliminado: false,
-            oro: 10, racha: 0,
+            hp: 50, nivel: 1, victorias: 0, derrotas: 0, eliminado: false,
+            oro: 10, racha: 0, slots: 1,
             seed: Math.floor(Math.random() * 1e9) + 1   // equipo estable de esta IA
         });
     });
@@ -275,7 +275,9 @@ function simularTorneoOnline(room, rondaJugada) {
     //   Tope de oro: 65. La ronda PvE de arranque (1) no da oro.
     // ============================================================
     const COSTE_NIVEL_IA = { 2: 4, 3: 8, 4: 20, 5: 24, 6: 36, 7: 48, 8: 60 };
+    const SLOTS_IA = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 4, 6: 5, 7: 6, 8: 6 };
     const TOPE_ORO_IA = 65;
+    const esPvE = _esRondaPvETorneo(r);
     const nivelesHumanos = Object.values(room.players || {})
         .map(pl => (pl && typeof pl.nivel === 'number') ? pl.nivel : null)
         .filter(n => typeof n === 'number');
@@ -284,10 +286,10 @@ function simularTorneoOnline(room, rondaJugada) {
     t.participantes.forEach(p => {
         if (p.tipo !== 'ia' || p.eliminado) return;
         const oroAntes = (typeof p.oro === 'number' && !isNaN(p.oro)) ? p.oro : 10;
-        const nivelAntes = (typeof p.nivel === 'number' && !isNaN(p.nivel)) ? p.nivel : 2;
+        const nivelAntes = (typeof p.nivel === 'number' && !isNaN(p.nivel)) ? p.nivel : 1;
         const racha = (typeof p.racha === 'number') ? p.racha : 0;
 
-        // Ronda PvE de arranque: sin oro (como en 1J)
+        // Ronda 1 (PvE de arranque): sin oro y sin comprar/subir (como en 1J).
         let ingreso = 0;
         if (r > 1) {
             ingreso = 5;
@@ -303,36 +305,48 @@ function simularTorneoOnline(room, rondaJugada) {
 
         let oro = Math.min(TOPE_ORO_IA, oroAntes + Math.max(0, Math.floor(ingreso)));
 
-        // Subir de nivel pagando (tabla de costes del 1J).
-        // La ronda 1 de arranque no permite subir (como en 1J).
-        let subidas = 0;
-        while (r > 1 && p.nivel < 8 && subidas < 3) {
-            const coste = COSTE_NIVEL_IA[p.nivel + 1] || 0;
-            if (!coste || oro < coste) break;
-            oro -= coste;
-            p.nivel++;
-            subidas++;
+        // En 1J, tras una ronda PvE solo se cobra: no se compra ni se sube
+        // de nivel. El gasto/avance ocurre en las rondas PvP.
+        if (r > 1 && !esPvE) {
+            // Subir de nivel pagando (tabla de costes del 1J).
+            let subidas = 0;
+            while (p.nivel < 8 && subidas < 3) {
+                const coste = COSTE_NIVEL_IA[p.nivel + 1] || 0;
+                if (!coste || oro < coste) break;
+                oro -= coste;
+                p.nivel++;
+                subidas++;
+            }
+
+            // Progresión mínima por rondas (la IA del 1J no se queda atrás).
+            const nivelBase = 1 + Math.floor(r / 4);
+            p.nivel = Math.max(p.nivel, Math.min(8, nivelBase));
+
+            // Comprar las unidades de los slots nuevos que da el nivel.
+            // Sin esto la IA tendría Pokémon "gratis" y seguiría con 10💰.
+            const slots = SLOTS_IA[p.nivel] || 1;
+            const slotsActuales = (typeof p.slots === 'number') ? p.slots : 1;
+            if (slots > slotsActuales) {
+                const costeUnidad = (p.nivel <= 2) ? 1 : ((p.nivel <= 4) ? 2 : ((p.nivel <= 6) ? 3 : 4));
+                oro = Math.max(0, oro - (slots - slotsActuales) * costeUnidad);
+                p.slots = slots;
+            } else {
+                p.slots = slotsActuales;
+            }
+
+            // Compras/rerolls: gastar el excedente, reservando lo necesario
+            // para la siguiente subida de nivel (así el oro no crece sin fin).
+            const costeProx = COSTE_NIVEL_IA[p.nivel + 1] || 0;
+            const reserva = costeProx ? (costeProx + 10) : 10;
+            let gastos = 0;
+            while (oro > reserva && gastos < 12) {
+                oro -= 2;
+                gastos++;
+            }
         }
 
-        // Compras/rerolls: gastar el excedente, pero reservando lo necesario
-        // para la siguiente subida de nivel (así el oro no crece sin fin).
-        const costeProx = COSTE_NIVEL_IA[p.nivel + 1] || 0;
-        const reserva = costeProx ? (costeProx + 10) : 10;
-        let gastos = 0;
-        while (oro > reserva && gastos < 12) {
-            oro -= 2;
-            gastos++;
-        }
         if (oro > TOPE_ORO_IA) oro = TOPE_ORO_IA;
         p.oro = Math.max(0, oro);
-    });
-
-    // Progresión mínima por rondas (para que las IA no se queden atrás
-    // aunque el oro no les alcance para todas las subidas).
-    t.participantes.forEach(p => {
-        if (p.tipo !== 'ia' || p.eliminado) return;
-        const nivelBase = 2 + Math.floor(r / 4);
-        p.nivel = Math.max(p.nivel, Math.min(8, nivelBase));
     });
 
     t.ronda = r + 1;
