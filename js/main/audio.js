@@ -16,16 +16,18 @@ function playPokemonCry(pokemonId) {
 
     // Si el grito no existe (monstruos PvE), sintetizar uno corto en vez de
     // provocar un 404 en cada aparición. Lista en js/data/criasDisponibles.js.
+    // 🐾 Los gritos tienen su PROPIO volumen (slider "Sonidos Pokémon"),
+    // independiente de efectos. 50% → 0.20 (antes 0.30).
+    const volPokemon = (typeof window._volumenPokemonActual === 'number') ? window._volumenPokemonActual : 0.20;
     const crias = window.CRIAS_DISPONIBLES;
     if (crias && !crias.has(String(pokemonId))) {
         const n = parseInt(pokemonId, 10) || 300;
-        playSound(300 + (n % 6) * 40, 0.12, 0.08);
+        playSound(300 + (n % 6) * 40, 0.12, Math.min(0.2, volPokemon * 0.4));
         return;
     }
 
     try {
-        const multEfectos = (typeof window._volumenEfectosActual === 'number') ? (window._volumenEfectosActual / 0.5) : 1;
-        const volumenFinal = Math.max(0, Math.min(1, 0.3 * multEfectos));
+        const volumenFinal = Math.max(0, Math.min(1, volPokemon));
         const cryUrl = CONFIG.CRY_BASE_URL + pokemonId + ".ogg";
         if (audioCache[cryUrl]) {
             const cachedAudio = audioCache[cryUrl];

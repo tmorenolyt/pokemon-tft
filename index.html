@@ -26,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=f58cda53da" />
+    <link rel="stylesheet" href="css/bundle.css?v=02e0bff53e" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -1132,6 +1132,21 @@
                     >
                 </div>
 
+                <!-- Volumen sonidos de Pokémon (cries) -->
+                <div class="ajustes-grupo">
+                    <label class="ajustes-label" for="sliderVolumenPokemon">
+                        <span class="ajustes-icono">🐾</span>
+                        <span>Sonidos Pokémon</span>
+                        <span class="ajustes-valor" id="valorVolumenPokemon">50%</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="sliderVolumenPokemon"
+                        class="ajustes-slider"
+                        min="0" max="100" value="50" step="1"
+                    >
+                </div>
+
                 <div class="ajustes-separador"></div>
 
                 <!-- Pantalla completa -->
@@ -1156,6 +1171,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=f58cda53da"></script>
+    <script defer src="js/bundle.js?v=02e0bff53e"></script>
 </body>
 </html>

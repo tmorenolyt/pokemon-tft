@@ -31,6 +31,8 @@
     padding: 20px 24px 22px;
     max-width: 460px;
     width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
     box-shadow:
         0 25px 60px rgba(0, 0, 0, 0.8),
         0 0 40px rgba(77, 212, 247, 0.12);

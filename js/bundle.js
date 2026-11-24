@@ -41148,6 +41148,7 @@ let ajustesAbiertos = false;
 // Valores por defecto
 const VOLUMEN_MUSICA_DEFAULT = 50;
 const VOLUMEN_EFECTOS_DEFAULT = 50;
+const VOLUMEN_POKEMON_DEFAULT = 50;
 
 // ============================================================
 // INICIALIZAR
@@ -41161,8 +41162,10 @@ function initAjustes() {
     const btnVolverMenu = document.getElementById('btnVolverMenuAjustes');
     const sliderMusica = document.getElementById('sliderVolumenMusica');
     const sliderEfectos = document.getElementById('sliderVolumenEfectos');
+    const sliderPokemon = document.getElementById('sliderVolumenPokemon');
     const valorMusica = document.getElementById('valorVolumenMusica');
     const valorEfectos = document.getElementById('valorVolumenEfectos');
+    const valorPokemon = document.getElementById('valorVolumenPokemon');
 
     if (!overlay || !btnAjustes || !sliderMusica || !sliderEfectos) {
         console.warn('⚠️ ajustes.js: faltan elementos en el DOM');
@@ -41174,22 +41177,28 @@ function initAjustes() {
     // ============================================================
     let volMusica = VOLUMEN_MUSICA_DEFAULT;
     let volEfectos = VOLUMEN_EFECTOS_DEFAULT;
+    let volPokemon = VOLUMEN_POKEMON_DEFAULT;
 
     try {
         const m = localStorage.getItem('volumenMusica');
         if (m !== null && !isNaN(parseFloat(m))) volMusica = parseFloat(m);
         const e = localStorage.getItem('volumenEfectos');
         if (e !== null && !isNaN(parseFloat(e))) volEfectos = parseFloat(e);
+        const p = localStorage.getItem('volumenPokemon');
+        if (p !== null && !isNaN(parseFloat(p))) volPokemon = parseFloat(p);
     } catch (err) {}
 
     sliderMusica.value = volMusica;
     sliderEfectos.value = volEfectos;
     valorMusica.textContent = volMusica + '%';
     valorEfectos.textContent = volEfectos + '%';
+    if (sliderPokemon) sliderPokemon.value = volPokemon;
+    if (valorPokemon) valorPokemon.textContent = volPokemon + '%';
 
     // Aplicar al audio
     aplicarVolumenMusica(volMusica);
     aplicarVolumenEfectos(volEfectos);
+    aplicarVolumenPokemon(volPokemon);
 
     // ============================================================
     // Abrir / cerrar
@@ -41237,6 +41246,15 @@ function initAjustes() {
         aplicarVolumenEfectos(val);
         try { localStorage.setItem('volumenEfectos', val); } catch (err) {}
     });
+
+    if (sliderPokemon) {
+        sliderPokemon.addEventListener('input', function () {
+            const val = parseInt(this.value, 10);
+            if (valorPokemon) valorPokemon.textContent = val + '%';
+            aplicarVolumenPokemon(val);
+            try { localStorage.setItem('volumenPokemon', val); } catch (err) {}
+        });
+    }
 
     // ============================================================
     // Volver al menú principal
@@ -41294,9 +41312,9 @@ function cerrarAjustes() {
 
 function aplicarVolumenMusica(porcentaje) {
     // Factor de escala: el slider marca más de lo que suena.
-    //   Slider 50% → volumen real 0.15 (un poco más bajo que antes)
-    //   Slider 100% → volumen real 0.30
-    const FACTOR_MUSICA = 0.30;
+    //   Slider 50% → volumen real 0.10 (el slider sigue en 50)
+    //   Slider 100% → volumen real 0.20
+    const FACTOR_MUSICA = 0.20;
     const volSlider = Math.max(0, Math.min(1, porcentaje / 100));
     const vol = volSlider * FACTOR_MUSICA;
 
@@ -41338,6 +41356,27 @@ function aplicarVolumenMusica(porcentaje) {
     // Guardar el volumen real (no el del slider) para futuros audios
     window._volumenMusicaActual = vol;
     window._volumenMusicaSlider = volSlider;
+}
+
+// 🐾 Sonidos de Pokémon (cries): slider propio e independiente de efectos.
+function aplicarVolumenPokemon(porcentaje) {
+    const volSlider = Math.max(0, Math.min(1, porcentaje / 100));
+    // 50% → 0.20 real (antes los cries iban a 0.30 con efectos al 50%)
+    const vol = volSlider * 0.40;
+    window._volumenPokemonActual = vol;
+    window._volumenPokemonSlider = volSlider;
+
+    // Actualizar en vivo los cries ya cacheados
+    try {
+        if (typeof audioCache !== 'undefined' && audioCache && typeof CONFIG !== 'undefined') {
+            const base = CONFIG.CRY_BASE_URL || '';
+            for (const url in audioCache) {
+                if (base && url.indexOf(base) === 0 && audioCache[url] && audioCache[url].volume !== undefined) {
+                    audioCache[url].volume = vol;
+                }
+            }
+        }
+    } catch (e) { }
 }
 
 function aplicarVolumenEfectos(porcentaje) {
@@ -43023,16 +43062,18 @@ function playPokemonCry(pokemonId) {
 
     // Si el grito no existe (monstruos PvE), sintetizar uno corto en vez de
     // provocar un 404 en cada aparición. Lista en js/data/criasDisponibles.js.
+    // 🐾 Los gritos tienen su PROPIO volumen (slider "Sonidos Pokémon"),
+    // independiente de efectos. 50% → 0.20 (antes 0.30).
+    const volPokemon = (typeof window._volumenPokemonActual === 'number') ? window._volumenPokemonActual : 0.20;
     const crias = window.CRIAS_DISPONIBLES;
     if (crias && !crias.has(String(pokemonId))) {
         const n = parseInt(pokemonId, 10) || 300;
-        playSound(300 + (n % 6) * 40, 0.12, 0.08);
+        playSound(300 + (n % 6) * 40, 0.12, Math.min(0.2, volPokemon * 0.4));
         return;
     }
 
     try {
-        const multEfectos = (typeof window._volumenEfectosActual === 'number') ? (window._volumenEfectosActual / 0.5) : 1;
-        const volumenFinal = Math.max(0, Math.min(1, 0.3 * multEfectos));
+        const volumenFinal = Math.max(0, Math.min(1, volPokemon));
         const cryUrl = CONFIG.CRY_BASE_URL + pokemonId + ".ogg";
         if (audioCache[cryUrl]) {
             const cachedAudio = audioCache[cryUrl];

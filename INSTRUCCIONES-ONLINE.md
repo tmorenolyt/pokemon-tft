@@ -795,4 +795,10 @@ protegido solo por `ACCESS_KEY`.
 - **Volumen de victoria/derrota**: las músicas de resultado usan el slider de
   **música** (antes tenían volumen fijo). Se actualizan en vivo mientras suenan
   y también durante el fade de salida; a 0% quedan mudas. El factor general de
-  música bajó: **50% del slider → 0.15 real** (antes 0.20), 100% → 0.30.
+  música bajó: **50% del slider → 0.10 real**, 100% → 0.20 (el slider
+  sigue mostrando 50%).
+- **Sonidos de Pokémon (cries)**: ahora tienen un slider propio **🐾 Sonidos
+  Pokémon**, separado de Efectos. Por defecto 50% → volumen real **0.20**
+  (antes iban a 0.30 con Efectos al 50%). Se aplican en vivo a los gritos ya
+  cacheados y se guardan en `localStorage['volumenPokemon']`. El slider de
+  Efectos ya no cambia los gritos.
