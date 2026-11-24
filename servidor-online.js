@@ -228,12 +228,12 @@ function simularTorneoOnline(room, rondaJugada) {
                 const ganoHumano = !!(room._won && room._won[h.id]);
                 if (ia.tipo === 'ia') {
                     ia.estadoRonda = ganoHumano ? 'loss' : 'win';
+                    // Rachas como en 1J: el que gana suma, el que pierde
+                    // encadena negativas (no se queda en 0).
                     if (ganoHumano) {
-                        ia.racha = 0;
-                        ia.oro = (ia.oro || 0) + 3;   // recompensa de consolación
+                        ia.racha = (ia.racha < 0) ? ia.racha - 1 : -1;
                     } else {
-                        ia.racha = Math.min(9, (ia.racha || 0) + 1);
-                        ia.oro = (ia.oro || 0) + 6;   // victoria
+                        ia.racha = (ia.racha > 0) ? ia.racha + 1 : 1;
                     }
                 }
                 return;
@@ -252,10 +252,8 @@ function simularTorneoOnline(room, rondaJugada) {
             per.estadoRonda = 'loss';
             gan.victorias++;
             per.derrotas++;
-            gan.racha = Math.min(9, (gan.racha || 0) + 1);
-            per.racha = 0;
-            gan.oro = (gan.oro || 0) + 6;
-            per.oro = (per.oro || 0) + 3;
+            gan.racha = (gan.racha > 0) ? gan.racha + 1 : 1;
+            per.racha = (per.racha < 0) ? per.racha - 1 : -1;
             if (per.hp <= 0) marcarEliminadoTorneo(t, per);
             t.resultados.push({ ronda: r, ganador: gan.nombre, perdedor: per.nombre, dano });
         });
@@ -263,15 +261,78 @@ function simularTorneoOnline(room, rondaJugada) {
         // PvE: todos se enfrentan al monstruo, no hay daño entre rivales.
         // Todas las IA vivas cobran su recompensa (como en 1J).
         t.participantes.forEach(p => {
-            if (p.tipo === 'ia' && !p.eliminado) p.oro = (p.oro || 0) + 4;
+            if (p.tipo === 'ia' && !p.eliminado) {
+                p.estadoRonda = 'win';   // todos ganan al monstruo, como en 1J
+            }
         });
         t.resultados.push({ ronda: r, pve: true });
     }
 
-    // Suben de nivel con las rondas
+    // ============================================================
+    // 💰 ECONOMÍA DE LAS IA (como el torneo de 1J)
+    //   Ingreso: 5 base + interés + racha + diferencia de nivel.
+    //   Gasto: subir de nivel (tabla real) y compras/rerolls.
+    //   Tope de oro: 65. La ronda PvE de arranque (1) no da oro.
+    // ============================================================
+    const COSTE_NIVEL_IA = { 2: 4, 3: 8, 4: 20, 5: 24, 6: 36, 7: 48, 8: 60 };
+    const TOPE_ORO_IA = 65;
+    const nivelesHumanos = Object.values(room.players || {})
+        .map(pl => (pl && typeof pl.nivel === 'number') ? pl.nivel : null)
+        .filter(n => typeof n === 'number');
+    const nivelJugadorMax = nivelesHumanos.length ? Math.max.apply(null, nivelesHumanos) : 1;
+
     t.participantes.forEach(p => {
         if (p.tipo !== 'ia' || p.eliminado) return;
-        p.nivel = Math.min(8, 2 + Math.floor(r / 4));
+        const oroAntes = (typeof p.oro === 'number' && !isNaN(p.oro)) ? p.oro : 10;
+        const nivelAntes = (typeof p.nivel === 'number' && !isNaN(p.nivel)) ? p.nivel : 2;
+        const racha = (typeof p.racha === 'number') ? p.racha : 0;
+
+        // Ronda PvE de arranque: sin oro (como en 1J)
+        let ingreso = 0;
+        if (r > 1) {
+            ingreso = 5;
+            ingreso += Math.min(3, Math.floor(oroAntes / 10));      // interés
+            if (racha >= 5) ingreso += 3;
+            else if (racha >= 3) ingreso += 2;
+            else if (racha >= 2) ingreso += 1;
+            else if (racha <= -4) ingreso += 2;
+            else if (racha <= -2) ingreso += 1;
+            ingreso += Math.max(0, nivelJugadorMax - nivelAntes);   // remontada
+            if (p.estadoRonda === 'win') ingreso += 1;
+        }
+
+        let oro = Math.min(TOPE_ORO_IA, oroAntes + Math.max(0, Math.floor(ingreso)));
+
+        // Subir de nivel pagando (tabla de costes del 1J).
+        // La ronda 1 de arranque no permite subir (como en 1J).
+        let subidas = 0;
+        while (r > 1 && p.nivel < 8 && subidas < 3) {
+            const coste = COSTE_NIVEL_IA[p.nivel + 1] || 0;
+            if (!coste || oro < coste) break;
+            oro -= coste;
+            p.nivel++;
+            subidas++;
+        }
+
+        // Compras/rerolls: gastar el excedente, pero reservando lo necesario
+        // para la siguiente subida de nivel (así el oro no crece sin fin).
+        const costeProx = COSTE_NIVEL_IA[p.nivel + 1] || 0;
+        const reserva = costeProx ? (costeProx + 10) : 10;
+        let gastos = 0;
+        while (oro > reserva && gastos < 12) {
+            oro -= 2;
+            gastos++;
+        }
+        if (oro > TOPE_ORO_IA) oro = TOPE_ORO_IA;
+        p.oro = Math.max(0, oro);
+    });
+
+    // Progresión mínima por rondas (para que las IA no se queden atrás
+    // aunque el oro no les alcance para todas las subidas).
+    t.participantes.forEach(p => {
+        if (p.tipo !== 'ia' || p.eliminado) return;
+        const nivelBase = 2 + Math.floor(r / 4);
+        p.nivel = Math.max(p.nivel, Math.min(8, nivelBase));
     });
 
     t.ronda = r + 1;

@@ -289,11 +289,15 @@
         if (!pool.length) return [];
 
         const est = _estrategiaRivalIA(nombreRival);
-        const n = Math.max(1, Math.min(6, 1 + Math.floor((nivel || 2) / 2) + ((nivel || 2) >= 7 ? 1 : 0)));
+        // Mismos slots que la IA del 1J según su nivel.
+        const n = (typeof TABLA_MAX_UNIDADES !== 'undefined' && TABLA_MAX_UNIDADES[nivel])
+            ? TABLA_MAX_UNIDADES[nivel]
+            : Math.max(1, Math.min(6, 1 + Math.floor((nivel || 2) / 2)));
         const nivelUnidad = (nivel >= 7) ? 3 : ((nivel >= 4) ? 2 : 1);
         const elegidos = [];
         const usados = new Set();
-        const costeMax = Math.max(1, Math.min(5, 1 + Math.floor((nivel || 2) / 2)));
+        // Mismo tope de coste por nivel que el 1J.
+        const costeMax = (nivel >= 7) ? 5 : ((nivel >= 6) ? 4 : ((nivel >= 4) ? 3 : 2));
 
         let intentos = 0;
         while (elegidos.length < n && intentos < 200) {

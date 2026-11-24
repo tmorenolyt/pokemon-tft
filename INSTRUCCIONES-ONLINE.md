@@ -322,10 +322,14 @@ protegido solo por `ACCESS_KEY`.
     pareja es la misma en preparación y en combate, así **no cambian los
     Pokémon** al pulsar COMBATIR. La composición usa la estrategia real de
     cada rival (tipos/clases/prioridad de `RIVALES_INFO`), no una elección
-    aleatoria, y equipa chips/objetos acordes.
-  - **Oro y racha de las IA**: el servidor da oro a las IA cada ronda y
-    actualiza su racha con las victorias/derrotas; el panel del rival muestra
-    ambos (antes salía `—` / oculto).
+    aleatoria, y equipa chips/objetos acordes. Usa los mismos slots por nivel
+    que el 1J (`TABLA_MAX_UNIDADES`) y a 2★/3★ muestra sus evoluciones.
+  - **Oro y racha de las IA**: economía como el torneo de 1J. Ingreso =
+    5 base + interés (máx. 3) + bonus de racha + remontada por nivel + 1 al
+    ganar; la ronda PvE de arranque (1) no da oro. Gastan en subir de nivel con
+    la tabla real (`4/8/20/24/36/48/60`), en compras/rerolls y con tope de
+    **65**. El panel del rival muestra oro y racha (antes salía `—` / oculto).
+    Las rachas encadenan negativas al perder, como en 1J.
   - **Ranking idéntico al 1J**: ✔ verde al ganar, ✖ rojo al perder, `-X` de
     daño, 🔥 de racha y ocultación de marcas a los 5 s. Además solo se repinta
     cuando cambian los datos, así el `-7` ya **no parpadea**.
