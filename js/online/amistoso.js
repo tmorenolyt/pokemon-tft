@@ -16,7 +16,7 @@
     if (!pid && sala) {
         try { pid = (sessionStorage.getItem('pktft_pid_' + sala) || '').trim(); } catch (e) { }
     }
-    let es = null, amigo = null, syncTimer = null;
+    let es = null, amigo = null, syncTimer = null, panelTimer = null;
     let estadoOnline = 'prep'; // prep | waiting | combat | ended
     let origCombatir = null;
     let _rondaPveAsegurada = -1;
@@ -689,6 +689,12 @@
             if (msg.type === 'state') {
                 const otros = (msg.players || []).filter(p => p.pid !== pid);
                 amigo = otros[0] || null; window._amigo = amigo;
+                // 🌐 Refrescar el lobby del menú de selección (avatar del amigo)
+                try {
+                    if (typeof window.actualizarLobbyOnlineMenu === 'function') {
+                        window.actualizarLobbyOnlineMenu({ amigo, players: msg.players || [] });
+                    }
+                } catch (e) { }
 
                 // 🏆 Torneo online (2 humanos + 6 IA): pintar ranking de 8
                 window._torneoOnline = msg.torneo || null;
@@ -825,7 +831,8 @@
             <div id="amistosoStatus" style="color:#8fb0d6;margin:6px 0;font-size:.78rem;">Conectando…</div>
             <div id="amistosoReady" style="font-size:.72rem;font-weight:700;color:#8fb0d6;border-top:1px solid #2a4066;padding-top:6px;">TÚ: ⏳ Preparando · AMIGO: ⏳ Preparando</div>
         `;
-        setInterval(actualizarPanel, 1200);
+        if (panelTimer) clearInterval(panelTimer);
+        panelTimer = setInterval(actualizarPanel, 1200);
     }
     function setStatus(t) { const s = document.getElementById('amistosoStatus'); if (s) s.textContent = t; }
 
@@ -1449,6 +1456,50 @@
         setStatus('Conectado. Prepara tu tablero y pulsa COMBATIR (Listo).');
     }
 
+    // 🚪 Salir de la sala online (volver al lobby local sin recargar)
+    function salir() {
+        // Avisar al servidor para que el otro jugador no te siga viendo.
+        try {
+            if (sala && pid) {
+                fetch('/api/leave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room: sala, pid }),
+                    keepalive: true
+                });
+            }
+        } catch (e) { }
+        try { if (es) es.close(); } catch (e) { }
+        es = null;
+        if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+        if (panelTimer) { clearInterval(panelTimer); panelTimer = null; }
+        sala = '';
+        estadoOnline = 'prep';
+        window._modoOnline = false;
+        window._onlineSala = null;
+        window._modoSpectador = false;
+        window._modoEspectadorActivo = false;
+        try { cerrarEspiaOnline(true); } catch (e) { }
+        window._torneoOnline = null;
+        window._rivalOnlineActual = null;
+        window._amigo = null;
+        amigo = null;
+        window._rondaOnlineEmpezada = false;
+        window._dialogoIntroOnlineMostrado = false;
+        window._ultimoAmigoBoardStr = null;
+        window._ultimaFirmaRivalIA = null;
+        window._ultimaFirmaRankingOnline = '';
+        window._ticksOnlineOcultos = false;
+        const p = document.getElementById('amistosoPanel'); if (p) p.remove();
+        const b = document.getElementById('spectatorBanner'); if (b) b.remove();
+        const rkT = document.getElementById('rankingTorneo'); if (rkT) rkT.style.display = 'none';
+        document.body.classList.remove('modo-espia', 'mob-ranking-open');
+        try { window.puedeCombatir = function () { return true; }; } catch (e) { }
+        window._tiendaRondaOnline = {};
+        window._ultimaVictoriaJugador = undefined;
+        window._ultimoDanoRecibidoJugador = 0;
+    }
+
     window.mostrarEleccion2J = function () {
         let m = document.getElementById('eleccion2j'); if (m) m.remove();
         m = document.createElement('div'); m.id = 'eleccion2j';
@@ -1476,7 +1527,7 @@
         };
     };
 
-    window.amistoso = { iniciar, serializarTablero, serializarBanquillo, serializarBaul, cargarEnemigo };
+    window.amistoso = { iniciar, salir, serializarTablero, serializarBanquillo, serializarBaul, cargarEnemigo };
 
     if (sala) {
         const go = () => iniciar(sala);

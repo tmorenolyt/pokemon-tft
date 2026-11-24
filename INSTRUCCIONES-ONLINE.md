@@ -5,6 +5,22 @@ Todos deben entrar al **mismo servidor/URL**, con el **mismo código de sala** y
 
 ---
 
+## 🎮 Crear o entrar en una sala desde el menú (2 jugadores)
+
+1. En el menú principal pulsa **2 JUGADORES**: se abre la selección local (J1/J2) con una barra **🌐 ONLINE** arriba.
+2. Elige **CREAR SALA** (genera un código de 4 caracteres) o escribe un código y pulsa **ENTRAR**.
+3. Cuando el otro jugador entra en esa sala:
+   - Su **avatar y nombre aparecen en el panel del JUGADOR 2** (tarjeta “Conectado”).
+   - El botón **JUGAR** se habilita en ambos (permanece desactivado mientras esperas).
+   - La barra muestra `✅ Nombre conectado · Sala XXXX`.
+4. Ambos pulsan **JUGAR** para empezar el torneo online (2 humanos + 6 IA).
+
+- **Jugar en local**: pulsa 2 JUGADORES y luego JUGAR **sin crear sala** (sigue siendo 2P en el mismo PC).
+- **SALIR**: abandona la sala online y vuelve al modo local sin recargar.
+- Si cambias a **1 JUGADOR**, la sala online se cierra automáticamente para no contaminar la partida local.
+
+---
+
 ## Opción A — RÁPIDA, sin cuentas (túnel temporal, tu PC encendida)
 
 Sirve para probar YA con amigos de otras ciudades/países. Tu PC hace de servidor.

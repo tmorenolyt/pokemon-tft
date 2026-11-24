@@ -12,6 +12,7 @@ let avatarJugador2 = "azul";
 let colorBordeJ1 = "#4dd4f7";   // 🎨 color borde J1 (default cian)
 let colorBordeJ2 = "#ff4d8d";   // 🎨 color borde J2 (default rosa)
 let modoMenuSeleccionado = '1j';
+let _onlineLobbyUltimo = null;   // último estado de la sala online (para el lobby)
 
 // ===== COLORES DE BORDE DISPONIBLES =====
 const COLORES_BORDE = [
@@ -149,9 +150,148 @@ const RIVALES_INFO = [
 // ============================================================
 // NAVEGACIÓN ENTRE VISTAS
 // ============================================================
+// ============================================================
+// 🌐 LOBBY ONLINE DENTRO DE LA SELECCIÓN 2 JUGADORES
+// ============================================================
+function _generarCodigoSala() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let codigo = '';
+    for (let i = 0; i < 4; i++) codigo += chars[Math.floor(Math.random() * chars.length)];
+    return codigo;
+}
+
+function _aplicarEstadoLobbyOnline(info) {
+    const bar = document.getElementById('onlineLobbyBar');
+    if (!bar) return;
+    if (modoMenuSeleccionado !== '2j') return;
+
+    const sala = String(window._onlineSala || '').trim().toUpperCase();
+    const status = document.getElementById('onlineLobbyStatus');
+    const input = document.getElementById('onlineSalaInput');
+    const btnEntrar = document.getElementById('btnEntrarSala');
+    const btnCrear = document.getElementById('btnCrearSala');
+    const btnSalir = document.getElementById('btnSalirSala');
+    const panelJ2 = document.getElementById('panelJ2');
+    const guest = document.getElementById('onlineGuestInfo');
+    const gName = document.getElementById('onlineGuestName');
+    const gStatus = document.getElementById('onlineGuestStatus');
+    const gAvatar = document.getElementById('onlineGuestAvatar');
+    const ch2 = document.getElementById('characterImage2');
+    const display2 = document.getElementById('avatarDisplay2');
+    const amigo = (info && info.amigo) ? info.amigo : null;
+
+    // Clase para compactar la selección en móvil cuando hay sala online.
+    const menuEl = document.getElementById('menuPrincipal');
+    if (menuEl) menuEl.classList.toggle('online-lobby', !!sala);
+    // El panel flotante de amistoso se oculta en el lobby (ya hay barra).
+    const panelAmistoso = document.getElementById('amistosoPanel');
+    if (panelAmistoso) panelAmistoso.style.display = sala ? 'none' : '';
+    // En una sala online, no dejar empezar hasta que el amigo esté dentro.
+    const btnJugarLobby = document.getElementById('btnJugar');
+    if (btnJugarLobby) {
+        btnJugarLobby.disabled = !!sala && !amigo;
+        btnJugarLobby.style.opacity = btnJugarLobby.disabled ? '.55' : '';
+        btnJugarLobby.title = btnJugarLobby.disabled ? 'Esperando al jugador 2…' : '';
+    }
+
+    if (input) {
+        if (sala) input.value = sala;
+        input.readOnly = !!sala;
+        input.disabled = !!sala;
+    }
+    if (btnEntrar) btnEntrar.disabled = !!sala;
+    if (btnCrear) btnCrear.disabled = !!sala;
+    if (btnSalir) btnSalir.classList.toggle('oculto', !sala);
+    bar.classList.toggle('en-sala', !!sala);
+
+    if (!sala) {
+        if (status) status.textContent = 'Local: pulsa JUGAR · Online: crea o entra en una sala.';
+        if (btnJugarLobby) { btnJugarLobby.disabled = false; btnJugarLobby.style.opacity = ''; btnJugarLobby.title = ''; }
+        if (panelJ2) panelJ2.classList.remove('online-guest');
+        if (guest) guest.style.display = 'none';
+        return;
+    }
+
+    if (panelJ2) panelJ2.classList.add('online-guest');
+    if (guest) guest.style.display = 'flex';
+
+    if (amigo) {
+        const av = String(amigo.avatar || 'azul').toLowerCase();
+        const nombre = amigo.name || 'Amigo';
+        if (gName) gName.textContent = nombre;
+        if (gStatus) gStatus.textContent = '✅ Conectado · Sala ' + sala;
+        if (gAvatar) { gAvatar.src = `assets/avatars/jugador/${av}.webp`; gAvatar.style.display = ''; }
+        if (display2) display2.src = `assets/avatars/jugador/${av}.webp`;
+        if (ch2) {
+            ch2.onerror = function () { this.onerror = null; this.src = `assets/avatars/personajes/${av}full.png`; };
+            ch2.src = `assets/avatars/personajes/${av}full.webp`;
+            ch2.alt = nombre;
+        }
+        if (status) status.textContent = `✅ ${nombre} conectado · Sala ${sala}`;
+    } else {
+        if (gName) gName.textContent = 'Esperando…';
+        if (gStatus) gStatus.textContent = '⏳ Esperando jugador 2…';
+        if (gAvatar) { gAvatar.src = 'assets/avatars/jugador/azul.webp'; gAvatar.style.display = ''; }
+        if (status) status.textContent = `⏳ Esperando jugador 2… ¡Comparte el código ${sala}!`;
+    }
+}
+
+window.actualizarLobbyOnlineMenu = function (info) {
+    _onlineLobbyUltimo = info || null;
+    const vista = document.getElementById('vistaSeleccion');
+    if (vista && vista.classList.contains('activa')) _aplicarEstadoLobbyOnline(_onlineLobbyUltimo);
+};
+
+function _iniciarSalaOnline(codigo) {
+    const code = String(codigo || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+    const status = document.getElementById('onlineLobbyStatus');
+    if (!code) {
+        if (status) status.textContent = '⚠️ Escribe un código de sala.';
+        return;
+    }
+    if (!window.amistoso || typeof window.amistoso.iniciar !== 'function') {
+        if (status) status.textContent = '⚠️ El modo online no está disponible.';
+        return;
+    }
+    window._onlineSala = code;
+    _onlineLobbyUltimo = null;
+    const input = document.getElementById('onlineSalaInput');
+    if (input) input.value = code;
+    if (status) status.textContent = `⏳ Conectando a la sala ${code}…`;
+    try { window.amistoso.iniciar(code); } catch (e) { }
+    _aplicarEstadoLobbyOnline({});
+}
+
+function _salirSalaOnline() {
+    try { if (window.amistoso && typeof window.amistoso.salir === 'function') window.amistoso.salir(); } catch (e) { }
+    window._onlineSala = null;
+    _onlineLobbyUltimo = null;
+    const input = document.getElementById('onlineSalaInput');
+    if (input) { input.value = ''; input.disabled = false; input.readOnly = false; }
+    _aplicarEstadoLobbyOnline({});
+
+    // Restaurar avatar/nombre locales del J2
+    const av2 = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
+    const display2 = document.getElementById('avatarDisplay2');
+    if (display2 && av2) display2.src = `assets/avatars/jugador/${av2.archivo}`;
+    const ch2 = document.getElementById('characterImage2');
+    if (ch2 && av2) { ch2.src = `assets/avatars/personajes/${av2.id}full.webp`; ch2.alt = av2.nombre; }
+    const inp2 = document.getElementById('inputNombreJugador2');
+    if (inp2) inp2.value = nombreJugador2;
+}
+
 function abrirSeleccion(modo) {
     modoMenuSeleccionado = modo;
     window._iniciarTutorial1j = false;
+
+    // Si se sale del lobby 2J hacia 1J, desconectar la sala para que el
+    // modo online no contamine una partida local.
+    if (modo !== '2j' && window._onlineSala) {
+        try { _salirSalaOnline(); } catch (e) { }
+    }
+
+    const lobbyBar = document.getElementById('onlineLobbyBar');
+    if (lobbyBar) lobbyBar.classList.toggle('oculto', modo !== '2j');
 
     const btnTutorialSeleccion = document.getElementById('btnTutorial1j');
     if (btnTutorialSeleccion) {
@@ -175,6 +315,17 @@ function abrirSeleccion(modo) {
         if (vsCenter) vsCenter.classList.remove('oculto');
     }
 
+    if (modo === '2j') {
+        // Si ya hay sala online, pintar el lobby (esperando o con el amigo).
+        _aplicarEstadoLobbyOnline(_onlineLobbyUltimo || {});
+    } else {
+        const guest = document.getElementById('onlineGuestInfo');
+        if (guest) guest.style.display = 'none';
+        if (panelJ2) panelJ2.classList.remove('online-guest');
+        const menuEl = document.getElementById('menuPrincipal');
+        if (menuEl) menuEl.classList.remove('online-lobby');
+    }
+
     document.getElementById('vistaMenu').classList.remove('activa');
     document.getElementById('vistaSeleccion').classList.add('activa');
 
@@ -182,6 +333,8 @@ function abrirSeleccion(modo) {
 }
 
 function volverAlMenu() {
+    const menuEl = document.getElementById('menuPrincipal');
+    if (menuEl) menuEl.classList.remove('online-lobby');
     document.getElementById('vistaSeleccion').classList.remove('activa');
     document.getElementById('vistaMenu').classList.add('activa');
 
@@ -494,10 +647,34 @@ function initMenu() {
 
     // Botones de modo
     document.getElementById('btnModo1j')?.addEventListener('click', () => abrirSeleccion('1j'));
-    document.getElementById('btnModo2j')?.addEventListener('click', () => {
-        if (typeof window.mostrarEleccion2J === 'function') window.mostrarEleccion2J();
-        else abrirSeleccion('2j');
-    });
+    document.getElementById('btnModo2j')?.addEventListener('click', () => abrirSeleccion('2j'));
+
+    // 🌐 Lobby online dentro de la selección de 2 jugadores
+    const btnEntrarSala = document.getElementById('btnEntrarSala');
+    const btnCrearSala = document.getElementById('btnCrearSala');
+    const btnSalirSala = document.getElementById('btnSalirSala');
+    const inputSala = document.getElementById('onlineSalaInput');
+    if (btnEntrarSala && !btnEntrarSala.dataset.onlineBound) {
+        btnEntrarSala.dataset.onlineBound = '1';
+        btnEntrarSala.addEventListener('click', function () { _iniciarSalaOnline(inputSala ? inputSala.value : ''); });
+    }
+    if (btnCrearSala && !btnCrearSala.dataset.onlineBound) {
+        btnCrearSala.dataset.onlineBound = '1';
+        btnCrearSala.addEventListener('click', function () { _iniciarSalaOnline(_generarCodigoSala()); });
+    }
+    if (btnSalirSala && !btnSalirSala.dataset.onlineBound) {
+        btnSalirSala.dataset.onlineBound = '1';
+        btnSalirSala.addEventListener('click', _salirSalaOnline);
+    }
+    if (inputSala && !inputSala.dataset.onlineBound) {
+        inputSala.dataset.onlineBound = '1';
+        inputSala.addEventListener('input', function () {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+        inputSala.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); _iniciarSalaOnline(this.value); }
+        });
+    }
     document.getElementById('btnVolverMenu')?.addEventListener('click', volverAlMenu);
 
     document.getElementById('btnModoCreativo')?.addEventListener('click', () => {
@@ -665,8 +842,9 @@ function initMenu() {
             window.avatarJugador = avatarJugador;
             window.avatarJugador2 = avatarJugador2;
 
-            const es2P = (modoMenuSeleccionado === '2j');
-            console.log(`🎮 Iniciando partida (modo ${es2P ? '2 JUGADORES' : '1 JUGADOR'})`);
+            const esOnline = (modoMenuSeleccionado === '2j' && !!window._onlineSala && window._modoOnline === true);
+            const es2P = (modoMenuSeleccionado === '2j' && !esOnline);
+            console.log(`🎮 Iniciando partida (modo ${esOnline ? 'ONLINE' : (es2P ? '2 JUGADORES' : '1 JUGADOR')})`);
 
             if (menu) menu.style.display = 'none';
             if (juego) juego.style.display = 'block';
@@ -674,7 +852,16 @@ function initMenu() {
             // 🔆 Evitar que la pantalla del móvil se apague durante la partida
             if (typeof window.activarPantallaSiempre === 'function') window.activarPantallaSiempre();
 
-            if (es2P) {
+            if (esOnline) {
+                // La selección es la de 2J (para ver el lobby), pero el juego
+                // online usa la lógica de 1J + los overrides de amistoso.js.
+                const apJuego = document.getElementById('amistosoPanel');
+                if (apJuego) apJuego.style.display = '';
+                window.modoDosJugadores = false;
+                window.turnoJugador = 1;
+                if (typeof window.actualizarInterfazTurno === 'function') window.actualizarInterfazTurno();
+                if (typeof init === 'function') init();
+            } else if (es2P) {
                 window.modoDosJugadores = true;
                 if (typeof init === 'function') init();
                 setTimeout(() => {

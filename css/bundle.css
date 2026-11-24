@@ -1167,6 +1167,177 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
     }
 }
 
+/* ============================================================
+   🌐 LOBBY ONLINE EN LA SELECCIÓN 2 JUGADORES
+   ============================================================ */
+#menuPrincipal .online-lobby-bar {
+    width: 100%;
+    max-width: 1300px;
+    margin: 4px auto 2px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(10, 15, 29, 0.86);
+    border: 1px solid rgba(77, 212, 247, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 0 18px rgba(77, 212, 247, 0.10);
+}
+
+#menuPrincipal .online-lobby-bar.oculto { display: none !important; }
+
+#menuPrincipal .olb-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#menuPrincipal .olb-title {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #7fd4ff;
+    white-space: nowrap;
+}
+
+#menuPrincipal .olb-status {
+    flex: 1;
+    min-width: 180px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #8fb0d6;
+}
+
+#menuPrincipal .online-lobby-bar.en-sala .olb-status { color: #4ade80; }
+
+#menuPrincipal .olb-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+#menuPrincipal .olb-input {
+    flex: 1;
+    min-width: 130px;
+    max-width: 220px;
+    background: #0b1626;
+    border: 1px solid #2a4066;
+    color: #e6eefc;
+    border-radius: 9px;
+    padding: 7px 10px;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#menuPrincipal .olb-input::placeholder { color: #5f7899; letter-spacing: 0.5px; }
+
+#menuPrincipal .olb-btn {
+    appearance: none;
+    border: 1px solid rgba(77, 212, 247, 0.45);
+    background: rgba(77, 212, 247, 0.10);
+    color: #7fd4ff;
+    border-radius: 9px;
+    padding: 7px 12px;
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+#menuPrincipal .olb-btn:hover { background: rgba(77, 212, 247, 0.22); transform: translateY(-1px); }
+
+#menuPrincipal .olb-btn.primary {
+    background: linear-gradient(180deg, #16a34a, #15803d);
+    border-color: #22c55e;
+    color: #fff;
+}
+
+#menuPrincipal .olb-btn.primary:hover { filter: brightness(1.08); }
+
+#menuPrincipal .olb-btn.danger {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.55);
+    color: #fca5a5;
+}
+
+#menuPrincipal .olb-btn.danger:hover { background: rgba(239, 68, 68, 0.25); }
+
+#menuPrincipal .olb-btn.oculto { display: none !important; }
+
+#menuPrincipal .olb-btn:disabled,
+#menuPrincipal .olb-input:disabled,
+#menuPrincipal .olb-input[readonly] {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+}
+
+/* ----- Tarjeta del amigo en el panel J2 online ----- */
+#menuPrincipal .online-guest-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-top: 4px;
+    background: rgba(0, 0, 0, 0.30);
+    border: 1px solid rgba(77, 212, 247, 0.35);
+    border-radius: 12px;
+}
+
+#menuPrincipal .online-guest-avatar {
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #0b1626;
+    border: 2px solid rgba(77, 212, 247, 0.65);
+    box-shadow: 0 0 12px rgba(77, 212, 247, 0.30);
+}
+
+#menuPrincipal .online-guest-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#menuPrincipal .online-guest-name { font-size: 0.9rem; font-weight: 900; color: #e6eefc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#menuPrincipal .online-guest-status { font-size: 0.66rem; font-weight: 700; color: #8fb0d6; }
+
+/* En modo online, el J2 lo controla el amigo: ocultamos sus controles locales */
+#menuPrincipal #panelJ2.online-guest .input-group,
+#menuPrincipal #panelJ2.online-guest .avatar-grid-container,
+#menuPrincipal #panelJ2.online-guest .color-picker-container,
+#menuPrincipal #panelJ2.online-guest .avatar-display {
+    display: none !important;
+}
+
+@media (max-height: 700px) and (max-width: 1100px) {
+    #menuPrincipal .online-lobby-bar { padding: 5px 8px; gap: 4px; }
+    #menuPrincipal .olb-title { font-size: 0.6rem; }
+    #menuPrincipal .olb-status { font-size: 0.55rem; min-width: 140px; }
+    #menuPrincipal .olb-input { padding: 5px 8px; font-size: 0.62rem; min-width: 110px; }
+    #menuPrincipal .olb-btn { padding: 5px 9px; font-size: 0.56rem; }
+    #menuPrincipal .online-guest-info { padding: 8px; gap: 8px; }
+    #menuPrincipal .online-guest-avatar { width: 42px; height: 42px; flex-basis: 42px; }
+    #menuPrincipal .online-guest-name { font-size: 0.76rem; }
+    #menuPrincipal .online-guest-status { font-size: 0.56rem; }
+}
+
+/* En una sala ya creada, la barra solo necesita el estado + SALIR */
+#menuPrincipal .online-lobby-bar.en-sala .olb-input,
+#menuPrincipal .online-lobby-bar.en-sala #btnEntrarSala,
+#menuPrincipal .online-lobby-bar.en-sala #btnCrearSala {
+    display: none !important;
+}
+#menuPrincipal .online-lobby-bar.en-sala .olb-controls {
+    justify-content: flex-end;
+}
+
 
 /* ==================== css/pokedex.css ==================== */
 /* ============================================================
@@ -15674,7 +15845,8 @@ body.modo-espia #playerBoard .board-cell {
     #menuPrincipal .seleccion-container {
         display: grid !important;
         /* título → mapa → paneles → botones */
-        grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+        /* título → mapa → lobby online → paneles → botones */
+        grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
         height: calc(100dvh - 54px) !important;
         min-height: 0 !important;
         padding: 4px 10px 8px !important;
@@ -17482,5 +17654,17 @@ body.graficos-ligeros .logo-icon,
 body.graficos-ligeros .mode-icon,
 body.graficos-ligeros .character-image {
     filter: none !important;
+}
+
+/* Lobby online en móvil: compactar el panel J1 para que no se solape */
+@media (max-height: 700px) and (max-width: 1100px) {
+    #menuPrincipal.online-lobby #panelJ1 .avatar-grid-container,
+    #menuPrincipal.online-lobby #panelJ1 .color-picker-container,
+    #menuPrincipal.online-lobby #panelJ1 .avatar-display {
+        display: none !important;
+    }
+    #menuPrincipal.online-lobby #panelJ1 .panel-content {
+        justify-content: center;
+    }
 }
 

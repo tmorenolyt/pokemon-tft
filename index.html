@@ -26,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=e4babfbc00" />
+    <link rel="stylesheet" href="css/bundle.css?v=27e71345ce" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -298,6 +298,20 @@
                         <button class="map-selector-btn" id="btnElegirMapa" type="button">CAMBIAR ›</button>
                     </div>
 
+                    <!-- 🌐 ONLINE: crear/entrar en sala desde el menú local -->
+                    <div class="online-lobby-bar oculto" id="onlineLobbyBar">
+                        <div class="olb-head">
+                            <span class="olb-title">🌐 ONLINE</span>
+                            <span class="olb-status" id="onlineLobbyStatus">Local: pulsa JUGAR · Online: crea o entra en una sala.</span>
+                        </div>
+                        <div class="olb-controls">
+                            <input id="onlineSalaInput" class="olb-input" type="text" placeholder="CÓDIGO DE SALA" maxlength="12" autocomplete="off" spellcheck="false">
+                            <button id="btnEntrarSala" class="olb-btn primary" type="button">ENTRAR</button>
+                            <button id="btnCrearSala" class="olb-btn" type="button">CREAR SALA</button>
+                            <button id="btnSalirSala" class="olb-btn danger oculto" type="button">SALIR</button>
+                        </div>
+                    </div>
+
                     <!-- Contenedor VS -->
                     <div class="vs-container" id="vsContainer">
                         
@@ -353,6 +367,15 @@
                                     <div class="panel-title">
                                         <h2>JUGADOR 2</h2>
                                         <p>SU EQUIPO</p>
+                                    </div>
+                                </div>
+
+                                <!-- 🤝 Tarjeta del amigo cuando se une a la sala online -->
+                                <div id="onlineGuestInfo" class="online-guest-info" style="display:none;">
+                                    <img id="onlineGuestAvatar" class="online-guest-avatar" src="assets/avatars/jugador/azul.webp" alt="Amigo" onerror="this.style.display='none'">
+                                    <div class="online-guest-text">
+                                        <div class="online-guest-name" id="onlineGuestName">Esperando…</div>
+                                        <div class="online-guest-status" id="onlineGuestStatus">⏳ Esperando jugador 2…</div>
                                     </div>
                                 </div>
 
@@ -1133,6 +1156,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=e4babfbc00"></script>
+    <script defer src="js/bundle.js?v=27e71345ce"></script>
 </body>
 </html>

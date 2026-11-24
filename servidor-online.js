@@ -835,6 +835,27 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // -------- POST: salir de la sala (lobby) --------
+    if (p === '/api/leave' && req.method === 'POST') {
+        readBody(req, body => {
+            const room = getRoom(body.room);
+            const pid = String(body.pid || '');
+            if (pid && room.players[pid]) delete room.players[pid];
+            // Si estaban en el lobby, reiniciar el torneo para el que quede.
+            room.torneo = null;
+            room.round = 1;
+            room.phase = 'prep';
+            room.done = {};
+            room.matchHp = {};
+            room._won = {};
+            room._vivas = {};
+            room._roundType = null;
+            broadcast(room, { type: 'state', ...roomState(room) });
+            send(res, { ok: true });
+        });
+        return;
+    }
+
     // -------- POST: listo (ambos listos -> resolver ronda) --------
     if (p === '/api/ready' && req.method === 'POST') {
         readBody(req, body => {
