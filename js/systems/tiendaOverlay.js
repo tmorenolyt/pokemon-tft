@@ -527,11 +527,13 @@ function crearCartaTienda(p, idx) {
             comprarDesdeTiendaIndependiente(p, idx);
         });
     } else {
+        // Slot comprado: se queda vacío en su sitio (el resto NO se mueve).
+        // Oculto (no "VACÍO") para que se vea como un hueco limpio.
         card.className = 'shop-card shop-card-empty';
-        card.innerHTML = `
-            <div style="font-size:2rem; color:#4a6a8a; opacity:0.5;">▢</div>
-            <div style="font-size:0.6rem; color:#4a6a8a; margin-top:6px; opacity:0.5;">VACÍO</div>
-        `;
+        card.innerHTML = '';
+        card.style.visibility = 'hidden';
+        card.style.pointerEvents = 'none';
+        card.setAttribute('aria-hidden', 'true');
         card.style.cursor = 'default';
     }
 
@@ -789,7 +791,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
         else tablero[ubicacionTemporal.indice] = nuevaCopia;
 
         oro -= pokemon.coste;
-        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
+        if (idx >= 0 && idx < tienda.length) tienda[idx] = null; // hueco en su sitio
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (esShinyCompra) addConsoleMessage(`✨ ¡${pokemon.nombre} SHINY comprado! ✨ (Fusión en curso)`, 'success');
@@ -865,7 +867,7 @@ async function comprarDesdeTiendaIndependiente(pokemon, idx) {
 
     if (ubicado) {
         oro -= pokemon.coste;
-        if (idx >= 0 && idx < tienda.length) tienda.splice(idx, 1); // sin huecos "VACÍO"
+        if (idx >= 0 && idx < tienda.length) tienda[idx] = null; // hueco en su sitio
         if (typeof Pokedex !== 'undefined') Pokedex.registrarCompra(pokemon.nombre, esShinyCompra);
 
         if (pokemon.id) playPokemonCry(pokemon.id);

@@ -115,6 +115,7 @@ function actualizarParticipanteHumano(room, pid, name, avatar) {
         if (typeof pl.nivel === 'number') p.nivel = pl.nivel;
         if (typeof pl.hp === 'number') p.hp = pl.hp;
         if (typeof pl.racha === 'number') p.racha = pl.racha;
+        if (typeof pl.oro === 'number') p.oro = pl.oro;
     }
 }
 
@@ -134,6 +135,7 @@ function crearTorneoOnline(room) {
             id: 'ia' + (i + 1), tipo: 'ia',
             nombre: ia.nombre, avatar: ia.avatar,
             hp: 50, nivel: 2, victorias: 0, derrotas: 0, eliminado: false,
+            oro: 10, racha: 0,
             seed: Math.floor(Math.random() * 1e9) + 1   // equipo estable de esta IA
         });
     });
@@ -224,7 +226,16 @@ function simularTorneoOnline(room, rondaJugada) {
                 const h = (a.tipo === 'humano') ? a : b;
                 const ia = (a.tipo === 'humano') ? b : a;
                 const ganoHumano = !!(room._won && room._won[h.id]);
-                if (ia.tipo === 'ia') ia.estadoRonda = ganoHumano ? 'loss' : 'win';
+                if (ia.tipo === 'ia') {
+                    ia.estadoRonda = ganoHumano ? 'loss' : 'win';
+                    if (ganoHumano) {
+                        ia.racha = 0;
+                        ia.oro = (ia.oro || 0) + 3;   // recompensa de consolación
+                    } else {
+                        ia.racha = Math.min(9, (ia.racha || 0) + 1);
+                        ia.oro = (ia.oro || 0) + 6;   // victoria
+                    }
+                }
                 return;
             }
 
@@ -241,11 +252,19 @@ function simularTorneoOnline(room, rondaJugada) {
             per.estadoRonda = 'loss';
             gan.victorias++;
             per.derrotas++;
+            gan.racha = Math.min(9, (gan.racha || 0) + 1);
+            per.racha = 0;
+            gan.oro = (gan.oro || 0) + 6;
+            per.oro = (per.oro || 0) + 3;
             if (per.hp <= 0) marcarEliminadoTorneo(t, per);
             t.resultados.push({ ronda: r, ganador: gan.nombre, perdedor: per.nombre, dano });
         });
     } else {
-        // PvE: todos se enfrentan al monstruo, no hay daño entre rivales
+        // PvE: todos se enfrentan al monstruo, no hay daño entre rivales.
+        // Todas las IA vivas cobran su recompensa (como en 1J).
+        t.participantes.forEach(p => {
+            if (p.tipo === 'ia' && !p.eliminado) p.oro = (p.oro || 0) + 4;
+        });
         t.resultados.push({ ronda: r, pve: true });
     }
 

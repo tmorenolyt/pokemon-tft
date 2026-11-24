@@ -320,7 +320,12 @@ protegido solo por `ACCESS_KEY`.
   - **Equipos IA como en 1J**: se colocan con `_PATRONES_COLOCACION.enemy`
     (melees en E/F/G, backline en H/G/F) y no se espejan. La semilla de la
     pareja es la misma en preparación y en combate, así **no cambian los
-    Pokémon** al pulsar COMBATIR.
+    Pokémon** al pulsar COMBATIR. La composición usa la estrategia real de
+    cada rival (tipos/clases/prioridad de `RIVALES_INFO`), no una elección
+    aleatoria, y equipa chips/objetos acordes.
+  - **Oro y racha de las IA**: el servidor da oro a las IA cada ronda y
+    actualiza su racha con las victorias/derrotas; el panel del rival muestra
+    ambos (antes salía `—` / oculto).
   - **Ranking idéntico al 1J**: ✔ verde al ganar, ✖ rojo al perder, `-X` de
     daño, 🔥 de racha y ocultación de marcas a los 5 s. Además solo se repinta
     cuando cambian los datos, así el `-7` ya **no parpadea**.
@@ -734,10 +739,10 @@ protegido solo por `ACCESS_KEY`.
   - **Fix del fondo blanco**: `--terreno-actual` se usa dentro de `css/base.css`,
     así que las URLs inline deben ser `../assets/...`. Con `assets/...` el
     navegador las resolvía como `/css/assets/...` (404) y el menú salía blanco.
-- **Tienda sin huecos**: al comprar una carta se quita del array y se repinta la
-  tienda (3 cartas si había 4), en vez de dejar una tarjeta **"VACÍO"**.
-  Reabrir la tienda ya **no genera cartas gratis**: solo se genera tienda nueva
-  cuando no queda ninguna carta o al empezar una ronda.
+- **Tienda con hueco fijo**: al comprar una carta su slot se queda **vacío y
+  oculto** en su sitio; las cartas de la derecha **no se mueven**. La tienda se
+  rellena entera al empezar la siguiente ronda (o al hacer reroll). Reabrir la
+  tienda ya **no genera cartas gratis**.
 - **Sin seleccionar texto al arrastrar**: `#juegoContainer`, la ficha del
   Pokémon (`#cartaPanel`) y la tienda (`#tiendaOverlay`) llevan
   `user-select: none` (con `input/textarea` seleccionables). Se acabó el

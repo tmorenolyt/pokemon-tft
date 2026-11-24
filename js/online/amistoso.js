@@ -204,23 +204,102 @@
         };
     }
 
-    function construirEquipoIA(nivel, seed) {
+    // Estrategia del rival IA (tipos/clases/prioridad), igual que en 1J.
+    function _estrategiaRivalIA(nombre) {
+        try {
+            const info = (window.RIVALES_INFO || []).find(r => r && r.nombre === nombre);
+            return (info && info.estrategia) ? info.estrategia : null;
+        } catch (e) { return null; }
+    }
+
+    function _pesoPokemonIA(p, est) {
+        let w = 1;
+        if (!est || !p) return w;
+        const tipos = Array.isArray(est.tipos) ? est.tipos : [];
+        const clases = Array.isArray(est.clases) ? est.clases : [];
+        const prioridad = Array.isArray(est.prioridad) ? est.prioridad : [];
+        let encaja = false;
+        const idx = prioridad.indexOf(p.nombre);
+        if (idx >= 0) { w += Math.max(6, 40 - idx * 3); encaja = true; }
+        (p.tipos || []).forEach(t => { if (tipos.includes(t)) { w += 14; encaja = true; } });
+        if (p.clase && clases.includes(p.clase)) { w += 7; encaja = true; }
+        // El estilo solo desempata entre los que YA encajan; si no, cualquier
+        // frontline tendría peso extra y se colarían Pokémon sin sinergia.
+        if (encaja && est.estilo === 'defensivo' && p.rol === 'frontline') w += 2;
+        if (encaja && est.estilo === 'agresivo' && p.rol === 'backline') w += 2;
+        return Math.max(1, w);
+    }
+
+    // Forma evolutiva según las estrellas (como las fusiones del 1J):
+    // 2★ = primera evolución, 3★ = forma final (si existe).
+    function _formaIA(p, nivel) {
+        let actual = p;
+        for (let i = 1; i < (nivel || 1); i++) {
+            if (!actual || !actual.evolucion) break;
+            const next = (typeof getPokemonPorNombre === 'function') ? getPokemonPorNombre(actual.evolucion) : null;
+            if (!next) break;
+            actual = next;
+        }
+        return actual || p;
+    }
+
+    function _elegirPokemonIA(pool, usados, costeMax, est, rnd) {
+        const cands = pool.filter(p => p && !usados.has(p.nombre) && (p.coste || 1) <= costeMax);
+        if (!cands.length) return null;
+        // Primero los que SÍ encajan con la estrategia (tipo/clase/prioridad).
+        // Si no quedan suficientes, se completa con el resto.
+        const conSinergia = cands.filter(p => _pesoPokemonIA(p, est) > 1);
+        const lista = conSinergia.length ? conSinergia : cands;
+        const pesos = lista.map(p => _pesoPokemonIA(p, est));
+        const total = pesos.reduce((a, b) => a + b, 0);
+        let r = rnd() * total;
+        for (let i = 0; i < lista.length; i++) {
+            r -= pesos[i];
+            if (r <= 0) return lista[i];
+        }
+        return lista[lista.length - 1];
+    }
+
+    // Objeto acorde a la estrategia (chip del tipo) o uno genérico.
+    function _objetoIA(est, rnd) {
+        try {
+            if (typeof OBJETOS === 'undefined' || !OBJETOS) return null;
+            const nombres = Object.keys(OBJETOS).filter(n => {
+                const o = OBJETOS[n];
+                return o && !(o.efecto && o.efecto.esDiscoUlti);
+            });
+            if (!nombres.length) return null;
+            const tipos = (est && Array.isArray(est.tipos)) ? est.tipos : [];
+            const chips = nombres.filter(n => {
+                const o = OBJETOS[n];
+                return o.efecto && o.efecto.tipoBonus && tipos.includes(o.efecto.tipoBonus);
+            });
+            const normales = nombres.filter(n => {
+                const o = OBJETOS[n];
+                return !(o.efecto && o.efecto.tipoBonus);
+            });
+            const lista = (chips.length && rnd() < 0.7) ? chips : (normales.length ? normales : nombres);
+            return lista[Math.floor(rnd() * lista.length)];
+        } catch (e) { return null; }
+    }
+
+    function construirEquipoIA(nivel, seed, nombreRival) {
         const rnd = _rng(seed);
         const pool = (typeof POKEMONS !== 'undefined' && Array.isArray(POKEMONS)) ? POKEMONS.filter(p => p && p.base !== false) : [];
         if (!pool.length) return [];
 
-        const n = Math.max(1, Math.min(4, 1 + Math.floor((nivel || 2) / 2)));
-        const nivelUnidad = (nivel >= 5) ? 2 : 1;   // a partir de nivel 5 la IA lleva 2★
+        const est = _estrategiaRivalIA(nombreRival);
+        const n = Math.max(1, Math.min(6, 1 + Math.floor((nivel || 2) / 2) + ((nivel || 2) >= 7 ? 1 : 0)));
+        const nivelUnidad = (nivel >= 7) ? 3 : ((nivel >= 4) ? 2 : 1);
         const elegidos = [];
         const usados = new Set();
         const costeMax = Math.max(1, Math.min(5, 1 + Math.floor((nivel || 2) / 2)));
 
         let intentos = 0;
-        while (elegidos.length < n && intentos < 120) {
+        while (elegidos.length < n && intentos < 200) {
             intentos++;
-            const p = pool[Math.floor(rnd() * pool.length)];
-            if (!p || usados.has(p.nombre)) continue;
-            if ((p.coste || 1) > costeMax) continue;
+            const p = _elegirPokemonIA(pool, usados, costeMax, est, rnd);
+            if (!p) break; // no quedan candidatos de ese coste
             usados.add(p.nombre);
             elegidos.push(p);
         }
@@ -254,7 +333,15 @@
                     if (!usados.has(cand)) { pos = cand; break; }
                 }
             }
-            snap.push({ nombre: p.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: [], pos, lado: 'enemy' });
+            // Objetos: 1 a partir de nivel 3, 2 desde nivel 7 (como la IA de 1J)
+            const objs = [];
+            const nObj = (nivel >= 7) ? 2 : ((nivel >= 3) ? 1 : 0);
+            for (let k = 0; k < nObj; k++) {
+                const obj = _objetoIA(est, rnd);
+                if (obj && !objs.includes(obj)) objs.push(obj);
+            }
+            const forma = _formaIA(p, nivelUnidad);
+            snap.push({ nombre: forma.nombre, nivel: nivelUnidad, baseId: p.id, costeOriginal: p.coste, objetos: objs, pos, lado: 'enemy' });
         });
         return snap;
     }
@@ -288,14 +375,15 @@
 
         if (msg.roundType !== 'pve' && asig && asig.tipo === 'ia') {
             // 🤖 Contra una IA del torneo: carga su equipo y pelea en vivo
-            const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1);
+            const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1, asig.nombre);
             cargarEnemigo(equipoIA, [], [], true);
             const rvTorneo = (window._torneoOnline && (window._torneoOnline.participantes || []).find(p => p.id === asig.rivalId)) || null;
             window._rivalOnlineActual = {
                 id: asig.rivalId || ('ia-ronda-' + (msg.round || fase)), tipo: 'ia', fantasma: !!asig.fantasma,
                 nombre: asig.nombre, avatar: asig.avatar, nivel: asig.nivel || 2, seed: asig.seed || 0,
                 hp: (rvTorneo && typeof rvTorneo.hp === 'number') ? rvTorneo.hp : null,
-                racha: 0, oro: null
+                racha: (rvTorneo && typeof rvTorneo.racha === 'number') ? rvTorneo.racha : 0,
+                oro: (rvTorneo && typeof rvTorneo.oro === 'number') ? rvTorneo.oro : null
             };
             try {
                 window.rivalActual = { nombre: asig.nombre, avatar: asig.avatar, esMonstruo: false };
@@ -387,8 +475,8 @@
             id: rv.id, tipo: rv.tipo, nombre: rv.nombre, avatar: rv.avatar,
             nivel: nivelRival, seed: _seedRivalOnline(rv),
             hp: (rv.hp != null ? rv.hp : (a ? a.hp : null)),
-            racha: a ? a.racha : 0,
-            oro: a ? a.oro : null,
+            racha: (typeof rv.racha === 'number') ? rv.racha : (a && typeof a.racha === 'number' ? a.racha : 0),
+            oro: (rv.oro != null) ? rv.oro : (a ? a.oro : null),
             fantasma: false
         };
     }
@@ -413,7 +501,7 @@
             const sig = 'ia|' + rv.id + '|' + rv.nivel + '|' + rv.seed;
             if (sig === window._ultimaFirmaRivalIA) return;
             window._ultimaFirmaRivalIA = sig;
-            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1), [], [], true);
+            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1, rv.nombre), [], [], true);
         }
         try {
             window.rivalActual = { nombre: rv.nombre, avatar: rv.avatar, esMonstruo: false };
@@ -435,11 +523,13 @@
         } else {
             // Si es el rival de esta ronda, usa la semilla de la pareja
             // (así el espionaje coincide con el equipo que pelea).
-            cargarEnemigo(construirEquipoIA(p.nivel || 2, _seedRivalOnline(p)), [], [], true);
+            cargarEnemigo(construirEquipoIA(p.nivel || 2, _seedRivalOnline(p), p.nombre), [], [], true);
         }
         window._rivalEspectado = {
             id: p.id, tipo: p.tipo, nombre: p.nombre, avatar: p.avatar,
-            nivel: p.nivel || 2, seed: p.seed || 0, hp: p.hp, racha: 0, oro: null
+            nivel: p.nivel || 2, seed: _seedRivalOnline(p), hp: p.hp,
+            racha: (typeof p.racha === 'number') ? p.racha : 0,
+            oro: (typeof p.oro === 'number') ? p.oro : null
         };
         window._onlineEspiando = true;
         window.rivalActual = { nombre: p.nombre, avatar: p.avatar, esMonstruo: false };
@@ -798,7 +888,7 @@
                 // Equipo: los humanos mandan su tablero; las IA se generan con su semilla
                 const equipo = (p.tipo === 'humano')
                     ? (Array.isArray(p.board) ? p.board : [])
-                    : construirEquipoIA(p.nivel || 2, p.seed || 1);
+                    : construirEquipoIA(p.nivel || 2, p.seed || 1, p.nombre);
 
                 let equipoHtml = '';
                 equipo.forEach(it => {
@@ -1145,7 +1235,7 @@
             if (rv.avatar) pintarAvatarEnemigo(rv.avatar, rv.tipo);
             if (typeof nivelMostrado === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = nivelMostrado; }
             const g = document.getElementById('enemyGoldInfo');
-            if (g) g.textContent = (rv.tipo === 'humano' && rv.oro != null) ? rv.oro : '—';
+            if (g) g.textContent = (rv.oro != null) ? rv.oro : '—';
         } else if (esPvERonda() && typeof actualizarInfoEnemigo === 'function') {
             // PvE: mostrar el nombre/foto del monstruo (no el jugador)
             try { actualizarInfoEnemigo(); } catch (e) { }
@@ -1161,10 +1251,10 @@
             const hdr = document.getElementById('bankHeaderEnemy'); if (hdr) { if (cnt >= maxU) hdr.classList.add('is-full'); else hdr.classList.remove('is-full'); }
         }
 
-        // Racha: solo tiene sentido para el amigo humano
+        // Racha: también para las IA del torneo (el servidor la actualiza)
         const rEl = document.getElementById('enemyStreakInfo');
         if (rEl) {
-            if (!esPvERonda() && rv && rv.tipo === 'humano' && typeof rv.racha === 'number') {
+            if (!esPvERonda() && rv && typeof rv.racha === 'number') {
                 const r = rv.racha;
                 const rIcon = document.getElementById('enemyStreakIcon');
                 const rVal = document.getElementById('enemyStreakValueInfo');
