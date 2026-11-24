@@ -36070,7 +36070,13 @@ function construirAvatarGridEn(containerId, avatarSeleccionado, onSelect) {
             const characterImgId = esJugador1 ? 'characterImage1' : 'characterImage2';
             const characterImg = document.getElementById(characterImgId);
             if (characterImg) {
-                const nombreSinExtension = avatar.archivo.replace('.png', '');
+                // avatar.archivo es "rojo.webp" (no .png): quitar CUALQUIER
+                // extensión. Antes quedaba "rojofull.webp.webp" y daba 404.
+                const nombreSinExtension = avatar.archivo.replace(/\.[^.]+$/, '');
+                characterImg.onerror = function () {
+                    this.onerror = null;
+                    this.src = `assets/avatars/personajes/${nombreSinExtension}full.png`;
+                };
                 characterImg.src = `assets/avatars/personajes/${nombreSinExtension}full.webp`;
                 characterImg.alt = avatar.nombre;
             }
@@ -36408,10 +36414,21 @@ function initMenu() {
     // Avatar grande inicial y Footer
     const display1 = document.getElementById('avatarDisplay1');
     const footerAvatar = document.getElementById('footerAvatar');
+    const av1 = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
 
     if (display1) {
-        const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
-        if (av) display1.src = `assets/avatars/jugador/${av.archivo}`;
+        if (av1) display1.src = `assets/avatars/jugador/${av1.archivo}`;
+    }
+
+    // Imagen grande (cuerpo completo) del avatar guardado, no la de Rojo/Azul.
+    const character1 = document.getElementById('characterImage1');
+    if (character1 && av1) {
+        character1.onerror = function () {
+            this.onerror = null;
+            this.src = `assets/avatars/personajes/${av1.id}full.png`;
+        };
+        character1.src = `assets/avatars/personajes/${av1.id}full.webp`;
+        character1.alt = av1.nombre;
     }
 
     if (footerAvatar) {
@@ -36434,9 +36451,18 @@ function initMenu() {
     }
 
     const display2 = document.getElementById('avatarDisplay2');
+    const av2 = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
     if (display2) {
-        const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
-        if (av) display2.src = `assets/avatars/jugador/${av.archivo}`;
+        if (av2) display2.src = `assets/avatars/jugador/${av2.archivo}`;
+    }
+    const character2 = document.getElementById('characterImage2');
+    if (character2 && av2) {
+        character2.onerror = function () {
+            this.onerror = null;
+            this.src = `assets/avatars/personajes/${av2.id}full.png`;
+        };
+        character2.src = `assets/avatars/personajes/${av2.id}full.webp`;
+        character2.alt = av2.nombre;
     }
 
     const footerName = document.getElementById('footerName');
@@ -49262,6 +49288,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             return;
         }
 
+        try { cerrarEspiaOnline(true); } catch (e) { }
         window._rivalEspectado = null;
         window._onlineEspiando = false;
         estadoOnline = 'combat';
@@ -49377,9 +49404,9 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
 
     // Pinta el equipo del rival de esta ronda (tablero + banco + baúl).
     function _mostrarRivalOnline() {
-        // Solo en preparación: recargar el tablero en pleno combate rompería
-        // las unidades que están peleando.
-        if (estadoOnline !== 'prep') return;
+        // No recargar en pleno combate (rompería las unidades que pelean);
+        // sí se puede restaurar en prep/waiting tras salir del espía.
+        if (estadoOnline === 'combat') return;
         if (window._modoSpectador || window._onlineEspiando) return;
         if (esPvERonda()) return;
         const rv = window._rivalOnlineActual;
@@ -49404,6 +49431,64 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         } catch (e) { }
     }
 
+    // 🏷️ Aviso superior de espía (mismo estilo que el modo 1J)
+    function _mostrarAvisoEspia(nombre) {
+        let aviso = document.getElementById('avisoEspia');
+        if (!aviso) {
+            aviso = document.createElement('div');
+            aviso.id = 'avisoEspia';
+            aviso.className = 'aviso-espia';
+            document.body.appendChild(aviso);
+        }
+        aviso.innerHTML = `
+            <span>👀 Espiando a <strong>${_esc(nombre)}</strong>${window._modoSpectador ? ' · espectador' : ''}</span>
+            <button type="button" onclick="cerrarEspiaOnline()">✕ Salir</button>
+        `;
+        document.body.classList.add('modo-espia');
+    }
+
+    // Salir del espía: quita el aviso y vuelve al rival real de la ronda.
+    function cerrarEspiaOnline(silencioso) {
+        const estaba = !!window._onlineEspiando;
+        const nombreEspiado = window._espiaNombre || null;
+        window._onlineEspiando = false;
+        window._rivalEspectado = null;
+        const aviso = document.getElementById('avisoEspia');
+        if (aviso) aviso.remove();
+        document.body.classList.remove('modo-espia');
+        if (!estaba || silencioso) {
+            window._espiaNombre = null;
+            window._espiaRivalAnterior = null;
+            return;
+        }
+
+        window._ultimoAmigoBoardStr = null;
+        window._ultimaFirmaRivalIA = null;
+        try {
+            if (window._modoSpectador) {
+                if (amigo && Array.isArray(amigo.board)) {
+                    cargarEnemigo(amigo.board, amigo.bench, amigo.baul);
+                    window.rivalActual = { nombre: amigo.name || 'Amigo', avatar: amigo.avatar || 'rojo', esMonstruo: false };
+                }
+            } else {
+                _mostrarRivalOnline();
+            }
+        } catch (e) { }
+        // Si no se pudo recargar (p. ej. ronda PvE), volver al rival anterior.
+        if (!window.rivalActual || (nombreEspiado && window.rivalActual.nombre === nombreEspiado)) {
+            window.rivalActual = window._espiaRivalAnterior || null;
+        }
+        // Último respaldo: usar el rival real de la ronda (si no es PvE).
+        if (!window.rivalActual && !esPvERonda() && window._rivalOnlineActual) {
+            const rvReal = window._rivalOnlineActual;
+            window.rivalActual = { nombre: rvReal.nombre, avatar: rvReal.avatar, esMonstruo: false };
+        }
+        window._espiaNombre = null;
+        window._espiaRivalAnterior = null;
+        try { actualizarPanel(); } catch (e) { }
+    }
+    window.cerrarEspiaOnline = cerrarEspiaOnline;
+
     // 👁️ Espiar cualquier participante desde el ranking (incluido espectador)
     function espiarParticipanteOnline(p) {
         if (!p || p.id === pid) return;
@@ -49427,8 +49512,11 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             racha: (typeof p.racha === 'number') ? p.racha : 0,
             oro: (typeof p.oro === 'number') ? p.oro : null
         };
+        window._espiaNombre = p.nombre;
+        window._espiaRivalAnterior = window.rivalActual ? { ...window.rivalActual } : null;
         window._onlineEspiando = true;
         window.rivalActual = { nombre: p.nombre, avatar: p.avatar, esMonstruo: false };
+        _mostrarAvisoEspia(p.nombre);
         setStatus('👁️ Viendo el equipo de ' + p.nombre + (window._modoSpectador ? ' · espectador' : ''));
     }
     window.espiarParticipanteOnline = espiarParticipanteOnline;
@@ -49494,7 +49582,12 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                     const yo = msg.torneo && (msg.torneo.participantes || []).find(p => p.id === pid);
                     const eliminado = !!(yo && yo.eliminado);
                     window._modoSpectador = eliminado;
-                    if (eliminado) { window._rivalOnlineActual = null; window._onlineEspiando = false; window._rivalEspectado = null; }
+                    if (eliminado) {
+                        try { cerrarEspiaOnline(true); } catch (e) { }
+                        window._rivalOnlineActual = null;
+                        window._onlineEspiando = false;
+                        window._rivalEspectado = null;
+                    }
                     if (eliminado !== window._modoEspectadorActivo) {
                         window._modoEspectadorActivo = eliminado;
                         aplicarModoEspectador(eliminado);
@@ -49506,6 +49599,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 try { _mostrarRivalOnline(); } catch (e) { }
                 actualizarPanel();
             } else if (msg.type === 'torneoFin') {
+                try { cerrarEspiaOnline(true); } catch (e) { }
                 try { clearTimeout(window._timerTicksOnline); } catch (e) { }
                 try { mostrarFinTorneoOnline(msg.posiciones); } catch (e) { }
             } else if (msg.type === 'torneoReset') {
@@ -49514,6 +49608,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             } else if (msg.type === 'resolve') {
                 resolverRonda(msg);
             } else if (msg.type === 'nextRound') {
+                try { cerrarEspiaOnline(true); } catch (e) { }
                 estadoOnline = 'prep';
                 _combateEnCursoLocal = false;
                 window._ultimoAmigoBoardStr = null;
@@ -49572,6 +49667,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                     }
                 } catch (e) { }
             } else if (msg.type === 'matchEnd') {
+                try { cerrarEspiaOnline(true); } catch (e) { }
                 estadoOnline = 'ended';
                 _combateEnCursoLocal = false;
                 const empate = (msg.winner == null);
@@ -50127,7 +50223,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
 
         // Nombre + avatar REAL del rival mostrado (amigo o IA del torneo)
         if (!esPvERonda() && rv && !rv.esMonstruo) {
-            const en = document.getElementById('enemyName'); if (en) en.textContent = rv.nombre || 'Rival';
+            const en = document.getElementById('enemyName');
+            if (en) en.textContent = (rv.nombre || 'Rival') + (window._onlineEspiando ? ' (ESPÍA)' : '');
             if (rv.avatar) pintarAvatarEnemigo(rv.avatar, rv.tipo);
             if (typeof nivelMostrado === 'number') { const lv = document.getElementById('enemyLevelInfo'); if (lv) lv.textContent = nivelMostrado; }
             const g = document.getElementById('enemyGoldInfo');

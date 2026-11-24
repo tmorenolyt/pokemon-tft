@@ -241,7 +241,13 @@ function construirAvatarGridEn(containerId, avatarSeleccionado, onSelect) {
             const characterImgId = esJugador1 ? 'characterImage1' : 'characterImage2';
             const characterImg = document.getElementById(characterImgId);
             if (characterImg) {
-                const nombreSinExtension = avatar.archivo.replace('.png', '');
+                // avatar.archivo es "rojo.webp" (no .png): quitar CUALQUIER
+                // extensión. Antes quedaba "rojofull.webp.webp" y daba 404.
+                const nombreSinExtension = avatar.archivo.replace(/\.[^.]+$/, '');
+                characterImg.onerror = function () {
+                    this.onerror = null;
+                    this.src = `assets/avatars/personajes/${nombreSinExtension}full.png`;
+                };
                 characterImg.src = `assets/avatars/personajes/${nombreSinExtension}full.webp`;
                 characterImg.alt = avatar.nombre;
             }
@@ -579,10 +585,21 @@ function initMenu() {
     // Avatar grande inicial y Footer
     const display1 = document.getElementById('avatarDisplay1');
     const footerAvatar = document.getElementById('footerAvatar');
+    const av1 = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
 
     if (display1) {
-        const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
-        if (av) display1.src = `assets/avatars/jugador/${av.archivo}`;
+        if (av1) display1.src = `assets/avatars/jugador/${av1.archivo}`;
+    }
+
+    // Imagen grande (cuerpo completo) del avatar guardado, no la de Rojo/Azul.
+    const character1 = document.getElementById('characterImage1');
+    if (character1 && av1) {
+        character1.onerror = function () {
+            this.onerror = null;
+            this.src = `assets/avatars/personajes/${av1.id}full.png`;
+        };
+        character1.src = `assets/avatars/personajes/${av1.id}full.webp`;
+        character1.alt = av1.nombre;
     }
 
     if (footerAvatar) {
@@ -605,9 +622,18 @@ function initMenu() {
     }
 
     const display2 = document.getElementById('avatarDisplay2');
+    const av2 = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
     if (display2) {
-        const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
-        if (av) display2.src = `assets/avatars/jugador/${av.archivo}`;
+        if (av2) display2.src = `assets/avatars/jugador/${av2.archivo}`;
+    }
+    const character2 = document.getElementById('characterImage2');
+    if (character2 && av2) {
+        character2.onerror = function () {
+            this.onerror = null;
+            this.src = `assets/avatars/personajes/${av2.id}full.png`;
+        };
+        character2.src = `assets/avatars/personajes/${av2.id}full.webp`;
+        character2.alt = av2.nombre;
     }
 
     const footerName = document.getElementById('footerName');

@@ -312,6 +312,10 @@ protegido solo por `ACCESS_KEY`.
   - **Espectador útil**: el botón COMBATIR queda desactivado, el ranking sigue
     en vivo y **se puede espiar** a cualquier participante haciendo clic en su
     fila (humano o IA) para cargar su equipo en el tablero enemigo.
+  - **Aviso de espía superior**: al espiar aparece el mismo cartel que en 1J
+    (`👀 Espiando a X` + botón **✕ Salir**), se atenúa el tablero propio y el
+    nombre del rival muestra **`(ESPÍA)`**. Al salir (o al empezar la ronda)
+    se vuelve al rival real de la ronda y se recarga su equipo.
   - **Listo del amigo**: el panel online muestra en todo momento
     `TÚ: ✅/⏳ · AMIGO: ✅/⏳`.
   - **Nivel del amigo sincronizado**: el servidor actualiza nivel/HP/racha
