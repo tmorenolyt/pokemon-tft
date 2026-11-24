@@ -792,3 +792,7 @@ protegido solo por `ACCESS_KEY`.
   (`min(92vh, 780px)`, en móvil `100dvh - 12px`) y la rejilla hace scroll, así
   que el título y las pestañas **no se mueven** al cambiar de categoría
   (igual que la Pokédex).
+- **Volumen de victoria/derrota**: las músicas de resultado usan el slider de
+  **música** (antes tenían volumen fijo). Se actualizan en vivo mientras suenan
+  y también durante el fade de salida; a 0% quedan mudas. El factor general de
+  música bajó: **50% del slider → 0.15 real** (antes 0.20), 100% → 0.30.

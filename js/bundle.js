@@ -41293,10 +41293,10 @@ function cerrarAjustes() {
 // Aquí tocamos las variables globales que existan.
 
 function aplicarVolumenMusica(porcentaje) {
-    // 🆕 Factor de escala: el slider marca más de lo que suena
-    //    Slider 50% → volumen real 0.20 (igual que antes al 20%)
-    //    Slider 100% → volumen real 0.40
-    const FACTOR_MUSICA = 0.4;
+    // Factor de escala: el slider marca más de lo que suena.
+    //   Slider 50% → volumen real 0.15 (un poco más bajo que antes)
+    //   Slider 100% → volumen real 0.30
+    const FACTOR_MUSICA = 0.30;
     const volSlider = Math.max(0, Math.min(1, porcentaje / 100));
     const vol = volSlider * FACTOR_MUSICA;
 
@@ -41308,6 +41308,15 @@ function aplicarVolumenMusica(porcentaje) {
     // Música de evolución (si suena)
     if (typeof _evolucionAudioActual !== 'undefined' && _evolucionAudioActual) {
         _evolucionAudioActual.volume = vol * 0.9;
+    }
+
+    // Música de VICTORIA / DERROTA (también es música de ronda)
+    const volResultado = Math.min(1, vol * 1.5);
+    if (typeof _victoriaAudioActual !== 'undefined' && _victoriaAudioActual) {
+        _victoriaAudioActual.volume = volResultado;
+    }
+    if (typeof _derrotaAudioActual !== 'undefined' && _derrotaAudioActual) {
+        _derrotaAudioActual.volume = volResultado;
     }
 
     // 🆕 Música de combate (combate.mp3)
@@ -43175,12 +43184,19 @@ function pararEvolveCompleted() {
     _evolveCompletedAudio = null;
 }
 
+// Volumen de las músicas de resultado (victoria/derrota).
+// Se basa en el slider de MÚSICA y se actualiza en tiempo real.
+function _volumenResultadoActual() {
+    const base = (typeof window._volumenMusicaActual === 'number') ? window._volumenMusicaActual : 0.15;
+    return Math.max(0, Math.min(1, base * 1.5));
+}
+
 function playVictoriaSound() {
     try {
         const url = CONFIG.UI_SOUND_URL + 'victoria-ronda.mp3';
         if (_victoriaAudioActual) { try { _victoriaAudioActual.pause(); _victoriaAudioActual.currentTime = 0; } catch (e) {} _victoriaAudioActual = null; }
         const audio = new Audio(url);
-        audio.volume = 0.30;
+        audio.volume = _volumenResultadoActual();
         audio.loop = true; // 🆕 loop para que no se corte si el MP3 dura < 8.5s
         audio.addEventListener('error', function() { usarFallbackSonido('victoria-ronda.mp3'); });
         audio.play().catch(() => usarFallbackSonido('victoria-ronda.mp3'));
@@ -43191,7 +43207,6 @@ function playVictoriaSound() {
         const FADE_DURACION_MS = 1200;
         const FADE_PASOS = 24;
         const FADE_INTERVALO_MS = FADE_DURACION_MS / FADE_PASOS;
-        const VOLUMEN_INICIAL = audio.volume;
 
         setTimeout(() => {
             if (_victoriaAudioActual !== audio) return;
@@ -43204,12 +43219,13 @@ function playVictoriaSound() {
                     return;
                 }
                 paso++;
-                const nuevoVol = Math.max(0, VOLUMEN_INICIAL * (1 - paso / FADE_PASOS));
+                const volBase = _volumenResultadoActual();
+                const nuevoVol = Math.max(0, volBase * (1 - paso / FADE_PASOS));
                 try { audio.volume = nuevoVol; } catch (e) {}
 
                 if (paso >= FADE_PASOS) {
                     clearInterval(fadeInterval);
-                    try { audio.pause(); audio.currentTime = 0; audio.volume = VOLUMEN_INICIAL; } catch (e) {}
+                    try { audio.pause(); audio.currentTime = 0; audio.volume = _volumenResultadoActual(); } catch (e) {}
                     _victoriaAudioActual = null;
                     audio.dispatchEvent(new Event('ended'));
                 }
@@ -43227,7 +43243,7 @@ function playDerrotaSound() {
             _derrotaAudioActual = null;
         }
         const audio = new Audio(url);
-        audio.volume = 0.35;
+        audio.volume = _volumenResultadoActual();
         audio.loop = true;
         audio.addEventListener('error', function() { usarFallbackSonido('derrota-ronda.mp3'); });
         audio.play().catch(() => usarFallbackSonido('derrota-ronda.mp3'));
@@ -43236,7 +43252,6 @@ function playDerrotaSound() {
         const FADE_DURACION_MS = 1200;
         const FADE_PASOS = 24;
         const FADE_INTERVALO_MS = FADE_DURACION_MS / FADE_PASOS;
-        const VOLUMEN_INICIAL = audio.volume;
 
         setTimeout(() => {
             if (_derrotaAudioActual !== audio) return;
@@ -43249,12 +43264,13 @@ function playDerrotaSound() {
                     return;
                 }
                 paso++;
-                const nuevoVol = Math.max(0, VOLUMEN_INICIAL * (1 - paso / FADE_PASOS));
+                const volBase = _volumenResultadoActual();
+                const nuevoVol = Math.max(0, volBase * (1 - paso / FADE_PASOS));
                 try { audio.volume = nuevoVol; } catch (e) {}
 
                 if (paso >= FADE_PASOS) {
                     clearInterval(fadeInterval);
-                    try { audio.pause(); audio.currentTime = 0; audio.volume = VOLUMEN_INICIAL; } catch (e) {}
+                    try { audio.pause(); audio.currentTime = 0; audio.volume = _volumenResultadoActual(); } catch (e) {}
                     _derrotaAudioActual = null;
                     audio.dispatchEvent(new Event('ended'));
                 }
@@ -43401,7 +43417,7 @@ function iniciarFondoPreparacion() {
         if (!fondoPreparacionAudio) {
             fondoPreparacionAudio = new Audio(url);
             fondoPreparacionAudio.loop = true;
-            const volGuardado = (typeof window._volumenMusicaActual === 'number') ? window._volumenMusicaActual : 0.20;
+            const volGuardado = (typeof window._volumenMusicaActual === 'number') ? window._volumenMusicaActual : 0.15;
             fondoPreparacionAudio.volume = volGuardado;
             fondoPreparacionAudio.addEventListener('error', function () { fondoPreparacionAudio = null; });
         }

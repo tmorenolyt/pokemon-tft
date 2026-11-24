@@ -163,10 +163,10 @@ function cerrarAjustes() {
 // Aquí tocamos las variables globales que existan.
 
 function aplicarVolumenMusica(porcentaje) {
-    // 🆕 Factor de escala: el slider marca más de lo que suena
-    //    Slider 50% → volumen real 0.20 (igual que antes al 20%)
-    //    Slider 100% → volumen real 0.40
-    const FACTOR_MUSICA = 0.4;
+    // Factor de escala: el slider marca más de lo que suena.
+    //   Slider 50% → volumen real 0.15 (un poco más bajo que antes)
+    //   Slider 100% → volumen real 0.30
+    const FACTOR_MUSICA = 0.30;
     const volSlider = Math.max(0, Math.min(1, porcentaje / 100));
     const vol = volSlider * FACTOR_MUSICA;
 
@@ -178,6 +178,15 @@ function aplicarVolumenMusica(porcentaje) {
     // Música de evolución (si suena)
     if (typeof _evolucionAudioActual !== 'undefined' && _evolucionAudioActual) {
         _evolucionAudioActual.volume = vol * 0.9;
+    }
+
+    // Música de VICTORIA / DERROTA (también es música de ronda)
+    const volResultado = Math.min(1, vol * 1.5);
+    if (typeof _victoriaAudioActual !== 'undefined' && _victoriaAudioActual) {
+        _victoriaAudioActual.volume = volResultado;
+    }
+    if (typeof _derrotaAudioActual !== 'undefined' && _derrotaAudioActual) {
+        _derrotaAudioActual.volume = volResultado;
     }
 
     // 🆕 Música de combate (combate.mp3)
