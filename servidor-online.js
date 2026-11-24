@@ -277,7 +277,6 @@ function simularTorneoOnline(room, rondaJugada) {
     const COSTE_NIVEL_IA = { 2: 4, 3: 8, 4: 20, 5: 24, 6: 36, 7: 48, 8: 60 };
     const SLOTS_IA = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 4, 6: 5, 7: 6, 8: 6 };
     const TOPE_ORO_IA = 65;
-    const esPvE = _esRondaPvETorneo(r);
     const nivelesHumanos = Object.values(room.players || {})
         .map(pl => (pl && typeof pl.nivel === 'number') ? pl.nivel : null)
         .filter(n => typeof n === 'number');
@@ -305,9 +304,9 @@ function simularTorneoOnline(room, rondaJugada) {
 
         let oro = Math.min(TOPE_ORO_IA, oroAntes + Math.max(0, Math.floor(ingreso)));
 
-        // En 1J, tras una ronda PvE solo se cobra: no se compra ni se sube
-        // de nivel. El gasto/avance ocurre en las rondas PvP.
-        if (r > 1 && !esPvE) {
+        // La primera tienda (tras la ronda 1) ya permite comprar: en 1J el
+        // rival activo sube/compra incluso después de la ronda PvE de arranque.
+        {
             // Subir de nivel pagando (tabla de costes del 1J).
             let subidas = 0;
             while (p.nivel < 8 && subidas < 3) {
@@ -327,7 +326,7 @@ function simularTorneoOnline(room, rondaJugada) {
             const slots = SLOTS_IA[p.nivel] || 1;
             const slotsActuales = (typeof p.slots === 'number') ? p.slots : 1;
             if (slots > slotsActuales) {
-                const costeUnidad = (p.nivel <= 2) ? 1 : ((p.nivel <= 4) ? 2 : ((p.nivel <= 6) ? 3 : 4));
+                const costeUnidad = (p.nivel <= 1) ? 1 : ((p.nivel <= 4) ? 2 : ((p.nivel <= 6) ? 3 : 4));
                 oro = Math.max(0, oro - (slots - slotsActuales) * costeUnidad);
                 p.slots = slots;
             } else {
