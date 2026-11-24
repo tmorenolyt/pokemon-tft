@@ -336,6 +336,17 @@ protegido solo por `ACCESS_KEY`.
     tabla real (`4/8/20/24/36/48/60`), pagan las **unidades de los slots nuevos**
     y gastan en compras/rerolls; tope **65**. El panel del rival muestra oro y
     racha. Las rachas encadenan negativas al perder.
+  - **Sin revanchas consecutivas**: el emparejamiento usa backtracking y no
+    repite rival de una ronda a la siguiente si existe otra combinación
+    (como el torneo de 1J). Con 2 vivos al final la revancha es inevitable.
+  - **Costes por nivel (odds de tienda)**: la IA usa las mismas
+    probabilidades que la tienda (`SHOP_ODDS[nivel]`), no límites por ronda.
+    Nivel 2 → 73% coste 1 / 27% coste 2; nivel 4 → 3% coste 3; nivel 6 → 3%
+    coste 4; nivel 8 → 26% coste 4 / 4% coste 5. Las estrellas también van por
+    nivel (2★ desde nivel 4, 3★ desde nivel 7).
+  - **Objetos por rondas de objetos**: igual que el jugador (rondas 3, 7, 9,
+    13, 15, 19…): ronda 3 → 1 objeto, ronda 7 → 2, ronda 9 → 3, ronda 13
+    → 4… siempre máximo 1 por Pokémon.
   - **Ranking idéntico al 1J**: ✔ verde al ganar, ✖ rojo al perder, `-X` de
     daño, 🔥 de racha y ocultación de marcas a los 5 s. Además solo se repinta
     cuando cambian los datos, así el `-7` ya **no parpadea**.

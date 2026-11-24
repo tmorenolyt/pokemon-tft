@@ -49099,10 +49099,29 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         return actual || p;
     }
 
-    function _elegirPokemonIA(pool, usados, costeMax, est, rnd, costeExacto) {
-        let cands = pool.filter(p => p && !usados.has(p.nombre) && (p.coste || 1) <= costeMax);
+    // Coste según las probabilidades reales de tienda del nivel (SHOP_ODDS).
+    function _costeSegunOdds(odds, rnd) {
+        const rand = rnd();
+        let acum = 0;
+        for (let c = 1; c <= 5; c++) {
+            acum += (odds && odds[c]) ? odds[c] : 0;
+            if (rand <= acum) return c;
+        }
+        return 1;
+    }
+
+    function _elegirPokemonIA(pool, usados, est, rnd, costeExacto, odds) {
+        let cands = pool.filter(p => p && !usados.has(p.nombre));
         if (costeExacto) {
             const exactos = cands.filter(p => (p.coste || 1) === costeExacto);
+            if (exactos.length) cands = exactos;
+        } else {
+            const coste = _costeSegunOdds(odds, rnd);
+            let exactos = cands.filter(p => (p.coste || 1) === coste);
+            if (!exactos.length) {
+                const disponibles = [1, 2, 3, 4, 5].filter(c => cands.some(p => (p.coste || 1) === c));
+                exactos = disponibles.length ? cands.filter(p => disponibles.includes(p.coste || 1)) : [];
+            }
             if (exactos.length) cands = exactos;
         }
         if (!cands.length) return null;
@@ -49143,7 +49162,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         } catch (e) { return null; }
     }
 
-    function construirEquipoIA(nivel, seed, nombreRival) {
+    function construirEquipoIA(nivel, seed, nombreRival, ronda) {
+        const rondaActual = (typeof ronda === 'number' && ronda > 0) ? ronda : 99;
         const rnd = _rng(seed);
         const pool = (typeof POKEMONS !== 'undefined' && Array.isArray(POKEMONS)) ? POKEMONS.filter(p => p && p.base !== false) : [];
         if (!pool.length) return [];
@@ -49153,23 +49173,36 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         const n = (typeof TABLA_MAX_UNIDADES !== 'undefined' && TABLA_MAX_UNIDADES[nivel])
             ? TABLA_MAX_UNIDADES[nivel]
             : Math.max(1, Math.min(6, 1 + Math.floor((nivel || 2) / 2)));
+        // Estrellas según el nivel (como las fusiones del 1J).
         const nivelUnidad = (nivel >= 7) ? 3 : ((nivel >= 4) ? 2 : 1);
-        // Objetos del EQUIPO (no uno por Pokémon): en nivel 3 solo 1 objeto,
-        // y va aumentando poco a poco como en 1J.
-        const numObjetosEquipo = (nivel < 3) ? 0 : ((nivel <= 4) ? 1 : ((nivel <= 6) ? 2 : 3));
+        // Costes según las PROBABILIDADES DE TIENDA del nivel, no por ronda.
+        const odds = (typeof SHOP_ODDS !== 'undefined')
+            ? (SHOP_ODDS[Math.min(8, Math.max(1, nivel || 1))] || SHOP_ODDS[8])
+            : { 1: 1, 2: 0, 3: 0, 4: 0, 5: 0 };
+        // Objetos del EQUIPO: cada ronda de objetos (3, 7, 9, 13, 15, 19…)
+        // da uno, igual que al jugador. En ronda 7 → 2 objetos.
+        let numObjetosEquipo = 0;
+        if (rondaActual < 90) {
+            for (let rr = 3; rr <= rondaActual; rr++) {
+                if (((rr - 3) % 6 === 0) || ((rr - 7) % 6 === 0)) numObjetosEquipo++;
+            }
+        } else {
+            numObjetosEquipo = (nivel < 3) ? 0 : ((nivel <= 4) ? 1 : ((nivel <= 6) ? 2 : 3));
+        }
+        numObjetosEquipo = Math.min(n, numObjetosEquipo);
         const elegidos = [];
         const usados = new Set();
-        // Mismo tope de coste por nivel que el 1J.
-        const costeMax = (nivel <= 1) ? 1 : ((nivel >= 7) ? 5 : ((nivel >= 6) ? 4 : ((nivel >= 4) ? 3 : 2)));
         // Primera tienda (nivel 2): 1 unidad inicial de coste 1 + 1 compra
-        // de coste 1 o 2 según la semilla. Así el oro del servidor coincide.
-        const costesIniciales = (nivel === 2) ? [1, ((Number(seed) || 1) % 2) + 1] : null;
+        // (73% coste 1 / 27% coste 2, las odds reales del nivel 2).
+        const costesIniciales = (nivel === 2)
+            ? [1, (((Number(seed) || 1) % 100) < 73 ? 1 : 2)]
+            : null;
 
         let intentos = 0;
         while (elegidos.length < n && intentos < 200) {
             intentos++;
             const costeExacto = costesIniciales ? costesIniciales[elegidos.length] : null;
-            const p = _elegirPokemonIA(pool, usados, costeMax, est, rnd, costeExacto);
+            const p = _elegirPokemonIA(pool, usados, est, rnd, costeExacto, odds);
             if (!p) break; // no quedan candidatos de ese coste
             usados.add(p.nombre);
             elegidos.push(p);
@@ -49245,7 +49278,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
 
         if (msg.roundType !== 'pve' && asig && asig.tipo === 'ia') {
             // 🤖 Contra una IA del torneo: carga su equipo y pelea en vivo
-            const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1, asig.nombre);
+            const equipoIA = construirEquipoIA(asig.nivel || 2, asig.seed || 1, asig.nombre, msg.round || fase);
             cargarEnemigo(equipoIA, [], [], true);
             const rvTorneo = (window._torneoOnline && (window._torneoOnline.participantes || []).find(p => p.id === asig.rivalId)) || null;
             window._rivalOnlineActual = {
@@ -49362,7 +49395,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             const sig = 'ia|' + rv.id + '|' + rv.nivel + '|' + rv.seed;
             if (sig === window._ultimaFirmaRivalIA) return;
             window._ultimaFirmaRivalIA = sig;
-            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1, rv.nombre), [], [], true);
+            const rondaActual = (window._torneoOnline && window._torneoOnline.ronda) || (typeof fase !== 'undefined' ? fase : 99);
+            cargarEnemigo(construirEquipoIA(rv.nivel || 2, rv.seed || 1, rv.nombre, rondaActual), [], [], true);
         }
         try {
             window.rivalActual = { nombre: rv.nombre, avatar: rv.avatar, esMonstruo: false };
@@ -49384,7 +49418,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         } else {
             // Si es el rival de esta ronda, usa la semilla de la pareja
             // (así el espionaje coincide con el equipo que pelea).
-            cargarEnemigo(construirEquipoIA(p.nivel || 2, _seedRivalOnline(p), p.nombre), [], [], true);
+            const rondaEspia = (window._torneoOnline && window._torneoOnline.ronda) || (typeof fase !== 'undefined' ? fase : 99);
+            cargarEnemigo(construirEquipoIA(p.nivel || 2, _seedRivalOnline(p), p.nombre, rondaEspia), [], [], true);
         }
         window._rivalEspectado = {
             id: p.id, tipo: p.tipo, nombre: p.nombre, avatar: p.avatar,
@@ -49749,7 +49784,7 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 // Equipo: los humanos mandan su tablero; las IA se generan con su semilla
                 const equipo = (p.tipo === 'humano')
                     ? (Array.isArray(p.board) ? p.board : [])
-                    : construirEquipoIA(p.nivel || 2, p.seed || 1, p.nombre);
+                    : construirEquipoIA(p.nivel || 2, p.seed || 1, p.nombre, (window._torneoOnline && window._torneoOnline.ronda) || 99);
 
                 let equipoHtml = '';
                 equipo.forEach(it => {

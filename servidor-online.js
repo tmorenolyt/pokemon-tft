@@ -162,13 +162,66 @@ function emparejarTorneoOnline(room) {
         [vivos[i], vivos[j]] = [vivos[j], vivos[i]];
     }
 
-    const parejas = [];
-    for (let i = 0; i + 1 < vivos.length; i += 2) {
-        parejas.push([vivos[i].id, vivos[i + 1].id]);
+    // 🤝 Evitar revanchas inmediatas: un participante no se empareja con su
+    // último rival si hay otra opción (como en el torneo de 1J).
+    // Se resuelve con backtracking (máx. 8 participantes), porque un greedy
+    // simple podía dejar al final dos que ya habían jugado entre sí.
+    const ultimoRival = t._ultimoRival || {};
+    function _matchingSinRevancha(lista) {
+        const n = lista.length;
+        if (n % 2 !== 0) return null;
+        const usados = new Set();
+        const res = [];
+        function bt() {
+            let ia = -1;
+            for (let i = 0; i < n; i++) if (!usados.has(lista[i].id)) { ia = i; break; }
+            if (ia < 0) return true;
+            const a = lista[ia];
+            usados.add(a.id);
+            for (let ib = ia + 1; ib < n; ib++) {
+                const b = lista[ib];
+                if (usados.has(b.id)) continue;
+                if (ultimoRival[a.id] === b.id || ultimoRival[b.id] === a.id) continue;
+                usados.add(b.id);
+                res.push([a.id, b.id]);
+                if (bt()) return true;
+                res.pop();
+                usados.delete(b.id);
+            }
+            usados.delete(a.id);
+            return false;
+        }
+        return bt() ? res : null;
+    }
+
+    let parejas = null;
+    let suelto = null;
+    if (vivos.length % 2 === 0) {
+        parejas = _matchingSinRevancha(vivos);
+    } else {
+        for (const s of vivos) {
+            const resto = vivos.filter(x => x !== s);
+            const m = _matchingSinRevancha(resto);
+            if (m) { parejas = m; suelto = s; break; }
+        }
+    }
+    // Respaldo si no existe combinación sin revancha (p. ej. solo 2 vivos).
+    if (!parejas) {
+        parejas = [];
+        const cola = vivos.slice();
+        suelto = null;
+        while (cola.length >= 2) {
+            const a = cola.shift();
+            let idx = cola.findIndex(b => ultimoRival[a.id] !== b.id);
+            if (idx < 0) idx = 0;
+            const b = cola.splice(idx, 1)[0];
+            parejas.push([a.id, b.id]);
+        }
+        if (cola.length === 1) suelto = cola[0];
     }
 
     const enPareja = new Set(parejas.flat());
-    t.sueltos = vivos.filter(p => !enPareja.has(p.id)).map(p => p.id);
+    t.sueltos = suelto ? [suelto.id] : vivos.filter(p => !enPareja.has(p.id)).map(p => p.id);
     t.parejas = parejas;
 
     // Semilla por pareja (equipo de IA determinista si hace falta)
@@ -178,11 +231,15 @@ function emparejarTorneoOnline(room) {
         if (!t.seeds[k]) t.seeds[k] = Math.floor(Math.random() * 1e9) + 1;
     });
 
-    // Rival de cada participante
+    // Rival de cada participante + memoria para no repetir al mismo
+    // rival en rondas consecutivas.
     t.rivales = {};
+    t._ultimoRival = {};
     parejas.forEach(par => {
         t.rivales[par[0]] = par[1];
         t.rivales[par[1]] = par[0];
+        t._ultimoRival[par[0]] = par[1];
+        t._ultimoRival[par[1]] = par[0];
     });
 }
 
@@ -294,7 +351,8 @@ function simularTorneoOnline(room, rondaJugada) {
         if (r === 1) {
             p.nivel = Math.max(p.nivel || 1, 2);
             p.slots = Math.max(p.slots || 1, 2);
-            const costeCompra = ((Number(p.seed) || 1) % 2) + 1;
+            // Odds reales del nivel 2: 73% coste 1 / 27% coste 2.
+            const costeCompra = (((Number(p.seed) || 1) % 100) < 73) ? 1 : 2;
             p.oro = Math.max(0, oroAntes - costeCompra);
             return;
         }
