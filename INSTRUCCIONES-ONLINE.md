@@ -328,8 +328,10 @@ protegido solo por `ACCESS_KEY`.
     **2** en nivel 5-6 y **3** en nivel 7-8 (máximo 1 por unidad).
   - **Oro y racha de las IA**: economía como el torneo de 1J. Las IA empiezan
     con **nivel 1, 1 unidad y 10💰**. La ronda 1 (PvE de arranque) no da oro,
-    pero **en la primera tienda ya compran**: suben a nivel 2 y añaden 1 unidad,
-    quedándose con ~4💰. A partir de ahí: ingreso `5 base + interés (máx. 3) +
+    pero **en la primera tienda ya compran**: el nivel 2 es gratis y compran
+    1 Pokémon; si es de **coste 1** se quedan con **9💰** y si es de **coste 2**
+    con **8💰** (el coste se deriva de la semilla del rival y coincide con el
+    Pokémon que genera el cliente). A partir de ahí: ingreso `5 base + interés (máx. 3) +
     racha + remontada por nivel + 1 al ganar`. Pagan las subidas de nivel con la
     tabla real (`4/8/20/24/36/48/60`), pagan las **unidades de los slots nuevos**
     y gastan en compras/rerolls; tope **65**. El panel del rival muestra oro y

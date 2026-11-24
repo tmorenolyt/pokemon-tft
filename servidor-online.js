@@ -288,6 +288,17 @@ function simularTorneoOnline(room, rondaJugada) {
         const nivelAntes = (typeof p.nivel === 'number' && !isNaN(p.nivel)) ? p.nivel : 1;
         const racha = (typeof p.racha === 'number') ? p.racha : 0;
 
+        // 🛒 PRIMERA TIENDA (tras la ronda 1): como en 1J, el nivel 2 es
+        // GRATIS y solo compra 1 Pokémon. El coste (1 o 2) coincide con la
+        // semilla que usa el cliente para generar su segundo Pokémon.
+        if (r === 1) {
+            p.nivel = Math.max(p.nivel || 1, 2);
+            p.slots = Math.max(p.slots || 1, 2);
+            const costeCompra = ((Number(p.seed) || 1) % 2) + 1;
+            p.oro = Math.max(0, oroAntes - costeCompra);
+            return;
+        }
+
         // Ronda 1 (PvE de arranque): sin oro y sin comprar/subir (como en 1J).
         let ingreso = 0;
         if (r > 1) {
@@ -809,14 +820,12 @@ const server = http.createServer((req, res) => {
                             const rid = room.torneo.rivales[hpid];
                             const rv = (room.torneo.participantes || []).find(p => p.id === rid);
                             if (!rv) return;
-                            let seed = 1;
-                            try {
-                                const par = (room.torneo.parejas || []).find(x => x.includes(hpid) && x.includes(rid)) || [hpid, rid];
-                                seed = (room.torneo.seeds || {})[par.join('|')] || 1;
-                            } catch (e) { }
+                            // Semilla del PROPIO participante: equipo estable
+                            // en todas las rondas y en ambos clientes.
+                            const seed = rv.seed || 1;
                             asignaciones[hpid] = {
                                 tipo: rv.tipo, rivalId: rv.id, nombre: rv.nombre, avatar: rv.avatar,
-                                nivel: rv.nivel || 2, seed
+                                nivel: rv.nivel || 1, seed
                             };
                         });
                     }

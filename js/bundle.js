@@ -49099,8 +49099,12 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         return actual || p;
     }
 
-    function _elegirPokemonIA(pool, usados, costeMax, est, rnd) {
-        const cands = pool.filter(p => p && !usados.has(p.nombre) && (p.coste || 1) <= costeMax);
+    function _elegirPokemonIA(pool, usados, costeMax, est, rnd, costeExacto) {
+        let cands = pool.filter(p => p && !usados.has(p.nombre) && (p.coste || 1) <= costeMax);
+        if (costeExacto) {
+            const exactos = cands.filter(p => (p.coste || 1) === costeExacto);
+            if (exactos.length) cands = exactos;
+        }
         if (!cands.length) return null;
         // Primero los que SÍ encajan con la estrategia (tipo/clase/prioridad).
         // Si no quedan suficientes, se completa con el resto.
@@ -49157,11 +49161,15 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         const usados = new Set();
         // Mismo tope de coste por nivel que el 1J.
         const costeMax = (nivel <= 1) ? 1 : ((nivel >= 7) ? 5 : ((nivel >= 6) ? 4 : ((nivel >= 4) ? 3 : 2)));
+        // Primera tienda (nivel 2): 1 unidad inicial de coste 1 + 1 compra
+        // de coste 1 o 2 según la semilla. Así el oro del servidor coincide.
+        const costesIniciales = (nivel === 2) ? [1, ((Number(seed) || 1) % 2) + 1] : null;
 
         let intentos = 0;
         while (elegidos.length < n && intentos < 200) {
             intentos++;
-            const p = _elegirPokemonIA(pool, usados, costeMax, est, rnd);
+            const costeExacto = costesIniciales ? costesIniciales[elegidos.length] : null;
+            const p = _elegirPokemonIA(pool, usados, costeMax, est, rnd, costeExacto);
             if (!p) break; // no quedan candidatos de ese coste
             usados.add(p.nombre);
             elegidos.push(p);
@@ -49311,17 +49319,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     // la ronda, así el equipo IA de preparación y el del combate coinciden.
     function _seedRivalOnline(rv) {
         if (!rv) return 1;
-        if (rv.tipo === 'humano') return 1;
-        try {
-            const t = window._torneoOnline;
-            if (t && Array.isArray(t.parejas) && t.seeds) {
-                const par = t.parejas.find(x => Array.isArray(x) && x.includes(pid) && x.includes(rv.id));
-                if (par) {
-                    const s = t.seeds[par.join('|')];
-                    if (s) return s;
-                }
-            }
-        } catch (e) { }
+        // Semilla PROPIA del participante: mismo equipo en todas las rondas
+        // y en ambos clientes (y coincide con el coste que cobra el servidor).
         return rv.seed || 1;
     }
 
