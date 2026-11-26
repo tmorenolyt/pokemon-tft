@@ -13360,6 +13360,33 @@ html body .bank-cell.cost-5 { background: linear-gradient(145deg, #cea343, #b88a
 }
 
 /* ============================================================
+   BOTÓN DATOS EN LA CABECERA (arriba a la derecha)
+   Mismo aspecto circular que Ajustes/⚙️, en verde-cian.
+   ============================================================ */
+#juegoContainer .header-right #btnPostCombate.btn-datos {
+    width: 32px;
+    height: 32px;
+    min-width: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #4a6a8a;
+    box-shadow: none;
+    color: #7dd3c8;
+    font-size: 0.95rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#juegoContainer .header-right #btnPostCombate.btn-datos:hover {
+    background: rgba(45, 136, 122, 0.25);
+    border-color: #3daa99;
+    color: #b8f3e8;
+}
+
+/* ============================================================
    ACTION BAR - BOTONES DEL MISMO ALTO (44px como la tienda)
    ============================================================ */
 .action-bar .btn-action {
