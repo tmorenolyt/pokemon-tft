@@ -26,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=02e0bff53e" />
+    <link rel="stylesheet" href="css/bundle.css?v=2950dc1f33" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -191,7 +191,20 @@
         </div>
     </div>
     <div class="top-actions">
-        <button class="menu-icon-btn" title="Perfil" id="btnPerfilMenu">👤</button>
+        <!-- Perfil del jugador (avatar, nombre, nivel y XP) -->
+        <div class="profile-capsule" id="profileCapsuleBtn" role="button" tabindex="0" title="Ver perfil">
+            <div class="profile-avatar" id="footerAvatar">🧢</div>
+            <div class="profile-details">
+                <div class="profile-name-row">
+                    <span class="profile-name" id="footerName">Entrenador</span>
+                    <span class="profile-level">Nv. 1</span>
+                </div>
+                <div class="xp-bar-bg">
+                    <div class="xp-bar-fill"></div>
+                </div>
+                <div class="xp-text">0 / 100 XP</div>
+            </div>
+        </div>
         <button class="menu-icon-btn" title="Logros" id="btnLogros">🏆</button>
         <button class="menu-icon-btn" title="Pokédex" id="btnCompendio">📖</button>
         <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenu">⚙️</button>
@@ -241,19 +254,6 @@
 
                 <!-- FOOTER -->
                 <footer class="footer">
-                    <div class="profile-capsule" id="profileCapsuleBtn" role="button" tabindex="0" title="Ver perfil y logros">
-                        <div class="profile-avatar" id="footerAvatar">🧢</div>
-                        <div class="profile-details">
-                            <div class="profile-name-row">
-                                <span class="profile-name" id="footerName">Entrenador</span>
-                                <span class="profile-level">Nv. 1</span>
-                            </div>
-                            <div class="xp-bar-bg">
-                                <div class="xp-bar-fill"></div>
-                            </div>
-                            <div class="xp-text">0 / 100 XP</div>
-                        </div>
-                    </div>
                     <div id="appVersion" class="app-version" title="Versión desplegada (pulsa para comprobar)">v—</div>
                 </footer>
             </div>
@@ -273,7 +273,20 @@
                         </div>
                     </div>
                     <div class="top-actions">
-                        <button class="menu-icon-btn" title="Perfil" id="btnPerfilSeleccion">👤</button>
+                        <!-- Perfil del jugador (avatar, nombre, nivel y XP) -->
+                        <div class="profile-capsule" id="selCapsuleBtn" role="button" tabindex="0" title="Ver perfil">
+                            <div class="profile-avatar">🧢</div>
+                            <div class="profile-details">
+                                <div class="profile-name-row">
+                                    <span class="profile-name">Entrenador</span>
+                                    <span class="profile-level">Nv. 1</span>
+                                </div>
+                                <div class="xp-bar-bg">
+                                    <div class="xp-bar-fill"></div>
+                                </div>
+                                <div class="xp-text">0 / 100 XP</div>
+                            </div>
+                        </div>
                         <button class="menu-icon-btn" title="Logros" id="btnLogrosSeleccion">🏆</button>
                         <button class="menu-icon-btn" title="Pokédex" id="btnCompendioSeleccion">📖</button>
                         <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuSeleccion">⚙️</button>
@@ -286,16 +299,6 @@
                     <div class="sel-title-container">
                         <h1 id="selTituloModo">1 JUGADOR VS 2 JUGADORES</h1>
                         <p id="selSubtituloModo">Selecciona tu avatar y tu nombre</p>
-                    </div>
-
-                    <!-- MAPA / ESCENARIO -->
-                    <div class="map-selector" id="mapSelectorBar" role="button" tabindex="0" title="Elegir mapa">
-                        <div class="map-selector-thumb" id="mapSelectorThumb"></div>
-                        <div class="map-selector-text">
-                            <span class="map-selector-label">MAPA</span>
-                            <span class="map-selector-name" id="mapSelectorName">Automático</span>
-                        </div>
-                        <button class="map-selector-btn" id="btnElegirMapa" type="button">CAMBIAR ›</button>
                     </div>
 
                     <!-- 🌐 ONLINE: crear/entrar en sala desde el menú local -->
@@ -403,6 +406,50 @@
                 </div> <!-- 🆕 cierre de seleccion-container -->
             </div> <!-- 🆕 cierre de menu-container -->
         </div> <!-- cierre de vistaSeleccion -->
+
+        <!-- VISTA 3: PANEL DE USUARIO (se rellena desde perfilPanel.js) -->
+        <div id="vistaPerfil" class="menu-vista">
+            <div class="menu-container perfil-vista">
+
+                <!-- HEADER (mismo que en el menú y la selección) -->
+                <header class="menu-header">
+                    <div class="logo-area">
+                        <div class="logo-icon">⚡</div>
+                        <div class="logo-text">
+                            <h1>POKÉMON TFT</h1>
+                            <p>Teamfight Tactics - Edición Pokémon</p>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <div class="profile-capsule" id="perfilCapsuleBtn2" role="button" tabindex="0" title="Ver perfil">
+                            <div class="profile-avatar">🧢</div>
+                            <div class="profile-details">
+                                <div class="profile-name-row">
+                                    <span class="profile-name">Entrenador</span>
+                                    <span class="profile-level">Nv. 1</span>
+                                </div>
+                                <div class="xp-bar-bg">
+                                    <div class="xp-bar-fill"></div>
+                                </div>
+                                <div class="xp-text">0 / 100 XP</div>
+                            </div>
+                        </div>
+                        <button class="menu-icon-btn" title="Logros" id="btnLogrosPerfil">🏆</button>
+                        <button class="menu-icon-btn" title="Pokédex" id="btnCompendioPerfil">📖</button>
+                        <button class="menu-icon-btn" title="Ajustes" id="btnAjustesMenuPerfil">⚙️</button>
+                    </div>
+                </header>
+
+                <!-- Título centrado (igual que al entrar en 1 JUGADOR) -->
+                <div class="sel-title-container perfil-vista-titulo">
+                    <h1>PANEL DE USUARIO</h1>
+                    <p>Personaliza tu perfil y estilo</p>
+                </div>
+
+                <!-- Panel (lo rellena perfilPanel.js) -->
+                <div id="perfilEmbed" class="perfil-embed-slot"></div>
+            </div>
+        </div>
     </div> <!-- cierre de menuPrincipal -->
 
         <!-- ============================================================
@@ -585,7 +632,6 @@
                         <span class="gold-value-enemy" id="enemyGoldValue">9</span>
                         <span class="gold-label">oro</span>
                     </span>
-                    <button class="btn-volver-menu" id="btnMapaJuego" title="Elegir mapa">🗺️</button>
                     <button class="btn-volver-menu" id="btnAjustes" title="Ajustes">⚙️</button>
                 </div>
             </div>
@@ -1147,6 +1193,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=02e0bff53e"></script>
+    <script defer src="js/bundle.js?v=2950dc1f33"></script>
 </body>
 </html>

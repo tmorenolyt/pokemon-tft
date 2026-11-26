@@ -812,6 +812,28 @@ body.terreno-salvaje    { --terreno-actual: url('../assets/backgrounds/terreno-s
 #menuPrincipal .xp-bar-fill { width: 45%; height: 100%; background: linear-gradient(90deg, #4dd4f7, #3b82f6); border-radius: 3px; box-shadow: 0 0 10px var(--cyan-glow); }
 #menuPrincipal .xp-text { font-size: 0.65rem; color: var(--text-soft); text-align: right; margin-top: 2px; }
 
+/* Perfil compacto en la cabecera (arriba a la derecha) */
+#menuPrincipal .top-actions { align-items: center; }
+#menuPrincipal .menu-header .profile-capsule {
+    gap: 10px;
+    padding: 6px 16px 6px 6px;
+    border-radius: 999px;
+}
+#menuPrincipal .menu-header .profile-avatar {
+    width: 40px; height: 40px; font-size: 1.2rem;
+}
+#menuPrincipal .menu-header .profile-details { min-width: 150px; gap: 3px; }
+#menuPrincipal .menu-header .profile-name {
+    font-size: 0.85rem;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#menuPrincipal .menu-header .profile-level { font-size: 0.62rem; padding: 1px 7px; }
+#menuPrincipal .menu-header .xp-bar-bg { height: 5px; }
+#menuPrincipal .menu-header .xp-text { font-size: 0.58rem; margin-top: 0; }
+
 /* ============================================================
    VISTA 2: SELECCIÓN (1v1 / 1J)
    ============================================================ */
@@ -15552,8 +15574,9 @@ body.modo-espia #playerBoard .board-cell {
     left: 50%;
     transform: translateX(-50%);
     /* Por encima de la pantalla de victoria (999999) y de la evolución
-       (9999999): el logro de torneo debe verse al terminar. */
-    z-index: 2147483000;
+       (9999999): el logro de torneo debe verse al terminar. Se queda justo
+       por debajo del Panel de Usuario (2147482500) para no tapar su cabecera. */
+    z-index: 2147482400;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -15703,6 +15726,1295 @@ body.modo-espia #playerBoard .board-cell {
 }
 
 
+/* ==================== css/perfil.css ==================== */
+/* ============================================================
+   PANEL DE USUARIO (perfil, arenas, insignias, detalles)
+   ============================================================ */
+
+.perfil-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147482500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    background: rgba(3, 8, 18, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #e6eefc;
+}
+
+/* Perfil INTEGRADO como vista del menú (no modal flotante).
+   En este modo el panel ocupa toda la vista y no hay fondo oscurecido. */
+#menuPrincipal #vistaPerfil .perfil-overlay.perfil-embed {
+    position: static;
+    inset: auto;
+    z-index: auto;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    /* Velo suave sobre el fondo del menú para que el texto se lea bien */
+    background: linear-gradient(180deg, rgba(4, 10, 22, 0.30), rgba(4, 10, 22, 0.45));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+#menuPrincipal #vistaPerfil .perfil-overlay.perfil-embed .perfil-modal {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+    /* El fondo del menú (la arena) se ve a través del panel */
+    background: transparent;
+}
+
+/* La cabecera de la vista ya es la del menú: se oculta la del panel */
+#menuPrincipal #vistaPerfil .perfil-overlay.perfil-embed .perfil-header {
+    display: none;
+}
+
+/* Layout de la vista: header + título centrado + panel */
+#menuPrincipal #vistaPerfil .menu-container.perfil-vista {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* Mismo padding que el menú principal: así la cabecera queda
+       exactamente en la misma posición. */
+}
+
+#menuPrincipal #vistaPerfil .perfil-vista-titulo {
+    flex: 0 0 auto;
+    margin: 2px auto 10px;
+    padding: 8px 40px;
+}
+
+#menuPrincipal #vistaPerfil .perfil-vista-titulo h1 {
+    font-size: 1.3rem;
+}
+
+#menuPrincipal #vistaPerfil .perfil-vista-titulo p {
+    font-size: 0.75rem;
+}
+
+.perfil-embed-slot {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    width: 100%;
+}
+
+#menuPrincipal #vistaPerfil .perfil-overlay.perfil-embed .perfil-footer {
+    background: rgba(8, 20, 40, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.perfil-modal {
+    width: min(1500px, 100%);
+    height: min(92vh, 980px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid rgba(77, 212, 247, 0.55);
+    border-radius: 18px;
+    background: linear-gradient(145deg, #0a1730, #101f3d 55%, #0a1428);
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.85),
+        0 0 40px rgba(77, 212, 247, 0.18);
+    animation: perfilPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes perfilPop {
+    from { transform: scale(0.96); }
+    to   { transform: scale(1); }
+}
+
+/* ---------------- Cabecera ---------------- */
+.perfil-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(77, 212, 247, 0.18);
+    background: linear-gradient(180deg, rgba(16, 34, 64, 0.95), rgba(8, 20, 40, 0.85));
+}
+
+.perfil-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.perfil-ball {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 3px solid #fbbf24;
+    background:
+        radial-gradient(circle at 50% 50%, #f8fafc 0 28%, #0b1220 29% 36%, #ef4444 37% 62%, #dc2626 100%);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.4), inset 0 0 12px rgba(0, 0, 0, 0.5);
+    font-size: 1.1rem;
+    color: #0b1220;
+    font-weight: 900;
+}
+
+.perfil-brand-text h1 {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #fbbf24;
+    text-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+}
+
+.perfil-brand-text p {
+    margin: 2px 0 0;
+    font-size: 0.7rem;
+    color: #9fc0e6;
+    letter-spacing: 0.6px;
+}
+
+.perfil-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border: 1px solid rgba(77, 212, 247, 0.35);
+    border-radius: 12px;
+    background: rgba(8, 20, 40, 0.9);
+}
+
+.perfil-chip img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fbbf24;
+    background: #0b1626;
+}
+
+.perfil-chip-name {
+    font-size: 0.85rem;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.perfil-chip-level {
+    font-size: 0.62rem;
+    color: #fbbf24;
+    font-weight: 800;
+}
+
+/* ---------------- Pestañas ---------------- */
+.perfil-tabs {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px 0;
+    background: rgba(8, 20, 40, 0.55);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.perfil-tabs::-webkit-scrollbar { display: none; }
+
+.perfil-tab {
+    appearance: none;
+    flex: 0 0 auto;
+    line-height: 1.2;
+    padding: 9px 34px;
+    border: 1px solid rgba(77, 212, 247, 0.25);
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    background: rgba(13, 30, 58, 0.9);
+    color: #b9d4ee;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.perfil-tab:hover { color: #fff; border-color: rgba(77, 212, 247, 0.55); }
+
+.perfil-tab.activa {
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    color: #13203a;
+    border-color: #fde68a;
+    box-shadow: 0 -2px 14px rgba(251, 191, 36, 0.35);
+}
+
+/* ---------------- Cuerpo ---------------- */
+.perfil-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr) 340px;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+.perfil-body.sin-side {
+    grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.perfil-body.sin-side .perfil-side { display: none; }
+
+/* Menú lateral */
+.perfil-side {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    border: 1px solid rgba(77, 212, 247, 0.22);
+    border-radius: 14px;
+    background: rgba(8, 20, 40, 0.75);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.perfil-side-title {
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    color: #6f93b8;
+    padding: 2px 8px 6px;
+    text-transform: uppercase;
+}
+
+.perfil-side-btn {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: #b9d0e8;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.perfil-side-btn:hover {
+    background: rgba(77, 212, 247, 0.1);
+    border-color: rgba(77, 212, 247, 0.3);
+    color: #fff;
+}
+
+.perfil-side-btn.activa {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    border-color: #fde68a;
+    color: #13203a;
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.25);
+}
+
+.perfil-side-icon { font-size: 1rem; }
+
+/* Contenido */
+.perfil-main {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px;
+    border: 1px solid rgba(77, 212, 247, 0.22);
+    border-radius: 14px;
+    background: rgba(8, 20, 40, 0.72);
+    scrollbar-width: thin;
+}
+
+.perfil-main-head {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(77, 212, 247, 0.16);
+}
+
+.perfil-main-head h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #fbbf24;
+    letter-spacing: 0.5px;
+}
+
+.perfil-main-head p {
+    margin: 3px 0 0;
+    font-size: 0.72rem;
+    color: #93b4d6;
+}
+
+/* Arenas */
+.perfil-map-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.perfil-map-card {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 12px;
+    background: #081426;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.perfil-map-card:hover {
+    border-color: rgba(77, 212, 247, 0.7);
+    transform: translateY(-2px);
+}
+
+.perfil-map-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+}
+
+.perfil-map-card.bloqueada {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+    cursor: not-allowed;
+}
+
+.perfil-map-card.bloqueada:hover { transform: none; border-color: rgba(77, 212, 247, 0.22); }
+
+.perfil-map-thumb {
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    background-color: #0b1626;
+}
+
+.perfil-map-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 9px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #e6eefc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.perfil-map-lock {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.perfil-map-check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fbbf24;
+    color: #13203a;
+    font-size: 0.75rem;
+    font-weight: 900;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+}
+
+/* Personajes */
+.perfil-avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.perfil-avatar-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 12px;
+    background: rgba(13, 30, 58, 0.75);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.perfil-avatar-card:hover { border-color: rgba(77, 212, 247, 0.7); transform: translateY(-2px); }
+
+.perfil-avatar-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+}
+
+.perfil-avatar-card img {
+    width: 100%;
+    max-width: 76px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 50%;
+    background: #0b1626;
+}
+
+.perfil-avatar-card span {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #d6e6f8;
+}
+
+/* Marcos / colores */
+.perfil-color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.perfil-color-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 12px;
+    background: rgba(13, 30, 58, 0.75);
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #d6e6f8;
+}
+
+.perfil-color-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+}
+
+.perfil-color-dot {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Títulos */
+.perfil-title-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.perfil-title-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 10px;
+    background: rgba(13, 30, 58, 0.75);
+    color: #d6e6f8;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: left;
+}
+
+.perfil-title-option:hover { border-color: rgba(77, 212, 247, 0.65); }
+
+.perfil-title-option.seleccionada {
+    border-color: #fbbf24;
+    color: #fde68a;
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.25);
+}
+
+/* Emotes / efectos */
+.perfil-emote-grid,
+.perfil-efecto-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.perfil-emote-card,
+.perfil-efecto-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 74px;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 12px;
+    background: rgba(13, 30, 58, 0.75);
+    color: #d6e6f8;
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.perfil-emote-card { font-size: 1.5rem; }
+
+.perfil-emote-card.seleccionada,
+.perfil-efecto-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+}
+
+.perfil-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    border: 2px dashed rgba(77, 212, 247, 0.25);
+    border-radius: 14px;
+    color: #7f9fc0;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+/* Insignias */
+.perfil-badge-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.perfil-badge-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 5px;
+    border: 2px solid rgba(77, 212, 247, 0.22);
+    border-radius: 12px;
+    background: rgba(13, 30, 58, 0.75);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.perfil-badge-card:hover { border-color: rgba(77, 212, 247, 0.65); transform: translateY(-2px); }
+
+.perfil-badge-card.bloqueada {
+    opacity: 0.38;
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
+.perfil-badge-card.bloqueada:hover { transform: none; border-color: rgba(77, 212, 247, 0.22); }
+
+.perfil-badge-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+}
+
+.perfil-medal {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid #fbbf24;
+    background: radial-gradient(circle at 35% 30%, #1e3a68, #0a1428 70%);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(251, 191, 36, 0.18);
+    font-size: 1.4rem;
+}
+
+.perfil-badge-card.seleccionada .perfil-medal {
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5), 0 0 16px rgba(251, 191, 36, 0.55);
+}
+
+.perfil-badge-name {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #d6e6f8;
+    line-height: 1.15;
+}
+
+.perfil-badge-check {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fbbf24;
+    color: #13203a;
+    font-size: 0.6rem;
+    font-weight: 900;
+}
+
+.perfil-badge-detail {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(77, 212, 247, 0.25);
+    border-radius: 12px;
+    background: rgba(13, 30, 58, 0.85);
+}
+
+.perfil-badge-detail .perfil-medal { width: 58px; height: 58px; font-size: 1.7rem; }
+.perfil-badge-detail-info { min-width: 0; }
+.perfil-badge-detail-name { font-size: 0.9rem; font-weight: 900; color: #fbbf24; }
+.perfil-badge-detail-desc { font-size: 0.7rem; color: #a8c1dd; margin-top: 2px; line-height: 1.35; }
+.perfil-badge-detail-progress { font-size: 0.65rem; color: #7f9fc0; margin-top: 4px; }
+
+/* Detalles (formulario) */
+.perfil-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.perfil-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.perfil-field label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #93b4d6;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.perfil-field input,
+.perfil-field select,
+.perfil-field textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 2px solid rgba(77, 212, 247, 0.28);
+    border-radius: 10px;
+    background: rgba(4, 12, 26, 0.85);
+    color: #e6eefc;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    outline: none;
+    resize: vertical;
+}
+
+.perfil-field input:focus,
+.perfil-field select:focus,
+.perfil-field textarea:focus {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.12);
+}
+
+.perfil-counter {
+    align-self: flex-end;
+    font-size: 0.6rem;
+    color: #6f93b8;
+}
+
+.perfil-form-sep {
+    height: 1px;
+    background: rgba(77, 212, 247, 0.15);
+    margin: 2px 0;
+}
+
+/* Vista previa */
+.perfil-preview {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px;
+    border: 1px solid rgba(77, 212, 247, 0.22);
+    border-radius: 14px;
+    background: rgba(8, 20, 40, 0.72);
+    scrollbar-width: thin;
+}
+
+.perfil-profile-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 14px 14px;
+    border: 2px solid #4dd4f7;
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 50% 10%, rgba(77, 212, 247, 0.14), transparent 55%),
+        linear-gradient(160deg, #122a52, #081426 75%);
+    box-shadow: 0 0 26px rgba(77, 212, 247, 0.18);
+    overflow: hidden;
+}
+
+.perfil-profile-card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 180px;
+    height: 180px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(77, 212, 247, 0.18), transparent 68%);
+    pointer-events: none;
+}
+
+.perfil-portrait {
+    position: relative;
+    z-index: 1;
+    width: 176px;
+    height: 176px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    border-radius: 50%;
+    border: 3px solid var(--perfil-marco, #4dd4f7);
+    background: radial-gradient(circle at 50% 38%, #1b3560, #071022 74%);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+
+.perfil-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+}
+
+.perfil-portrait.efecto-dorado { box-shadow: 0 0 26px rgba(251, 191, 36, 0.7), inset 0 0 18px rgba(251, 191, 36, 0.2); }
+.perfil-portrait.efecto-cian    { box-shadow: 0 0 26px rgba(77, 212, 247, 0.7), inset 0 0 18px rgba(77, 212, 247, 0.2); }
+.perfil-portrait.efecto-fuego   { box-shadow: 0 0 26px rgba(249, 115, 22, 0.75), inset 0 0 18px rgba(249, 115, 22, 0.2); }
+
+.perfil-preview-name {
+    position: relative;
+    z-index: 1;
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.perfil-preview-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border: 1px solid rgba(251, 191, 36, 0.55);
+    border-radius: 999px;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.perfil-preview-badges {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.perfil-preview-badges .perfil-medal {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+}
+
+.perfil-preview-phrase {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(77, 212, 247, 0.28);
+    border-radius: 10px;
+    background: rgba(4, 12, 26, 0.7);
+    color: #cfe4f8;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.perfil-preview-emote {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(4, 12, 26, 0.85);
+    border: 2px solid rgba(77, 212, 247, 0.35);
+    font-size: 1rem;
+}
+
+.perfil-preview-level {
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    z-index: 2;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(4, 12, 26, 0.85);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    color: #fbbf24;
+    font-size: 0.6rem;
+    font-weight: 900;
+}
+
+/* Previsualización de arena */
+.perfil-map-preview img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(77, 212, 247, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.perfil-map-preview h3 {
+    margin: 10px 0 4px;
+    font-size: 1rem;
+    font-weight: 900;
+    color: #fbbf24;
+}
+
+.perfil-map-preview p {
+    margin: 0;
+    font-size: 0.74rem;
+    color: #9fc0e6;
+    line-height: 1.4;
+}
+
+.perfil-preview-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    border: 2px dashed rgba(77, 212, 247, 0.25);
+    border-radius: 12px;
+    color: #7f9fc0;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Detalle de insignia seleccionada */
+.perfil-badge-preview .perfil-medal {
+    width: 84px;
+    height: 84px;
+    font-size: 2.4rem;
+    margin: 0 auto 10px;
+}
+
+.perfil-badge-preview h3 {
+    margin: 0 0 4px;
+    text-align: center;
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.perfil-badge-preview p {
+    margin: 0;
+    text-align: center;
+    color: #a8c1dd;
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+
+/* ---------------- Footer ---------------- */
+.perfil-footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 20px;
+    border-top: 1px solid rgba(77, 212, 247, 0.18);
+    background: rgba(8, 20, 40, 0.9);
+}
+
+.perfil-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border: 1px solid rgba(77, 212, 247, 0.35);
+    border-radius: 10px;
+    background: rgba(13, 30, 58, 0.9);
+    color: #cfe4f8;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.perfil-btn:hover { border-color: #4dd4f7; color: #fff; }
+
+.perfil-btn.guardar {
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    border-color: #fde68a;
+    color: #13203a;
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.3);
+}
+
+.perfil-btn.guardar:hover { filter: brightness(1.07); }
+
+.perfil-aviso {
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #fbbf24;
+    min-height: 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   ESTILO MOCKUP — solo en la vista integrada del menú
+   (pestañas biseladas, opciones, arenas y pie dorado)
+   ============================================================ */
+#menuPrincipal #vistaPerfil .perfil-tabs {
+    justify-content: center;
+    gap: 0;
+    padding: 4px 0 10px;
+    background: transparent;
+    overflow: visible;
+}
+
+#menuPrincipal #vistaPerfil .perfil-tab {
+    position: relative;
+    z-index: 1;
+    margin: 0 -10px;
+    padding: 12px 58px;
+    border: 0;
+    border-radius: 0;
+    clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+    background: linear-gradient(180deg, rgba(20, 42, 76, 0.96), rgba(9, 22, 44, 0.96));
+    color: #cfe4f8;
+    font-size: 0.88rem;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+#menuPrincipal #vistaPerfil .perfil-tab:hover {
+    color: #ffffff;
+    background: linear-gradient(180deg, rgba(34, 68, 110, 0.96), rgba(12, 30, 58, 0.96));
+}
+
+#menuPrincipal #vistaPerfil .perfil-tab.activa {
+    z-index: 2;
+    background: linear-gradient(180deg, #fde68a, #f59e0b 60%, #d97706);
+    color: #0b1220;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+/* Opciones laterales */
+#menuPrincipal #vistaPerfil .perfil-side-btn {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 0;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+#menuPrincipal #vistaPerfil .perfil-side-btn.activa {
+    background: linear-gradient(180deg, #fde68a, #f59e0b);
+    color: #0b1220;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+}
+
+/* Arenas: sin cabecera interna (como el mockup), más sitio para la rejilla */
+#menuPrincipal #vistaPerfil .perfil-main:has(.perfil-map-grid) .perfil-main-head {
+    display: none;
+}
+
+/* Columnas de la vista (la previa va más ancha para la arena horizontal).
+   OJO: solo con menú lateral; Insignias/Detalles usan .sin-side (2 columnas). */
+#menuPrincipal #vistaPerfil .perfil-body:not(.sin-side) {
+    grid-template-columns: 170px minmax(0, 1fr) 430px;
+}
+
+#menuPrincipal #vistaPerfil .perfil-body.sin-side {
+    grid-template-columns: minmax(0, 1fr) 430px;
+}
+
+/* Arenas: tarjetas más pequeñas, con el nombre sobre la imagen */
+#menuPrincipal #vistaPerfil .perfil-map-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-card {
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    border: 2px solid rgba(77, 212, 247, 0.35);
+    background: #0b1626;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-card.seleccionada {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.55), 0 0 22px rgba(251, 191, 36, 0.45);
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-thumb {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 22px 10px 8px;
+    font-size: 0.8rem;
+    background: linear-gradient(180deg, transparent, rgba(4, 10, 22, 0.92) 62%);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Arena bloqueada: se atenúa sin perder el color */
+#menuPrincipal #vistaPerfil .perfil-map-card.bloqueada {
+    opacity: 1;
+    filter: none;
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-card.bloqueada .perfil-map-thumb {
+    filter: grayscale(0.45) brightness(0.62);
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-card.bloqueada .perfil-map-name {
+    color: #9fb6cf;
+}
+
+/* Vista previa de la arena: imagen en horizontal (16:9), centrada */
+#menuPrincipal #vistaPerfil .perfil-map-preview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-preview img {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 3px solid rgba(77, 212, 247, 0.45);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-preview h3 {
+    font-size: 1.15rem;
+    margin-top: 12px;
+}
+
+#menuPrincipal #vistaPerfil .perfil-map-preview p {
+    font-size: 0.8rem;
+}
+
+/* Pie: Volver a la izquierda, Confirmar centrado */
+#menuPrincipal #vistaPerfil .perfil-footer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0 4px;
+    border-top: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+#menuPrincipal #vistaPerfil .perfil-footer {
+    grid-template-areas: 'volver guardar aviso';
+    grid-template-rows: auto;
+}
+
+#menuPrincipal #vistaPerfil .perfil-footer [data-perfil-volver] {
+    grid-area: volver;
+    justify-self: start;
+}
+
+#menuPrincipal #vistaPerfil .perfil-footer [data-perfil-guardar] {
+    grid-area: guardar;
+    justify-self: center;
+}
+
+#menuPrincipal #vistaPerfil .perfil-footer .perfil-aviso {
+    grid-area: aviso;
+    justify-self: end;
+    text-align: right;
+}
+
+#menuPrincipal #vistaPerfil .perfil-btn {
+    padding: 11px 46px;
+    border: 0;
+    border-radius: 0;
+    clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+    background: linear-gradient(180deg, rgba(20, 42, 76, 0.96), rgba(9, 22, 44, 0.96));
+    color: #dbeafe;
+    font-size: 0.85rem;
+}
+
+#menuPrincipal #vistaPerfil .perfil-btn.guardar {
+    background: linear-gradient(180deg, #fde68a, #f59e0b 60%, #d97706);
+    color: #0b1220;
+    font-size: 0.9rem;
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 1180px) {
+    .perfil-body { grid-template-columns: 150px minmax(0, 1fr) 290px; }
+    #menuPrincipal #vistaPerfil .perfil-body:not(.sin-side) { grid-template-columns: 150px minmax(0, 1fr) 300px; }
+    #menuPrincipal #vistaPerfil .perfil-body.sin-side { grid-template-columns: minmax(0, 1fr) 300px; }
+    .perfil-body.sin-side { grid-template-columns: minmax(0, 1fr) 290px; }
+    .perfil-map-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #menuPrincipal #vistaPerfil .perfil-map-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .perfil-badge-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px), (max-height: 700px) {
+    /* En móvil el menú deja hacer scroll de página; el perfil, al ser una
+       vista, mantiene su altura fija y su propio scroll interno. */
+    #menuPrincipal #vistaPerfil.activa {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+    }
+
+    #menuPrincipal #vistaPerfil .menu-container.perfil-vista {
+        height: 100% !important;
+        min-height: 0 !important;
+        /* El padding NO se toca aquí: debe seguir el mismo que el menú
+           principal (20px 40px en escritorio y 4px 10px 6px solo en
+           paisaje móvil), o la cabecera queda desplazada. */
+    }
+
+    #menuPrincipal #vistaPerfil .perfil-vista-titulo {
+        margin: 0 auto 6px !important;
+        padding: 5px 22px !important;
+    }
+
+    #menuPrincipal #vistaPerfil .perfil-vista-titulo { margin-bottom: 4px !important; }
+    #menuPrincipal #vistaPerfil .perfil-vista-titulo h1 { font-size: 0.95rem; }
+    #menuPrincipal #vistaPerfil .perfil-vista-titulo p { display: none; }
+
+    .perfil-overlay { padding: 6px; }
+    .perfil-modal { height: calc(100dvh - 12px); max-height: none; border-radius: 12px; }
+    .perfil-header { padding: 8px 10px; gap: 8px; }
+    .perfil-ball { width: 38px; height: 38px; font-size: 0.8rem; }
+    .perfil-brand-text h1 { font-size: 1rem; }
+    .perfil-brand-text p { font-size: 0.56rem; }
+    .perfil-chip { padding: 4px 6px; gap: 6px; }
+    .perfil-chip img { width: 32px; height: 32px; }
+    .perfil-chip-name { font-size: 0.68rem; max-width: 96px; }
+    .perfil-chip-level { font-size: 0.52rem; }
+    #menuPrincipal #vistaPerfil .perfil-tabs { padding: 2px 8px 6px; justify-content: center; }
+    #menuPrincipal #vistaPerfil .perfil-tab { padding: 7px 24px; font-size: 0.64rem; margin: 0 -6px; }
+    #menuPrincipal #vistaPerfil .perfil-map-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    #menuPrincipal #vistaPerfil .perfil-footer { padding: 4px 0 2px; gap: 6px; }
+    #menuPrincipal #vistaPerfil .perfil-btn { padding: 7px 20px; font-size: 0.66rem; }
+    #menuPrincipal #vistaPerfil .perfil-btn.guardar { font-size: 0.7rem; }
+    #menuPrincipal #vistaPerfil .perfil-footer .perfil-aviso { font-size: 0.58rem; }
+    .perfil-body,
+    .perfil-body.sin-side {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: none;
+        grid-template-rows: none;
+        padding: 8px;
+        gap: 8px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .perfil-side { flex: 0 0 auto; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 6px; gap: 4px; }
+    .perfil-side-title { display: none; }
+    .perfil-side-btn { width: auto; flex: 0 0 auto; padding: 6px 9px; font-size: 0.62rem; white-space: nowrap; }
+    .perfil-side-icon { font-size: 0.85rem; }
+    .perfil-main { flex: 0 0 auto; padding: 8px; overflow: visible; }
+    .perfil-main-head h2 { font-size: 0.9rem; }
+    .perfil-main-head p { font-size: 0.6rem; }
+    .perfil-map-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .perfil-map-name { font-size: 0.6rem; padding: 5px 6px; }
+    .perfil-avatar-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .perfil-avatar-card { padding: 5px; }
+    .perfil-avatar-card span { font-size: 0.55rem; }
+    .perfil-badge-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .perfil-medal { width: 38px; height: 38px; font-size: 1rem; }
+    .perfil-badge-name { font-size: 0.5rem; }
+    .perfil-preview { flex: 0 0 auto; padding: 8px; overflow: visible; }
+    .perfil-portrait { width: 124px; height: 124px; }
+    .perfil-preview-name { font-size: 1rem; }
+    .perfil-preview-badges .perfil-medal { width: 34px; height: 34px; font-size: 0.95rem; }
+    .perfil-preview-phrase { font-size: 0.64rem; }
+    .perfil-footer { padding: 7px 10px; }
+    .perfil-btn { padding: 7px 12px; font-size: 0.66rem; }
+    .perfil-form { gap: 9px; }
+    .perfil-field input, .perfil-field select, .perfil-field textarea { padding: 6px 8px; font-size: 0.7rem; }
+}
+
+/* Paisaje móvil: aquí el menú principal también usa padding compacto,
+   así que el perfil debe usar exactamente el mismo. */
+@media (orientation: landscape) and (max-height: 560px) {
+    #menuPrincipal #vistaPerfil .menu-container.perfil-vista {
+        padding: 4px 10px 6px !important;
+    }
+}
+
+
 /* ==================== css/mobile.css ==================== */
 /* ============================================================
    MODO MÓVIL — layout compacto (paisaje) + aviso en retrato
@@ -15834,7 +17146,18 @@ body.modo-espia #playerBoard .board-cell {
     #menuPrincipal .mode-icon { font-size: 1.1rem !important; }
     #menuPrincipal .mode-badge-proximamente { top: 6px !important; right: 6px !important; font-size: 0.46rem !important; padding: 2px 6px !important; }
     #menuPrincipal .footer { padding-top: 2px !important; }
-    #menuPrincipal .profile-capsule { transform: scale(0.85); transform-origin: top center; }
+    /* Perfil compacto en la cabecera */
+    #menuPrincipal .menu-header .profile-capsule {
+        transform: none;
+        gap: 6px !important;
+        padding: 3px 8px 3px 3px !important;
+    }
+    #menuPrincipal .menu-header .profile-avatar { width: 26px !important; height: 26px !important; font-size: 0.8rem !important; border-width: 1.5px !important; }
+    #menuPrincipal .menu-header .profile-details { min-width: 80px !important; gap: 1px !important; }
+    #menuPrincipal .menu-header .profile-name { font-size: 0.6rem !important; max-width: 78px !important; }
+    #menuPrincipal .menu-header .profile-level { font-size: 0.46rem !important; padding: 0 5px !important; }
+    #menuPrincipal .menu-header .xp-bar-bg { height: 4px !important; }
+    #menuPrincipal .menu-header .xp-text { display: none !important; }
     #menuPrincipal .app-version { margin-top: 2px !important; font-size: 0.6rem !important; }
 
     /* ============================================================

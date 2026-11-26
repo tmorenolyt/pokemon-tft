@@ -266,6 +266,28 @@
 #menuPrincipal .xp-bar-fill { width: 45%; height: 100%; background: linear-gradient(90deg, #4dd4f7, #3b82f6); border-radius: 3px; box-shadow: 0 0 10px var(--cyan-glow); }
 #menuPrincipal .xp-text { font-size: 0.65rem; color: var(--text-soft); text-align: right; margin-top: 2px; }
 
+/* Perfil compacto en la cabecera (arriba a la derecha) */
+#menuPrincipal .top-actions { align-items: center; }
+#menuPrincipal .menu-header .profile-capsule {
+    gap: 10px;
+    padding: 6px 16px 6px 6px;
+    border-radius: 999px;
+}
+#menuPrincipal .menu-header .profile-avatar {
+    width: 40px; height: 40px; font-size: 1.2rem;
+}
+#menuPrincipal .menu-header .profile-details { min-width: 150px; gap: 3px; }
+#menuPrincipal .menu-header .profile-name {
+    font-size: 0.85rem;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#menuPrincipal .menu-header .profile-level { font-size: 0.62rem; padding: 1px 7px; }
+#menuPrincipal .menu-header .xp-bar-bg { height: 5px; }
+#menuPrincipal .menu-header .xp-text { font-size: 0.58rem; margin-top: 0; }
+
 /* ============================================================
    VISTA 2: SELECCIÓN (1v1 / 1J)
    ============================================================ */

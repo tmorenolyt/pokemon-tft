@@ -39,6 +39,33 @@ const AVATARES_JUGADOR = [
     { id: "rubi",      nombre: "Rubí",      emoji: "🔴", archivo: "rubi.webp" }
 ];
 
+// ===== CÁPSULAS DE PERFIL (menú principal y selección 1J / 2J) =====
+// Todas las cápsulas muestran el mismo nombre, avatar, nivel y XP.
+function actualizarCapsulasPerfil() {
+    const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador) || AVATARES_JUGADOR[0];
+    document.querySelectorAll('#menuPrincipal .profile-capsule').forEach(function (cap) {
+        const nombreEl = cap.querySelector('.profile-name');
+        if (nombreEl) nombreEl.textContent = nombreJugador;
+
+        const slot = cap.querySelector('.profile-avatar');
+        if (!slot || !av) return;
+        slot.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = `assets/avatars/jugador/${av.archivo}`;
+        img.alt = av.nombre;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '50%';
+        img.onerror = function () {
+            this.style.display = 'none';
+            slot.textContent = av.emoji;
+        };
+        slot.appendChild(img);
+    });
+}
+window.actualizarCapsulasPerfil = actualizarCapsulasPerfil;
+
 // ============================================================
 // LISTA COMPLETA DE RIVALES (Restaurada)
 // ============================================================
@@ -335,6 +362,10 @@ function abrirSeleccion(modo) {
 function volverAlMenu() {
     const menuEl = document.getElementById('menuPrincipal');
     if (menuEl) menuEl.classList.remove('online-lobby');
+    const vPerfil = document.getElementById('vistaPerfil');
+    if (vPerfil && vPerfil.classList.contains('activa') && window.PerfilUsuario) {
+        window.PerfilUsuario.cerrar();
+    }
     document.getElementById('vistaSeleccion').classList.remove('activa');
     document.getElementById('vistaMenu').classList.add('activa');
 
@@ -405,24 +436,7 @@ function construirAvatarGridEn(containerId, avatarSeleccionado, onSelect) {
                 characterImg.alt = avatar.nombre;
             }
 
-            if (esJugador1) {
-                const footerAvatar = document.getElementById('footerAvatar');
-                if (footerAvatar) {
-                    footerAvatar.innerHTML = '';
-                    const footerImg = document.createElement('img');
-                    footerImg.src = `assets/avatars/jugador/${avatar.archivo}`;
-                    footerImg.alt = avatar.nombre;
-                    footerImg.style.width = '100%';
-                    footerImg.style.height = '100%';
-                    footerImg.style.objectFit = 'cover';
-                    footerImg.style.borderRadius = '50%';
-                    footerImg.onerror = function() {
-                        this.style.display = 'none';
-                        footerAvatar.textContent = avatar.emoji;
-                    };
-                    footerAvatar.appendChild(footerImg);
-                }
-            }
+            if (esJugador1) actualizarCapsulasPerfil();
 
             if (typeof playButtonSound === 'function') playButtonSound();
         });
@@ -713,8 +727,7 @@ function initMenu() {
             window.nombreJugador = nombreJugador;
             if (charCount1) charCount1.textContent = `${this.value.length} / 16`;
             try { localStorage.setItem('nombreJugador', nombreJugador); } catch (e) {}
-            const footerName = document.getElementById('footerName');
-            if (footerName) footerName.textContent = nombreJugador;
+            actualizarCapsulasPerfil();
         });
     }
 
@@ -759,9 +772,8 @@ function initMenu() {
     construirColorGrid2(colorBordeJ2);
     aplicarColoresBorde();
 
-    // Avatar grande inicial y Footer
+    // Avatar grande inicial y cápsulas de perfil
     const display1 = document.getElementById('avatarDisplay1');
-    const footerAvatar = document.getElementById('footerAvatar');
     const av1 = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
 
     if (display1) {
@@ -779,25 +791,6 @@ function initMenu() {
         character1.alt = av1.nombre;
     }
 
-    if (footerAvatar) {
-        const av = AVATARES_JUGADOR.find(a => a.id === avatarJugador);
-        if (av) {
-            footerAvatar.innerHTML = '';
-            const footerImg = document.createElement('img');
-            footerImg.src = `assets/avatars/jugador/${av.archivo}`;
-            footerImg.alt = av.nombre;
-            footerImg.style.width = '100%';
-            footerImg.style.height = '100%';
-            footerImg.style.objectFit = 'cover';
-            footerImg.style.borderRadius = '50%';
-            footerImg.onerror = function() {
-                this.style.display = 'none';
-                footerAvatar.textContent = av.emoji;
-            };
-            footerAvatar.appendChild(footerImg);
-        }
-    }
-
     const display2 = document.getElementById('avatarDisplay2');
     const av2 = AVATARES_JUGADOR.find(a => a.id === avatarJugador2);
     if (display2) {
@@ -813,8 +806,7 @@ function initMenu() {
         character2.alt = av2.nombre;
     }
 
-    const footerName = document.getElementById('footerName');
-    if (footerName) footerName.textContent = nombreJugador;
+    actualizarCapsulasPerfil();
 
     // Botón ¡LISTO!
     const btnJugar = document.getElementById('btnJugar');
@@ -932,6 +924,26 @@ function initMenu() {
             }
         });
     }
+
+    // 🆕 Botones del header de la vista de perfil
+    const btnPokedexPerfil = document.getElementById('btnCompendioPerfil');
+    if (btnPokedexPerfil) {
+        btnPokedexPerfil.addEventListener('click', function (e) {
+            e.preventDefault();
+            abrirPokedex();
+        });
+    }
+
+    const btnAjustesPerfil = document.getElementById('btnAjustesMenuPerfil');
+    if (btnAjustesPerfil) {
+        btnAjustesPerfil.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.abrirAjustes === 'function') {
+                window.abrirAjustes();
+            }
+        });
+    }
     document.getElementById('btnCerrarPokedex')?.addEventListener('click', cerrarPokedex);
     document.getElementById('pokedexOverlay')?.addEventListener('click', function (e) { if (e.target === this) cerrarPokedex(); });
 
@@ -956,11 +968,13 @@ function abrirPokedex() {
     const overlay = document.getElementById('pokedexOverlay');
     if (!overlay) return;
 
-    // Ocultar menú principal y selección
+    // Ocultar menú principal, selección y perfil
     const vistaMenu = document.getElementById('vistaMenu');
     const vistaSeleccion = document.getElementById('vistaSeleccion');
+    const vistaPerfil = document.getElementById('vistaPerfil');
     if (vistaMenu) vistaMenu.classList.remove('activa');
     if (vistaSeleccion) vistaSeleccion.classList.remove('activa');
+    if (vistaPerfil) vistaPerfil.classList.remove('activa');
 
     // 🆕 FIX: conectar SIEMPRE los botones del header de la Pokédex
     conectarBotonesHeaderPokedex(overlay);
@@ -982,8 +996,10 @@ function cerrarPokedex() {
     // Volver al menú principal
     const vistaMenu = document.getElementById('vistaMenu');
     const vistaSeleccion = document.getElementById('vistaSeleccion');
+    const vistaPerfil = document.getElementById('vistaPerfil');
     if (vistaMenu) vistaMenu.classList.add('activa');
     if (vistaSeleccion) vistaSeleccion.classList.remove('activa');
+    if (vistaPerfil) vistaPerfil.classList.remove('activa');
 }
 
 function normalizarTexto(texto) {
@@ -1415,6 +1431,58 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 // ===== EXPONER GLOBALMENTE =====
 window.RIVALES_INFO = RIVALES_INFO;
 window.AVATARES_JUGADOR = AVATARES_JUGADOR;
+window.COLORES_BORDE = COLORES_BORDE;
+
+// ============================================================
+// APLICAR PERFIL DESDE EL PANEL DE USUARIO
+// ============================================================
+window.aplicarPerfilJugador = function (opts) {
+    if (!opts || typeof opts !== 'object') return;
+
+    if (opts.nombre) {
+        nombreJugador = String(opts.nombre).trim().slice(0, 16) || 'Entrenador';
+        window.nombreJugador = nombreJugador;
+        try { localStorage.setItem('nombreJugador', nombreJugador); } catch (e) { }
+        const input = document.getElementById('inputNombreJugador');
+        if (input) input.value = nombreJugador;
+        const cc = document.getElementById('charCount1');
+        if (cc) cc.textContent = `${nombreJugador.length} / 16`;
+        actualizarCapsulasPerfil();
+    }
+
+    if (opts.avatar) {
+        const av = AVATARES_JUGADOR.find(a => a.id === opts.avatar);
+        if (av) {
+            avatarJugador = av.id;
+            window.avatarJugador = av.id;
+            try { localStorage.setItem('avatarJugador', av.id); } catch (e) { }
+            construirAvatarGrid(avatarJugador);
+
+            const display = document.getElementById('avatarDisplay1');
+            if (display) display.src = `assets/avatars/jugador/${av.archivo}`;
+
+            const ch = document.getElementById('characterImage1');
+            if (ch) {
+                ch.onerror = function () {
+                    this.onerror = null;
+                    this.src = `assets/avatars/personajes/${av.id}full.png`;
+                };
+                ch.src = `assets/avatars/personajes/${av.id}full.webp`;
+                ch.alt = av.nombre;
+            }
+
+            actualizarCapsulasPerfil();
+        }
+    }
+
+    if (opts.colorBorde) {
+        colorBordeJ1 = opts.colorBorde;
+        window.colorBordeJ1 = colorBordeJ1;
+        try { localStorage.setItem('colorBordeJ1', colorBordeJ1); } catch (e) { }
+        construirColorGrid1(colorBordeJ1);
+        aplicarColoresBorde();
+    }
+};
 window.abrirPokedex = abrirPokedex;
 window.cerrarPokedex = cerrarPokedex;
 window.renderizarPokedex = renderizarPokedex;

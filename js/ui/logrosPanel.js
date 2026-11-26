@@ -22,10 +22,12 @@
         document.querySelectorAll('#menuPrincipal .profile-level').forEach(el => {
             el.textContent = 'Nv. ' + info.nivel;
         });
-        const fill = document.querySelector('#menuPrincipal .profile-capsule .xp-bar-fill');
-        if (fill) fill.style.width = info.pct.toFixed(1) + '%';
-        const txt = document.querySelector('#menuPrincipal .profile-capsule .xp-text');
-        if (txt) txt.textContent = Math.round(info.enNivel) + ' / ' + Math.round(info.necesario) + ' XP';
+        document.querySelectorAll('#menuPrincipal .profile-capsule .xp-bar-fill').forEach(el => {
+            el.style.width = info.pct.toFixed(1) + '%';
+        });
+        document.querySelectorAll('#menuPrincipal .profile-capsule .xp-text').forEach(el => {
+            el.textContent = Math.round(info.enNivel) + ' / ' + Math.round(info.necesario) + ' XP';
+        });
     }
 
     // ------------------------------------------------------------
@@ -319,28 +321,12 @@
         actualizarPerfilUI();
         actualizarMapSelector();
 
+        // 👤 El perfil y la cápsula los abre el Panel de Usuario (perfilPanel.js).
+        // La arena se elige en el Panel de Usuario (pestaña Apariencia → Arenas),
+        // así que ya no hay selector de mapa en las pantallas de 1J / 2J.
         bind('btnLogros', abrirLogrosPanel);
         bind('btnLogrosSeleccion', abrirLogrosPanel);
-        bind('btnPerfilMenu', abrirLogrosPanel);
-        bind('btnPerfilSeleccion', abrirLogrosPanel);
-        bind('profileCapsuleBtn', abrirLogrosPanel);
-        bind('btnElegirMapa', abrirMapasPanel);
-        bind('mapSelectorBar', abrirMapasPanel);
-        bind('btnMapaJuego', abrirMapasPanel);
-
-        // Accesibilidad: Enter/Espacio en los elementos con role="button"
-        ['mapSelectorBar', 'profileCapsuleBtn'].forEach(id => {
-            const el = $(id);
-            if (!el || el.__logrosKeyBound) return;
-            el.__logrosKeyBound = true;
-            el.addEventListener('keydown', e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (id === 'mapSelectorBar') abrirMapasPanel();
-                    else abrirLogrosPanel();
-                }
-            });
-        });
+        bind('btnLogrosPerfil', abrirLogrosPanel);
 
         document.addEventListener('keydown', e => {
             if (e.key !== 'Escape') return;

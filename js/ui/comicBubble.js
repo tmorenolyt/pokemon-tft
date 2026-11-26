@@ -425,11 +425,19 @@ function mostrarReaccionJugador(victoriaJugador) {
 
         const ancla = panel.querySelector('.player-info-header') || panel;
 
+        // 🏆/💀 Frase personal del Panel de Usuario (si existe).
+        let frasePerfil = '';
+        try {
+            if (window.PerfilUsuario && typeof PerfilUsuario.getFrase === 'function') {
+                frasePerfil = PerfilUsuario.getFrase(victoriaJugador ? 'victoria' : 'derrota') || '';
+            }
+        } catch (e) { }
+
         const frases = victoriaJugador
             ? ["¡Sí!", "¡Vamos!", "¡Genial!", "¡Bien jugado!"]
             : ["¡No!", "¡Maldición!", "¡Otra vez no!", "¡Vuelvo a intentarlo!"];
 
-        const frase = frases[Math.floor(Math.random() * frases.length)];
+        const frase = frasePerfil || frases[Math.floor(Math.random() * frases.length)];
 
         const bubble = document.createElement('div');
         bubble.className = 'comic-bubble bubble-left';

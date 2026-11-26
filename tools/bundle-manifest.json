@@ -52,6 +52,7 @@
     "js/ui/console.js",
     "js/ui/menu.js",
     "js/ui/logrosPanel.js",
+    "js/ui/perfilPanel.js",
     "js/ui/render.js",
     "js/ui/panelDatosCombate.js",
     "js/ui/dragDrop.js",
@@ -94,6 +95,7 @@
     "css/torneo.css",
     "css/tutorial.css",
     "css/logros.css",
+    "css/perfil.css",
     "css/mobile.css"
   ]
 }

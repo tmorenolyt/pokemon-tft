@@ -505,8 +505,9 @@
     left: 50%;
     transform: translateX(-50%);
     /* Por encima de la pantalla de victoria (999999) y de la evolución
-       (9999999): el logro de torneo debe verse al terminar. */
-    z-index: 2147483000;
+       (9999999): el logro de torneo debe verse al terminar. Se queda justo
+       por debajo del Panel de Usuario (2147482500) para no tapar su cabecera. */
+    z-index: 2147482400;
     display: flex;
     align-items: center;
     gap: 12px;
