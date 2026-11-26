@@ -4832,7 +4832,7 @@ body.evolucion-en-curso .bank-cell.evolucionando * {
 }
 
 /* ============================================================
-   FIX: El engranaje de ajustes siempre a la derecha
+   Cabecera derecha: ⚙️ primero, luego 📊 y 🏆
    ============================================================ */
 .header-right {
     display: flex;
@@ -4844,8 +4844,7 @@ body.evolucion-en-curso .bank-cell.evolucionando * {
 }
 
 #btnAjustes {
-    margin-left: auto;
-    order: 999;
+    /* Orden natural del DOM: ⚙️ → 📊 → 🏆 */
     flex-shrink: 0;
 }
 
@@ -14352,12 +14351,17 @@ body.combatiendo .objetos-equipados:not(:has(> :not(.vacio))) {
    ============================================================ */
 .ranking-torneo {
     position: fixed;
-    top: 118px;
-    left: 4px;
-    width: 240px;
-    background: transparent;
+    /* 🆕 Ranking a la derecha, como en TFT */
+    /* Misma altura que el panel de sinergias (--spl-top lo fija el JS) */
+    top: var(--spl-top, 210px);
+    left: auto;
+    right: 4px;
+    width: 208px;
+    /* Degradado sutil: el ranking va sobre el banco enemigo, así se lee
+       bien sin taparlo con un panel opaco. */
+    background: linear-gradient(90deg, rgba(6, 12, 24, 0) 0%, rgba(6, 12, 24, .55) 45%, rgba(6, 12, 24, .82) 100%);
     border: none;
-    border-radius: 0;
+    border-radius: 10px;
     padding: 6px;
     z-index: 9998;
     box-shadow: none;
@@ -14668,8 +14672,9 @@ body.combatiendo .objetos-equipados:not(:has(> :not(.vacio))) {
 @media (max-width: 1200px) {
     .ranking-torneo {
         width: 200px;
-        top: 100px;
-        left: 2px;
+        top: var(--spl-top, 210px);
+        left: auto;
+        right: 4px;
         gap: 5px;
     }
 
@@ -14786,9 +14791,9 @@ body.modo-espia #playerBoard .board-cell {
 @media (max-width: 2000px) {
     /* Ranking más estrecho para que NO pise el baúl ni el banco del jugador */
     .ranking-torneo {
-        top: 262px;
+        top: var(--spl-top, 262px);
         width: 166px;
-        max-height: calc(100dvh - 276px);
+        max-height: calc(100dvh - var(--spl-top, 262px) - 14px);
         /* overflow-y: auto convierte también el eje X en auto, y entonces el
            ⚔️ del rival, el 🔥 de la racha o el daño flotante (que entra
            deslizándose) sacaban una barra horizontal. Con clip se corta el
@@ -14875,8 +14880,8 @@ body.modo-espia #playerBoard .board-cell {
    ============================================================ */
 @media (min-width: 1915px) and (max-width: 2000px) {
     .ranking-torneo {
-        top: 118px;
-        max-height: calc(100dvh - 130px);
+        top: var(--spl-top, 210px);
+        max-height: calc(100dvh - var(--spl-top, 210px) - 14px);
         padding: 4px;
         gap: 4px;
     }
@@ -14947,6 +14952,132 @@ body.modo-espia #playerBoard .board-cell {
 @media (max-width: 2000px) {
     .ranking-torneo .ranking-item.racha-alta::before {
         left: 0;
+    }
+}
+
+/* ============================================================
+   📏 ANCHO DEL RANKING (218px)
+   Un poco más ancho para que la barra de HP respire; filas a tamaño
+   normal (avatares grandes, nombre y HP legibles).
+   ============================================================ */
+.ranking-torneo {
+    width: 218px;
+    /* Un poco más a la izquierda (en ≤2000 se vuelve a 8px para que quepa
+       el panel de monedas del rival). */
+    right: 20px;
+    top: var(--spl-top, 262px);
+    max-height: calc(100dvh - var(--spl-top, 262px) - 14px);
+    overflow-x: clip;
+    overflow-y: auto;
+    padding: 4px;
+    gap: 4px;
+}
+
+@media (min-width: 761px) {
+    .ranking-torneo .ranking-item {
+        gap: 5px;
+        padding: 4px 5px;
+        border-radius: 8px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 16px;
+        font-size: 0.8rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap,
+    .ranking-torneo .ranking-avatar {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+    }
+
+    .ranking-torneo .ranking-nivel {
+        width: 17px;
+        height: 17px;
+        font-size: 0.45rem;
+        padding: 0 2px;
+        top: -5px;
+        right: -5px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+    }
+
+    .ranking-torneo .ranking-hp-valor {
+        font-size: 0.8rem;
+        min-width: 22px;
+    }
+
+    .ranking-torneo .ranking-hp-bar {
+        /* Se adapta al hueco que deja el nombre: barra más ancha sin
+           desbordar (deja sitio al -3 flotante y a los ticks ✓/✗). */
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 44px;
+        max-width: 92px;
+        height: 10px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        width: 20px;
+        height: 20px;
+        font-size: 1rem;
+    }
+}
+
+.ranking-torneo .ranking-item.racha-alta::before {
+    left: 0;
+}
+
+/* A anchos menores (zoom 100 % o menos) el ranking cede unos píxeles
+   para que el panel de monedas del rival quepa a su izquierda, con
+   filas algo más compactas pero manteniendo avatares grandes. */
+@media (max-width: 2000px) {
+    .ranking-torneo {
+        width: 170px;
+        right: 8px;
+    }
+
+    .ranking-torneo .ranking-item {
+        gap: 5px;
+        padding: 4px 5px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 16px;
+        font-size: 0.74rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap,
+    .ranking-torneo .ranking-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.72rem;
+    }
+
+    .ranking-torneo .ranking-hp-bar {
+        min-width: 32px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        width: 18px;
+        height: 18px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .ranking-torneo {
+        width: 170px;
     }
 }
 
@@ -17039,6 +17170,1205 @@ body.modo-espia #playerBoard .board-cell {
     #menuPrincipal #vistaPerfil .menu-container.perfil-vista {
         padding: 4px 10px 6px !important;
     }
+}
+
+
+/* ==================== css/sinergias-panel.css ==================== */
+/* ============================================================
+   PANEL DE SINERGIAS — LISTA + DETALLE
+   Archivo: css/sinergias-panel.css
+   Se abre al pulsar una sinergia. Mantiene la paleta del juego:
+   azul marino translúcido, borde cian y dorado para lo activo.
+   ============================================================ */
+
+#panelSinergiasOverlay {
+    position: fixed;
+    inset: 0;
+    /* Por debajo de la tienda (9999) y la Pokédex (99999), por encima
+       del tablero. El panel vive siempre abierto, así que no debe taparlas. */
+    z-index: 9000;
+    display: none;
+    /* No bloquea el tablero: sólo la lista y el detalle son clicables */
+    pointer-events: none;
+}
+
+#panelSinergiasOverlay.open {
+    display: block;
+}
+
+#panelSinergiasOverlay .spl-shell {
+    position: absolute;
+    /* Pegado al borde izquierdo, arrancando justo debajo del panel del
+       entrenador (--spl-top/--spl-h los calcula el JS) para no taparlo
+       ni tapar el banquillo. */
+    left: 8px;
+    top: var(--spl-top, 264px);
+    bottom: auto;
+    width: 180px;
+    /* El panel se ajusta a su contenido: termina donde acaba la última
+       sinergia. --spl-h es sólo el máximo (alto disponible). */
+    height: auto;
+    max-height: var(--spl-h, none);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    max-width: calc(100vw - 28px);
+    pointer-events: none;
+}
+
+/* ---------------- LISTA ---------------- */
+#panelSinergiasOverlay .spl-list {
+    width: 100%;
+    height: auto;
+    max-height: var(--spl-h, none);
+    flex: 0 0 auto;
+    pointer-events: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* Sin caja azul: mismo tratamiento que el ranking (degradado sutil,
+       sin borde ni blur) para que se lea sobre el tablero. */
+    background: linear-gradient(100deg, rgba(6, 12, 24, 0.14) 0%, rgba(6, 12, 24, 0.42) 55%, rgba(6, 12, 24, 0.64) 100%);
+    border: none;
+    border-radius: 12px;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overflow: hidden;
+}
+
+#panelSinergiasOverlay .spl-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 12px 10px 14px;
+    border-bottom: 1px solid rgba(251, 191, 36, 0.18);
+    flex: 0 0 auto;
+}
+
+#panelSinergiasOverlay .spl-head-ico {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: linear-gradient(180deg, rgba(251, 191, 36, 0.22), rgba(251, 191, 36, 0.06));
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.18);
+}
+
+#panelSinergiasOverlay .spl-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+#panelSinergiasOverlay .spl-title b {
+    font-size: 0.72rem;
+    letter-spacing: 1.6px;
+    color: #fbbf24;
+    font-weight: 900;
+}
+
+#panelSinergiasOverlay .spl-sub {
+    font-size: 0.55rem;
+    color: #8ba7c6;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+#panelSinergiasOverlay .spl-close {
+    margin-left: auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(120, 150, 220, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+    color: #93c5fd;
+    font-size: 0.7rem;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+#panelSinergiasOverlay .spl-close:hover {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #fca5a5;
+}
+
+/* En escritorio el panel vive siempre abierto (como el ranking),
+   así que la ✕ no tiene sentido: se oculta. */
+@media (min-width: 761px) and (min-height: 620px) {
+    #panelSinergiasOverlay .spl-close { display: none; }
+}
+
+#panelSinergiasOverlay .spl-rows {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 7px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 150, 220, 0.4) transparent;
+}
+
+#panelSinergiasOverlay .spl-rows::-webkit-scrollbar { width: 6px; }
+#panelSinergiasOverlay .spl-rows::-webkit-scrollbar-thumb {
+    background: rgba(120, 150, 220, 0.35);
+    border-radius: 10px;
+}
+
+#panelSinergiasOverlay .spl-row {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    align-items: center;
+    gap: 9px;
+    /* Puntos y contador viven bajo el nombre (como antes “Clase/Tipo”),
+       así todo queda más comprimido. */
+    padding: 5px 12px 5px 7px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.015);
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+    flex: 0 0 auto;
+}
+
+#panelSinergiasOverlay .spl-row:hover {
+    background: rgba(251, 191, 36, 0.07);
+    border-color: rgba(251, 191, 36, 0.22);
+}
+
+#panelSinergiasOverlay .spl-row.sel {
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.13), rgba(251, 191, 36, 0.03) 60%, rgba(255, 255, 255, 0.01));
+    border-color: rgba(251, 191, 36, 0.55);
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.10), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+#panelSinergiasOverlay .spl-row.off {
+    opacity: 0.45;
+}
+
+#panelSinergiasOverlay .spl-row.off:hover {
+    opacity: 0.7;
+}
+
+#panelSinergiasOverlay .spl-row-ico {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(120, 150, 220, 0.22);
+    overflow: hidden;
+}
+
+#panelSinergiasOverlay .spl-row-ico img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+}
+
+#panelSinergiasOverlay .spl-emoji {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+#panelSinergiasOverlay .spl-row-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+#panelSinergiasOverlay .spl-row-name {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #eaf2ff;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+    /* Sin panel de fondo, el texto necesita su propia sombra para leerse */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.7);
+}
+
+/* Línea inferior: puntos de color + contador, pegados a la izquierda */
+#panelSinergiasOverlay .spl-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+#panelSinergiasOverlay .spl-row-count {
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: #fbbf24;
+    line-height: 1;
+    letter-spacing: 0.2px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+#panelSinergiasOverlay .spl-row-count i {
+    font-style: normal;
+    color: #5d7396;
+    font-weight: 700;
+}
+
+#panelSinergiasOverlay .spl-row-dots {
+    display: flex;
+    gap: 3px;
+}
+
+/* Casillas cuadradas (antes círculos) y un poco más grandes */
+#panelSinergiasOverlay .spl-row-dots s {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: rgba(42, 58, 90, 0.9);
+    border: 1px solid rgba(120, 150, 220, 0.22);
+}
+
+#panelSinergiasOverlay .spl-row.on .spl-row-dots s.f {
+    background: var(--c, #fbbf24);
+    border-color: var(--c, #fbbf24);
+    box-shadow: 0 0 5px var(--c, #fbbf24);
+}
+
+#panelSinergiasOverlay .spl-row.off .spl-row-dots s.f {
+    background: #8b8f99;
+    border-color: #8b8f99;
+}
+
+#panelSinergiasOverlay .spl-sep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 8px 3px;
+    font-size: 0.47rem;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    color: #8ba7c6;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    flex: 0 0 auto;
+}
+
+#panelSinergiasOverlay .spl-sep::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, rgba(120, 150, 220, 0.22), transparent);
+}
+
+#panelSinergiasOverlay .spl-foot {
+    margin-top: auto;
+    padding: 8px 14px 10px;
+    border-top: 1px solid rgba(251, 191, 36, 0.12);
+    font-size: 0.52rem;
+    color: #8ba7c6;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    letter-spacing: 0.3px;
+    display: flex;
+    justify-content: space-between;
+    flex: 0 0 auto;
+}
+
+#panelSinergiasOverlay .spl-foot b { color: #9fb6d8; }
+
+#panelSinergiasOverlay .spl-empty {
+    padding: 22px 12px;
+    text-align: center;
+    color: #6b8aaa;
+    font-size: 0.7rem;
+}
+
+#panelSinergiasOverlay .spl-muted {
+    color: #6b8aaa;
+    font-size: 0.6rem;
+}
+
+/* ---------------- DETALLE ---------------- */
+#panelSinergiasOverlay .spl-detail {
+    position: relative;
+    flex: 0 0 auto;
+    pointer-events: auto;
+    width: 430px;
+    max-height: 100%;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(9, 19, 42, 0.96) 0%, rgba(6, 12, 28, 0.97) 100%);
+    border: 1.5px solid rgba(251, 191, 36, 0.34);
+    border-radius: 16px;
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.66), 0 0 40px rgba(251, 191, 36, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 15px 16px 13px;
+    margin-top: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 150, 220, 0.4) transparent;
+}
+
+#panelSinergiasOverlay .spl-detail::-webkit-scrollbar { width: 6px; }
+#panelSinergiasOverlay .spl-detail::-webkit-scrollbar-thumb {
+    background: rgba(120, 150, 220, 0.35);
+    border-radius: 10px;
+}
+
+#panelSinergiasOverlay .spl-detail::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: var(--arrow-top, 40px);
+    width: 14px;
+    height: 14px;
+    transform: rotate(45deg);
+    background: rgba(9, 19, 42, 0.97);
+    border-left: 1.5px solid rgba(251, 191, 36, 0.34);
+    border-bottom: 1.5px solid rgba(251, 191, 36, 0.34);
+}
+
+#panelSinergiasOverlay .spl-d-head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid rgba(120, 150, 220, 0.14);
+}
+
+#panelSinergiasOverlay .spl-d-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 35%, rgba(251, 191, 36, 0.24), rgba(0, 0, 0, 0.35));
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.16);
+    background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c, #fbbf24) 28%, transparent), rgba(0, 0, 0, 0.35));
+    border: 1px solid color-mix(in srgb, var(--c, #fbbf24) 55%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--c, #fbbf24) 18%, transparent);
+}
+
+#panelSinergiasOverlay .spl-d-ico img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+}
+
+#panelSinergiasOverlay .spl-emoji {
+    font-size: 1.4rem;
+}
+
+#panelSinergiasOverlay .spl-d-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+#panelSinergiasOverlay .spl-d-title b {
+    font-size: 1.02rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+}
+
+#panelSinergiasOverlay .spl-d-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+#panelSinergiasOverlay .spl-tag {
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 20px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#panelSinergiasOverlay .spl-tag.lvl {
+    background: rgba(251, 191, 36, 0.14);
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    color: #fbbf24;
+}
+
+#panelSinergiasOverlay .spl-tag.on {
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.42);
+    color: #86efac;
+}
+
+#panelSinergiasOverlay .spl-tag.off {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: #a8b6c9;
+}
+
+#panelSinergiasOverlay .spl-d-now {
+    margin-left: auto;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.48rem;
+    letter-spacing: 1px;
+    color: #5f7597;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#panelSinergiasOverlay .spl-d-now b {
+    font-size: 0.86rem;
+    color: #fbbf24;
+    letter-spacing: 0;
+}
+
+#panelSinergiasOverlay .spl-d-desc {
+    margin-top: 11px;
+    padding: 9px 11px;
+    background: rgba(255, 255, 255, 0.028);
+    border-left: 3px solid var(--c, #fbbf24);
+    border-radius: 0 9px 9px 0;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: #cfe0f5;
+    font-weight: 500;
+}
+
+#panelSinergiasOverlay .spl-d-desc b {
+    color: #ffe4c7;
+}
+
+#panelSinergiasOverlay .spl-d-label {
+    margin: 13px 0 6px;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+    color: #6b8aaa;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#panelSinergiasOverlay .spl-d-label::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, rgba(120, 150, 220, 0.22), transparent);
+}
+
+#panelSinergiasOverlay .spl-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+#panelSinergiasOverlay .spl-tier {
+    display: grid;
+    grid-template-columns: 46px 1fr auto;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 9px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.014);
+}
+
+#panelSinergiasOverlay .spl-tier-n {
+    font-size: 0.62rem;
+    font-weight: 900;
+    color: #7b90b3;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+#panelSinergiasOverlay .spl-tier-n s {
+    text-decoration: none;
+    color: #fbbf24;
+}
+
+#panelSinergiasOverlay .spl-tier-d {
+    font-size: 0.59rem;
+    color: #a9bed8;
+    line-height: 1.25;
+}
+
+#panelSinergiasOverlay .spl-tier.on {
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.14), rgba(251, 191, 36, 0.02));
+    border-color: rgba(251, 191, 36, 0.38);
+}
+
+#panelSinergiasOverlay .spl-tier.on .spl-tier-n,
+#panelSinergiasOverlay .spl-tier.on .spl-tier-d {
+    color: #ffe9a8;
+}
+
+#panelSinergiasOverlay .spl-tier-p {
+    font-size: 0.44rem;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    color: #0b1220;
+    background: #fbbf24;
+    padding: 2px 6px;
+    border-radius: 20px;
+}
+
+#panelSinergiasOverlay .spl-champs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+#panelSinergiasOverlay .spl-champ {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    position: relative;
+    background: radial-gradient(circle at 50% 38%, rgba(77, 212, 247, 0.16), rgba(4, 10, 22, 0.9));
+    border: 1px solid rgba(120, 150, 220, 0.26);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#panelSinergiasOverlay .spl-champ img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+#panelSinergiasOverlay .spl-champ.own {
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.18);
+}
+
+#panelSinergiasOverlay .spl-champ.own::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    border: 1.5px solid #0a1220;
+    box-shadow: 0 0 6px rgba(74, 222, 128, 0.8);
+}
+
+#panelSinergiasOverlay .spl-champ.no {
+    opacity: 0.40;
+    filter: grayscale(0.85) brightness(0.85);
+}
+
+#panelSinergiasOverlay .spl-champ-lvl {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.42rem;
+    font-weight: 900;
+    color: #0b1220;
+    background: #fbbf24;
+    border-radius: 6px;
+    padding: 1px 3px;
+    line-height: 1;
+}
+
+#panelSinergiasOverlay .spl-d-foot {
+    margin-top: 11px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.52rem;
+    color: #5f7597;
+}
+
+#panelSinergiasOverlay .spl-d-foot b { color: #9fb6d8; }
+
+/* ---------------- RESPONSIVE ---------------- */
+@media (max-width: 1200px) {
+    #panelSinergiasOverlay .spl-list { width: 180px; }
+    #panelSinergiasOverlay .spl-detail { width: 400px; }
+}
+
+@media (max-height: 780px) {
+    /* La posición del panel la calcula el JS según la columna lateral. */
+    #panelSinergiasOverlay .spl-detail { padding: 12px 13px 11px; }
+    #panelSinergiasOverlay .spl-d-label { margin: 10px 0 5px; }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    #panelSinergiasOverlay .spl-shell {
+        left: 8px;
+        top: 44px;
+        bottom: 56px;
+        gap: 8px;
+        max-width: calc(100vw - 16px);
+    }
+    #panelSinergiasOverlay .spl-list {
+        width: 242px;
+        border-radius: 12px;
+    }
+    #panelSinergiasOverlay .spl-head { padding: 8px 8px 7px 10px; gap: 7px; }
+    #panelSinergiasOverlay .spl-head-ico { width: 24px; height: 24px; font-size: .8rem; border-radius: 7px; }
+    #panelSinergiasOverlay .spl-title b { font-size: .6rem; letter-spacing: 1.2px; }
+    #panelSinergiasOverlay .spl-sub { font-size: .46rem; }
+    #panelSinergiasOverlay .spl-close { width: 22px; height: 22px; font-size: .6rem; }
+    #panelSinergiasOverlay .spl-rows { padding: 5px; gap: 2px; }
+    #panelSinergiasOverlay .spl-row { padding: 3px 8px 3px 5px; gap: 7px; grid-template-columns: 30px 1fr; border-radius: 8px; }
+    #panelSinergiasOverlay .spl-row-ico { width: 28px; height: 28px; border-radius: 7px; }
+    #panelSinergiasOverlay .spl-row-ico img { width: 21px; height: 21px; }
+    #panelSinergiasOverlay .spl-row-name { font-size: .68rem; }
+    #panelSinergiasOverlay .spl-row-count { font-size: .7rem; }
+    #panelSinergiasOverlay .spl-row-meta { gap: 5px; }
+    #panelSinergiasOverlay .spl-row-dots s { width: 7px; height: 7px; }
+    #panelSinergiasOverlay .spl-sep { padding: 6px 6px 2px; font-size: .42rem; }
+    #panelSinergiasOverlay .spl-foot { padding: 5px 10px 6px; font-size: .44rem; }
+    #panelSinergiasOverlay .spl-detail {
+        width: min(440px, calc(100vw - 262px));
+        /* En paisaje el alto útil es 100dvh - (top 44 + bottom 56) */
+        max-height: calc(100dvh - 100px);
+        padding: 10px 11px 9px;
+        border-radius: 12px;
+    }
+    #panelSinergiasOverlay .spl-detail::before { display: none; }
+    #panelSinergiasOverlay .spl-d-head { gap: 8px; padding-bottom: 8px; }
+    #panelSinergiasOverlay .spl-d-ico { width: 36px; height: 36px; border-radius: 9px; }
+    #panelSinergiasOverlay .spl-d-ico img { width: 26px; height: 26px; }
+    #panelSinergiasOverlay .spl-d-title b { font-size: .86rem; }
+    #panelSinergiasOverlay .spl-tag { font-size: .42rem; padding: 2px 5px; }
+    #panelSinergiasOverlay .spl-d-now b { font-size: .72rem; }
+    #panelSinergiasOverlay .spl-d-desc { margin-top: 8px; padding: 7px 9px; font-size: .62rem; }
+    #panelSinergiasOverlay .spl-d-label { margin: 8px 0 4px; font-size: .42rem; }
+    #panelSinergiasOverlay .spl-tier { padding: 4px 7px; grid-template-columns: 40px 1fr auto; border-radius: 6px; }
+    #panelSinergiasOverlay .spl-tier-n { font-size: .54rem; }
+    #panelSinergiasOverlay .spl-tier-d { font-size: .5rem; }
+    #panelSinergiasOverlay .spl-tier-p { font-size: .38rem; padding: 1px 5px; }
+    #panelSinergiasOverlay .spl-champ { width: 38px; height: 38px; border-radius: 8px; }
+    #panelSinergiasOverlay .spl-champ img { width: 33px; height: 33px; }
+    #panelSinergiasOverlay .spl-d-foot { margin-top: 8px; font-size: .44rem; }
+}
+
+@media (max-width: 760px) {
+    #panelSinergiasOverlay .spl-shell {
+        left: 8px;
+        right: 8px;
+        top: 46px;
+        bottom: 10px;
+        width: auto;
+        height: auto;
+        max-width: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    #panelSinergiasOverlay .spl-list {
+        width: 100%;
+        height: 42%;
+        min-height: 150px;
+        border-radius: 12px;
+    }
+    #panelSinergiasOverlay .spl-detail {
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        margin-top: 0 !important;
+        border-radius: 12px;
+    }
+    #panelSinergiasOverlay .spl-detail::before { display: none; }
+    #panelSinergiasOverlay .spl-row { padding: 4px 10px 4px 7px; }
+    #panelSinergiasOverlay .spl-row-name { font-size: .72rem; }
+    #panelSinergiasOverlay .spl-row-count { font-size: .62rem; }
+    #panelSinergiasOverlay .spl-d-ico { width: 38px; height: 38px; }
+    #panelSinergiasOverlay .spl-d-ico img { width: 28px; height: 28px; }
+    #panelSinergiasOverlay .spl-d-title b { font-size: .9rem; }
+    #panelSinergiasOverlay .spl-d-desc { font-size: .66rem; }
+    #panelSinergiasOverlay .spl-tier-d { font-size: .54rem; }
+    #panelSinergiasOverlay .spl-champ { width: 40px; height: 40px; }
+    #panelSinergiasOverlay .spl-champ img { width: 35px; height: 35px; }
+}
+
+/* ============================================================
+   DOCK DE PANELES (⚔️ sinergias / 📦 baúl) — arriba a la izquierda
+   Solo uno abierto a la vez, como en TFT.
+   ============================================================ */
+#juegoContainer .dock-paneles {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 2px;
+    flex: 0 0 auto;
+}
+
+#juegoContainer .dock-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fbbf24;
+    font-size: 1rem;
+    line-height: 1;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+#juegoContainer .dock-btn:hover {
+    background: rgba(251, 191, 36, 0.14);
+    border-color: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+
+#juegoContainer .dock-btn.activo {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: #fbbf24;
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.4);
+}
+
+#juegoContainer .dock-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 9px;
+    background: #fbbf24;
+    color: #0b1220;
+    font-size: 0.52rem;
+    font-weight: 900;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #0a1220;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+    line-height: 1;
+}
+
+/* ---------------- BAÚL (escritorio) ----------------
+   Ocupa exactamente el mismo hueco que la lista de sinergias, así el
+   botón 📦 "cambia" un panel por el otro. En móvil se usa el
+   desplegable existente (mob-baul-open). */
+body.baul-flotante-open #juegoContainer #objetosVerticalContainer {
+    display: flex !important;
+    position: fixed !important;
+    left: 8px !important;
+    top: var(--spl-top, 264px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 180px !important;
+    max-width: none !important;
+    /* El panel termina donde acaba el último objeto (sin hueco muerto),
+       con el alto disponible como tope y scroll si hiciera falta. */
+    height: auto !important;
+    max-height: var(--spl-h, 480px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    margin: 0 !important;
+    background: linear-gradient(100deg, rgba(6, 12, 24, 0.22) 0%, rgba(6, 12, 24, 0.48) 55%, rgba(6, 12, 24, 0.68) 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    z-index: 9001 !important;
+}
+
+/* El panel de objetos del rival se quita de la vista (el baúl enemigo
+   sigue existiendo por dentro, sólo no se muestra). */
+body.tft-layout #juegoContainer #objetosVerticalContainerEnemigo {
+    display: none !important;
+}
+
+body.baul-flotante-open #juegoContainer #objetosVerticalContainer .objetos-vertical-label {
+    display: block !important;
+    font-size: 0.72rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 1.6px !important;
+    color: #fbbf24 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+    text-align: left !important;
+    padding: 0 0 7px 2px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(251, 191, 36, 0.18) !important;
+    width: 100% !important;
+}
+
+body.baul-flotante-open #juegoContainer #objetosVerticalContainer .objetos-vertical-label::after {
+    content: ' BAÚL';
+}
+
+body.baul-flotante-open #juegoContainer #objetosVerticalContainer .objetos-vertical-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    /* 3 casillas de 52 + 2 huecos de 4 = 164 = ancho del panel sin padding */
+    gap: 4px !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+body.baul-flotante-open #juegoContainer #objetosVerticalContainer .objeto-slot-vertical {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    border-radius: 9px !important;
+    padding: 1px !important;
+    font-size: 1.3rem !important;
+}
+
+/* Mientras el panel (sinergias o baúl) ocupa el hueco de la columna
+   izquierda, la lista de sinergias del juego se oculta y el banco se
+   alarga en vertical debajo del panel del entrenador. */
+body.tft-layout #juegoContainer .side-column-player .traits-vertical {
+    display: none !important;
+}
+
+body.tft-layout #juegoContainer .side-column-player .bank-container-player {
+    /* Alargado en vertical: las 8 casillas en una sola columna que
+       rellena el alto libre bajo el panel del entrenador. */
+    flex: 0 0 auto !important;
+    /* Alto justo para las 8 cartas (sin huecos ni scroll) */
+    height: auto !important;
+    max-height: calc(100dvh - 300px) !important;
+    min-height: 0 !important;
+    /* El panel se ajusta al ancho de la carta: sin huecos sobrantes */
+    width: 85px !important;
+    min-width: 0 !important;
+    max-width: 85px !important;
+    padding: 8px !important;
+    left: 70px !important;
+    margin-top: -2px !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Cabecera compacta: contador centrado y sin pokébolas (no caben) */
+body.tft-layout #juegoContainer .side-column-player .bank-container-player .bank-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+    justify-content: center !important;
+}
+
+body.tft-layout #juegoContainer #bankCapsulePlayer {
+    display: none !important;
+}
+
+body.tft-layout #juegoContainer .side-column-player .bank-container-player .big-counter {
+    font-size: 0.8rem !important;
+    letter-spacing: 0 !important;
+}
+
+body.tft-layout #juegoContainer .side-column-player .bank-container-player .big-counter .max {
+    font-size: 0.6rem !important;
+}
+
+body.tft-layout #juegoContainer .side-column-player .bank-container-player .bank-grid {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    /* Casilla cuadrada (66x66) como la carta del banco de siempre */
+    grid-auto-rows: 62px !important;
+    gap: 4px !important;
+    justify-items: center !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+}
+
+/* Casillas vacías visibles: las 8 se leen como huecos del banco */
+body.tft-layout #juegoContainer #banquilloGrid .bank-cell:not(.has-unit) {
+    opacity: 1 !important;
+    border-color: rgba(120, 150, 220, 0.22) !important;
+    background: rgba(10, 20, 45, 0.20) !important;
+    color: rgba(140, 170, 215, 0.55) !important;
+}
+
+body.tft-layout #juegoContainer .side-column-player .bank-container-player .bank-cell {
+    width: 62px !important;
+    height: 62px !important;
+    min-height: 0 !important;
+    max-height: 62px !important;
+    aspect-ratio: auto !important;
+}
+
+/* Sprite y nombre ajustados a la casilla cuadrada */
+body.tft-layout #juegoContainer #banquilloGrid .bank-cell .unit-sprite {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+body.tft-layout #juegoContainer #banquilloGrid .bank-cell .unit-name {
+    font-size: 0.42rem !important;
+    margin-top: 2px !important;
+}
+
+/* ---------------- BANCO DEL RIVAL (mismo formato vertical) ---------------- */
+body.tft-layout #juegoContainer .side-column-enemy .traits-vertical {
+    display: none !important;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: calc(100dvh - 300px) !important;
+    min-height: 0 !important;
+    width: 85px !important;
+    min-width: 0 !important;
+    max-width: 85px !important;
+    padding: 8px !important;
+    left: 0 !important;
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Cuando cabe su panel de monedas, el banco del rival se corre a la
+   derecha (ancho del panel + 8px de hueco, lo fija el JS) y el panel
+   ocupa el sitio que deja libre. */
+body.enemy-coin-on #juegoContainer .side-column-enemy .bank-container-enemy {
+    left: var(--enemy-bank-shift, 93px) !important;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy .bank-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+    justify-content: center !important;
+}
+
+body.tft-layout #juegoContainer #bankCapsuleEnemy {
+    display: none !important;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy .big-counter {
+    font-size: 0.8rem !important;
+    letter-spacing: 0 !important;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy .big-counter .max {
+    font-size: 0.6rem !important;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy .bank-grid {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 62px !important;
+    gap: 4px !important;
+    justify-items: center !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+}
+
+body.tft-layout #juegoContainer .side-column-enemy .bank-container-enemy .bank-cell {
+    width: 62px !important;
+    height: 62px !important;
+    min-height: 0 !important;
+    max-height: 62px !important;
+    aspect-ratio: auto !important;
+}
+
+body.tft-layout #juegoContainer #enemyBanquilloGrid .bank-cell:not(.has-unit) {
+    opacity: 1 !important;
+    border-color: rgba(120, 150, 220, 0.22) !important;
+    background: rgba(10, 20, 45, 0.20) !important;
+    color: rgba(140, 170, 215, 0.55) !important;
+}
+
+body.tft-layout #juegoContainer #enemyBanquilloGrid .bank-cell .unit-sprite {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+body.tft-layout #juegoContainer #enemyBanquilloGrid .bank-cell .unit-name {
+    font-size: 0.42rem !important;
+    margin-top: 2px !important;
+}
+
+/* El baúl del tablero queda detrás del panel: en modo sinergias se oculta
+   (se abre con el botón 📦), si no se vería a través del panel.
+   Se oculta con display:none (no visibility) porque las casillas llevan
+   `transition: all 0.3s` inline y, al heredar visibility, seguían
+   pintándose un instante al pasar de baúl a sinergias. */
+body.tft-layout:not(.baul-flotante-open) #juegoContainer #objetosVerticalContainer {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Compacto en móvil/tablet */
+@media (max-height: 700px) and (max-width: 1100px) {
+    #juegoContainer .dock-btn { width: 27px; height: 27px; font-size: 0.8rem; }
+    #juegoContainer .dock-paneles { gap: 4px; margin-left: 0; }
+    #juegoContainer .dock-badge { min-width: 12px; height: 12px; font-size: 0.42rem; top: -3px; right: -3px; }
+}
+
+/* 🏆 Botón de ranking: oculta/muestra el panel del torneo */
+body.ranking-oculto #rankingTorneo {
+    display: none !important;
+}
+
+/* ============================================================
+   PANEL DE MONEDAS (AHORRO) — 5 casillas verticales junto al banco
+   Estilo tarjeta, como las casillas del banco. Cada casilla se
+   ilumina por cada 10 de oro ahorrado (máx. 5).
+   ============================================================ */
+#juegoContainer .coin-panel {
+    display: none;
+}
+
+body.tft-layout #juegoContainer .coin-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: fixed;
+    z-index: 60;
+    width: 85px;
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid rgba(120, 150, 220, 0.18);
+    background: linear-gradient(180deg, rgba(8, 16, 32, 0.55) 0%, rgba(8, 16, 32, 0.32) 100%);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+
+#juegoContainer .coin-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(120, 150, 220, 0.14);
+}
+
+#juegoContainer .coin-panel-ico {
+    width: 17px;
+    height: 17px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.45));
+}
+
+#juegoContainer .coin-panel-total {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+    font-variant-numeric: tabular-nums;
+}
+
+#juegoContainer .coin-panel-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#juegoContainer .coin-slot {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto;
+    border-radius: 10px;
+    border: 1px solid rgba(120, 150, 220, 0.22);
+    background: rgba(10, 20, 45, 0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+#juegoContainer .coin-slot img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    opacity: 0.34;
+    filter: grayscale(0.85);
+    transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+#juegoContainer .coin-slot.on {
+    border-color: rgba(251, 191, 36, 0.45);
+    background: rgba(251, 191, 36, 0.10);
+    box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.12);
+}
+
+#juegoContainer .coin-slot.on img {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.55));
+    transform: scale(1.02);
+}
+
+@media (max-width: 1100px) {
+    #juegoContainer .coin-panel { display: none !important; }
+}
+
+/* El panel del rival es idéntico al del jugador (85px, casillas de 62).
+   Para que quepa a cualquier ancho, el ranking cede unos píxeles en
+   pantallas ≤2000px (ver css/torneo.css). */
+
+/* ============================================================
+   PANEL DE SEMILLAS REVIVIR (solo con la sinergia Planta)
+   Va a la derecha del detalle, con separación mínima.
+   ============================================================ */
+#panelSinergiasOverlay .spl-nv {
+    flex: 0 0 auto;
+    width: 230px;
+    /* El gap del shell es 14px: -8 deja 6px reales de separación */
+    margin-left: -8px;
+    max-height: var(--spl-h, none);
+    overflow-y: auto;
+    overflow-x: hidden;
+    pointer-events: auto;
+    display: none;
+}
+
+#panelSinergiasOverlay .spl-nv .nv-panel {
+    margin-top: 0;
+}
+
+@media (max-width: 900px) {
+    #panelSinergiasOverlay .spl-nv { display: none !important; }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    #panelSinergiasOverlay .spl-nv { display: none !important; }
 }
 
 

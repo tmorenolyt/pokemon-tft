@@ -428,15 +428,17 @@ function construirPanelNuevaVerdeHTML(lado = 'player') {
 
 function refrescarPanelNuevaVerde(lado = 'player') {
     const contenedor = document.getElementById('nuevaVerdeContainer');
-    if (!contenedor) {
-        return;
+    if (contenedor) {
+        // 🆕 Leer el lado del contenedor o del data-attribute
+        const ladoFinal = contenedor.dataset.lado || lado;
+        contenedor.innerHTML = construirPanelNuevaVerdeHTML(ladoFinal);
     }
-    // 🆕 Leer el lado del contenedor o del data-attribute
-    const ladoFinal = contenedor.dataset.lado || lado;
-    const semillasActuales = (ladoFinal === 'enemy')
-        ? (window.semillasEnemigoNuevaVerde || 0)
-        : (window.semillasNuevaVerde || 0);
-    contenedor.innerHTML = construirPanelNuevaVerdeHTML(ladoFinal);
+
+    // Panel auxiliar del panel de sinergias (Planta)
+    const contSpl = document.getElementById('splNuevaVerde');
+    if (contSpl && contSpl.style.display !== 'none' && contSpl.dataset.lado) {
+        contSpl.innerHTML = construirPanelNuevaVerdeHTML(contSpl.dataset.lado);
+    }
 }
 
 // ============================================================

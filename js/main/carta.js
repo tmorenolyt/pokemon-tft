@@ -406,6 +406,9 @@ function equiparObjetoDesdeBaul(indexBaul, tipoUnidad, idxUnidad) {
         aplicarSinergias();
         renderizar();
         actualizarBadgeBaul();
+
+        // Al equipar, cerrar el baúl y volver al panel de sinergias.
+        if (typeof window.abrirBaulPanel === 'function') window.abrirBaulPanel(false);
     }
 }
 

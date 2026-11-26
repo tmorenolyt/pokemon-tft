@@ -194,7 +194,11 @@ document.addEventListener('click', function(e) {
         if (typeof cerrarTienda === 'function') cerrarTienda();
     }
 
-    if (typeof window.togglePanelDatosCombate === 'function') {
+    // El botón 🎯 abre siempre en "Daño infligido" (no cierra al pulsar
+    // otra vez: para cerrar están ✕, Esc o clic fuera).
+    if (typeof window.abrirPanelDatosConFiltro === 'function') {
+        window.abrirPanelDatosConFiltro('damage');
+    } else if (typeof window.togglePanelDatosCombate === 'function') {
         window.togglePanelDatosCombate();
     } else {
         console.error('❌ [delegación] togglePanelDatosCombate no está definido');

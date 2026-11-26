@@ -336,14 +336,42 @@ function mostrarSinergiasConChips(elementId) {
         return a.nombre.localeCompare(b.nombre);
     });
 
+    // 🆕 El panel de sinergias necesita la lista ya calculada (sin duplicar
+    // el conteo de familias, chips y niveles).
+    window.sinergiasActuales = window.sinergiasActuales || {};
+    window.sinergiasActuales[lado] = sinergiasLista;
+
     if (sinergiasLista.length === 0) {
         container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#4a6a8a;font-size:0.6rem;padding:6px 0;">⚔️ Sin sinergias</div>';
+        if (window.panelSinergiasAbierto && typeof window.actualizarPanelSinergias === 'function') {
+            window.actualizarPanelSinergias();
+        }
         return;
     }
 
     for (let s of sinergiasLista) {
         const item = crearItemSinergiaGrid(s, lado);
         container.appendChild(item);
+    }
+
+    // 🆕 Si el panel de sinergias está abierto, refrescarlo con los datos nuevos
+    if (window.panelSinergiasAbierto && typeof window.actualizarPanelSinergias === 'function') {
+        window.actualizarPanelSinergias();
+    }
+
+    // 🆕 Clic en cualquier parte del panel de sinergias (no solo en un icono)
+    // abre el panel grande. Así es mucho más fácil de descubrir/usar.
+    const wrap = container.closest ? container.closest('.traits-vertical') : null;
+    if (wrap && !wrap.dataset.splAbrir) {
+        wrap.dataset.splAbrir = '1';
+        wrap.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('.trait-item')) return;
+            if (typeof window.abrirPanelSinergias !== 'function') return;
+            const lista = (window.sinergiasActuales && window.sinergiasActuales[lado]) || [];
+            if (!lista.length) return;
+            // Abrir la lista sin seleccionar ninguna sinergia
+            window.abrirPanelSinergias(null, false, lado);
+        });
     }
 }
 
@@ -365,23 +393,30 @@ function crearItemSinergiaGrid(s, lado = 'player') {
     const estado = esActiva ? '✅ Activa' : '⛔ Inactiva';
     item.title = `${s.nombre} (${s.nivelActual}/${s.nivelMaximo}) - ${estado}${s.desc ? ' — ' + s.desc : ''}`;
 
-    if (esActiva) {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (typeof abrirCartaSinergia === 'function') {
-                if (window.cartaSinergiaAbierta && window.cartaSinergiaData &&
-                    window.cartaSinergiaData.nombre === nombreSinergia &&
-                    window.cartaSinergiaData.esClase === esClase &&
-                    window.cartaSinergiaData.lado === lado) {
-                    if (typeof cerrarCartaSinergia === 'function') {
-                        cerrarCartaSinergia();
-                    }
-                    return;
+    item.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        // 🆕 Nuevo panel lista + detalle (también para sinergias inactivas)
+        if (typeof window.abrirPanelSinergias === 'function') {
+            window.abrirPanelSinergias(nombreSinergia, esClase, lado);
+            return;
+        }
+
+        // Fallback: comportamiento antiguo (solo activas, carta modal)
+        if (!esActiva) return;
+        if (typeof abrirCartaSinergia === 'function') {
+            if (window.cartaSinergiaAbierta && window.cartaSinergiaData &&
+                window.cartaSinergiaData.nombre === nombreSinergia &&
+                window.cartaSinergiaData.esClase === esClase &&
+                window.cartaSinergiaData.lado === lado) {
+                if (typeof cerrarCartaSinergia === 'function') {
+                    cerrarCartaSinergia();
                 }
-                abrirCartaSinergia(nombreSinergia, esClase, lado);
+                return;
             }
-        });
-    }
+            abrirCartaSinergia(nombreSinergia, esClase, lado);
+        }
+    });
 
     const contador = document.createElement('span');
     contador.className = 'trait-count';

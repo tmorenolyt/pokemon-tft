@@ -74,6 +74,9 @@
         b.textContent = '🏆';
         b.addEventListener('click', (e) => {
             e.preventDefault();
+            // Exclusividad: cerrar sinergias y baúl al abrir el ranking
+            if (typeof window.cerrarPanelSinergias === 'function') window.cerrarPanelSinergias();
+            if (typeof window.cerrarBaulPanel === 'function') window.cerrarBaulPanel();
             document.body.classList.toggle('mob-ranking-open');
             b.classList.toggle('activo', document.body.classList.contains('mob-ranking-open'));
         });
@@ -85,6 +88,8 @@
     // (antes eran dos tiras laterales que robaban ancho al tablero)
     // ------------------------------------------------------------
     function crearBotonBaul() {
+        // Ya hay un 📦 estático en el dock (btnDockBaul)
+        if (document.getElementById('btnDockBaul')) return;
         if (document.getElementById('mobBaulBtn')) return;
         const right = document.querySelector('#juegoContainer .header-right');
         if (!right) return;
@@ -106,12 +111,20 @@
     // al comprar un objeto en la tienda). En escritorio no hace nada: el
     // botón 📦 solo existe en móvil.
     function abrirBaul() {
-        const btn = document.getElementById('mobBaulBtn');
-        if (!btn) return false;
         // No abrir encima de la tienda ni en mitad de un combate.
         const tienda = document.getElementById('tiendaOverlay');
         if (tienda && getComputedStyle(tienda).display !== 'none') return false;
         if (typeof combatiendo !== 'undefined' && combatiendo) return false;
+
+        // 🆕 Usar el panel del dock (solo móvil, como antes)
+        if (typeof window.abrirBaulPanel === 'function') {
+            if (!window.matchMedia('(max-height: 700px) and (max-width: 1100px)').matches) return false;
+            window.abrirBaulPanel(true);
+            return true;
+        }
+
+        const btn = document.getElementById('mobBaulBtn');
+        if (!btn) return false;
         document.body.classList.add('mob-baul-open');
         btn.classList.add('activo');
         return true;
@@ -128,6 +141,8 @@
                 document.body.classList.remove('mob-baul-open');
                 const btn = document.getElementById('mobBaulBtn');
                 if (btn) btn.classList.remove('activo');
+                const dock = document.getElementById('btnDockBaul');
+                if (dock) dock.classList.remove('activo');
             }, 0);
         }
     }, true);
@@ -136,6 +151,8 @@
     // Botón ⚔️ para abrir/cerrar las sinergias en móvil
     // ------------------------------------------------------------
     function crearBotonSinergias() {
+        // Ya hay un ⚔️ estático en el dock (btnDockSinergias)
+        if (document.getElementById('btnDockSinergias')) return;
         if (document.getElementById('mobTraitsBtn')) return;
         const right = document.querySelector('#juegoContainer .header-right');
         if (!right) return;
@@ -147,6 +164,20 @@
         b.textContent = '⚔️';
         b.addEventListener('click', (e) => {
             e.preventDefault();
+
+            // 🆕 El botón ⚔️ abre el panel de sinergias (lista + detalle)
+            if (typeof window.abrirPanelSinergias === 'function') {
+                const lista = (window.sinergiasActuales && window.sinergiasActuales.player) || [];
+                const primera = lista.find(s => s.activa) || lista[0];
+                window.abrirPanelSinergias(
+                    primera ? primera.nombre : null,
+                    primera ? primera.tipo === 'clase' : false,
+                    'player'
+                );
+                b.classList.toggle('activo', !!window.panelSinergiasAbierto);
+                return;
+            }
+
             document.body.classList.toggle('mob-traits-open');
             b.classList.toggle('activo', document.body.classList.contains('mob-traits-open'));
         });
@@ -175,10 +206,12 @@
             const b1 = document.getElementById('objetosVerticalContainer');
             const b2 = document.getElementById('objetosVerticalContainerEnemigo');
             const btn = document.getElementById('mobBaulBtn');
-            const dentro = (b1 && b1.contains(e.target)) || (b2 && b2.contains(e.target)) || (btn && btn.contains(e.target));
+            const dock = document.getElementById('btnDockBaul');
+            const dentro = (b1 && b1.contains(e.target)) || (b2 && b2.contains(e.target)) || (btn && btn.contains(e.target)) || (dock && dock.contains(e.target));
             if (!dentro) {
                 document.body.classList.remove('mob-baul-open');
                 if (btn) btn.classList.remove('activo');
+                if (dock) dock.classList.remove('activo');
             }
         }
     }, true);

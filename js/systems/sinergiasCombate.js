@@ -1659,9 +1659,6 @@ function construirPanelAuraMiedoHTML(lado = 'player') {
 // 🆕 v14: FIX — función refrescarPanelAuraMiedo (se perdió)
 // ============================================================
 function refrescarPanelAuraMiedo(lado = 'player') {
-    const contenedor = document.getElementById('auraMiedoContainer');
-    if (!contenedor) return;
-
     if (lado === 'enemy') {
         if (typeof window.enemyFearAuraStacks !== 'number') {
             window.enemyFearAuraStacks = 0;
@@ -1682,7 +1679,15 @@ function refrescarPanelAuraMiedo(lado = 'player') {
         } catch (e) {}
     }
 
-    contenedor.innerHTML = construirPanelAuraMiedoHTML(lado);
+    // Panel antiguo (carta clásica) si existiera
+    const contenedor = document.getElementById('auraMiedoContainer');
+    if (contenedor) contenedor.innerHTML = construirPanelAuraMiedoHTML(lado);
+
+    // Panel auxiliar del panel de sinergias (Siniestro)
+    const contSpl = document.getElementById('splAuraMiedo');
+    if (contSpl && contSpl.style.display !== 'none' && contSpl.dataset.lado) {
+        contSpl.innerHTML = construirPanelAuraMiedoHTML(contSpl.dataset.lado);
+    }
 }
 
 window.construirPanelAuraMiedoHTML = construirPanelAuraMiedoHTML;

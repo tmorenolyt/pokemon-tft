@@ -690,9 +690,11 @@ function comprarObjetoDesdeTienda(nombreObjeto) {
         renderizar();
 
         // 📱 En móvil, abrir solo la tira del baúl para que se vea el objeto
-        //    recién comprado sin tener que pulsar 📦 (en escritorio no
-        //    existe el botón y la función no hace nada).
-        if (typeof window.abrirBaulMovil === 'function') {
+        //    recién comprado sin tener que pulsar 📦.
+        //    En escritorio se abre directamente el panel del baúl.
+        if (window.innerWidth >= 761 && typeof window.abrirBaulPanel === 'function') {
+            setTimeout(() => window.abrirBaulPanel(true), 150);
+        } else if (typeof window.abrirBaulMovil === 'function') {
             setTimeout(() => window.abrirBaulMovil(), 150);
         }
     }, 400);

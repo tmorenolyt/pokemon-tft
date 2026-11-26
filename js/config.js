@@ -13,7 +13,7 @@ const CONFIG = {
     NIVEL_MAXIMO: 8,
     TOTAL_CASILLAS: 20,
     BANQUILLO_MAXIMO: 8,
-    MAX_BAUL: 8,
+    MAX_BAUL: 9,
     COSTES_NIVEL: [4, 8, 20, 24, 36, 48, 60],
     VIDA_MAX_JUGADOR: 50,   // 🆕 vida máxima para la barra de HP
 

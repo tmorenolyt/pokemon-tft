@@ -944,7 +944,7 @@ function actualizarObjetosVerticales(lado = 'jugador') {
     const grid = document.getElementById(gridId);
     if (!grid) return;
     grid.innerHTML = '';
-    const maxSlots = 8;
+    const maxSlots = 9;
     for (let i = 0; i < maxSlots; i++) {
         const slot = document.createElement('div');
         slot.className = 'objeto-slot-vertical';

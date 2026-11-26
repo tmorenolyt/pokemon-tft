@@ -1836,7 +1836,7 @@ body.evolucion-en-curso .bank-cell.evolucionando * {
 }
 
 /* ============================================================
-   FIX: El engranaje de ajustes siempre a la derecha
+   Cabecera derecha: ⚙️ primero, luego 📊 y 🏆
    ============================================================ */
 .header-right {
     display: flex;
@@ -1848,7 +1848,6 @@ body.evolucion-en-curso .bank-cell.evolucionando * {
 }
 
 #btnAjustes {
-    margin-left: auto;
-    order: 999;
+    /* Orden natural del DOM: ⚙️ → 📊 → 🏆 */
     flex-shrink: 0;
 }

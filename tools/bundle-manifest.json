@@ -45,6 +45,8 @@
     "js/systems/enemigo.js",
     "js/systems/tiendaOverlay.js",
     "js/ui/sinergiaCarta.js",
+    "js/ui/sinergiasPanel.js",
+    "js/ui/panelMonedas.js",
     "js/ui/animaciones.js",
     "js/ui/animacionShiny.js",
     "js/ui/sonidosShiny.js",
@@ -96,6 +98,7 @@
     "css/tutorial.css",
     "css/logros.css",
     "css/perfil.css",
+    "css/sinergias-panel.css",
     "css/mobile.css"
   ]
 }

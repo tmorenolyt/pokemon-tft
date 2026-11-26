@@ -7,12 +7,17 @@
    ============================================================ */
 .ranking-torneo {
     position: fixed;
-    top: 118px;
-    left: 4px;
-    width: 240px;
-    background: transparent;
+    /* 🆕 Ranking a la derecha, como en TFT */
+    /* Misma altura que el panel de sinergias (--spl-top lo fija el JS) */
+    top: var(--spl-top, 210px);
+    left: auto;
+    right: 4px;
+    width: 208px;
+    /* Degradado sutil: el ranking va sobre el banco enemigo, así se lee
+       bien sin taparlo con un panel opaco. */
+    background: linear-gradient(90deg, rgba(6, 12, 24, 0) 0%, rgba(6, 12, 24, .55) 45%, rgba(6, 12, 24, .82) 100%);
     border: none;
-    border-radius: 0;
+    border-radius: 10px;
     padding: 6px;
     z-index: 9998;
     box-shadow: none;
@@ -323,8 +328,9 @@
 @media (max-width: 1200px) {
     .ranking-torneo {
         width: 200px;
-        top: 100px;
-        left: 2px;
+        top: var(--spl-top, 210px);
+        left: auto;
+        right: 4px;
         gap: 5px;
     }
 
@@ -441,9 +447,9 @@ body.modo-espia #playerBoard .board-cell {
 @media (max-width: 2000px) {
     /* Ranking más estrecho para que NO pise el baúl ni el banco del jugador */
     .ranking-torneo {
-        top: 262px;
+        top: var(--spl-top, 262px);
         width: 166px;
-        max-height: calc(100dvh - 276px);
+        max-height: calc(100dvh - var(--spl-top, 262px) - 14px);
         /* overflow-y: auto convierte también el eje X en auto, y entonces el
            ⚔️ del rival, el 🔥 de la racha o el daño flotante (que entra
            deslizándose) sacaban una barra horizontal. Con clip se corta el
@@ -530,8 +536,8 @@ body.modo-espia #playerBoard .board-cell {
    ============================================================ */
 @media (min-width: 1915px) and (max-width: 2000px) {
     .ranking-torneo {
-        top: 118px;
-        max-height: calc(100dvh - 130px);
+        top: var(--spl-top, 210px);
+        max-height: calc(100dvh - var(--spl-top, 210px) - 14px);
         padding: 4px;
         gap: 4px;
     }
@@ -602,5 +608,131 @@ body.modo-espia #playerBoard .board-cell {
 @media (max-width: 2000px) {
     .ranking-torneo .ranking-item.racha-alta::before {
         left: 0;
+    }
+}
+
+/* ============================================================
+   📏 ANCHO DEL RANKING (218px)
+   Un poco más ancho para que la barra de HP respire; filas a tamaño
+   normal (avatares grandes, nombre y HP legibles).
+   ============================================================ */
+.ranking-torneo {
+    width: 218px;
+    /* Un poco más a la izquierda (en ≤2000 se vuelve a 8px para que quepa
+       el panel de monedas del rival). */
+    right: 20px;
+    top: var(--spl-top, 262px);
+    max-height: calc(100dvh - var(--spl-top, 262px) - 14px);
+    overflow-x: clip;
+    overflow-y: auto;
+    padding: 4px;
+    gap: 4px;
+}
+
+@media (min-width: 761px) {
+    .ranking-torneo .ranking-item {
+        gap: 5px;
+        padding: 4px 5px;
+        border-radius: 8px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 16px;
+        font-size: 0.8rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap,
+    .ranking-torneo .ranking-avatar {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+    }
+
+    .ranking-torneo .ranking-nivel {
+        width: 17px;
+        height: 17px;
+        font-size: 0.45rem;
+        padding: 0 2px;
+        top: -5px;
+        right: -5px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+    }
+
+    .ranking-torneo .ranking-hp-valor {
+        font-size: 0.8rem;
+        min-width: 22px;
+    }
+
+    .ranking-torneo .ranking-hp-bar {
+        /* Se adapta al hueco que deja el nombre: barra más ancha sin
+           desbordar (deja sitio al -3 flotante y a los ticks ✓/✗). */
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 44px;
+        max-width: 92px;
+        height: 10px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        width: 20px;
+        height: 20px;
+        font-size: 1rem;
+    }
+}
+
+.ranking-torneo .ranking-item.racha-alta::before {
+    left: 0;
+}
+
+/* A anchos menores (zoom 100 % o menos) el ranking cede unos píxeles
+   para que el panel de monedas del rival quepa a su izquierda, con
+   filas algo más compactas pero manteniendo avatares grandes. */
+@media (max-width: 2000px) {
+    .ranking-torneo {
+        width: 170px;
+        right: 8px;
+    }
+
+    .ranking-torneo .ranking-item {
+        gap: 5px;
+        padding: 4px 5px;
+    }
+
+    .ranking-torneo .ranking-pos {
+        width: 16px;
+        font-size: 0.74rem;
+    }
+
+    .ranking-torneo .ranking-avatar-wrap,
+    .ranking-torneo .ranking-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .ranking-torneo .ranking-nombre {
+        font-size: 0.72rem;
+    }
+
+    .ranking-torneo .ranking-hp-bar {
+        min-width: 32px;
+    }
+
+    .ranking-torneo .ranking-estado {
+        width: 18px;
+        height: 18px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .ranking-torneo {
+        width: 170px;
     }
 }

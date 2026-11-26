@@ -58,8 +58,13 @@ function abrirPanelDatosCombate() {
     panel.style.animation = 'none';
     void panel.offsetWidth;
 
+    // El panel de sinergias (y el baúl) se quedan abiertos: la ventana de
+    // datos de combate es un modal centrado y no debe cerrar el panel
+    // lateral, que debe seguir visible mientras se consultan los datos.
+
     renderizarPanelDatosCombate();
     iniciarAutoRefreshPanelDatos();
+    actualizarDockDatos();
 
     if (typeof playButtonSound === 'function') playButtonSound();
 }
@@ -74,6 +79,7 @@ function cerrarPanelDatosCombate() {
     panel.onclick = null;
 
     detenerAutoRefreshPanelDatos();
+    actualizarDockDatos();
 }
 
 function togglePanelDatosCombate() {
@@ -82,6 +88,39 @@ function togglePanelDatosCombate() {
     } else {
         abrirPanelDatosCombate();
     }
+}
+
+// 🆕 Abrir el panel con un filtro concreto (daño / recibido / curación)
+function abrirPanelDatosConFiltro(filtro) {
+    const nuevoFiltro = filtro || 'damage';
+
+    // Si ya está abierto con ese mismo filtro, el botón actúa como toggle
+    if (panelDatosCombateAbierto && panelDatosCombateFiltro === nuevoFiltro) {
+        cerrarPanelDatosCombate();
+        return;
+    }
+
+    panelDatosCombateFiltro = nuevoFiltro;
+    document.querySelectorAll('.panel-datos-filtro').forEach(function (b) {
+        b.classList.toggle('activo', b.dataset.filtro === panelDatosCombateFiltro);
+    });
+
+    if (!panelDatosCombateAbierto) {
+        abrirPanelDatosCombate();
+    } else {
+        renderizarPanelDatosCombate();
+        actualizarDockDatos();
+    }
+}
+
+// 🆕 Estado activo de los dos botones del dock derecho
+function actualizarDockDatos() {
+    const activo = panelDatosCombateAbierto;
+    const f = panelDatosCombateFiltro;
+    const bd = document.getElementById('btnPostCombate');
+    const br = document.getElementById('btnDatosRecibido');
+    if (bd) bd.classList.toggle('activo', activo && f === 'damage');
+    if (br) br.classList.toggle('activo', activo && f === 'received');
 }
 
 // ============================================================
@@ -112,6 +151,15 @@ function detenerAutoRefreshPanelDatos() {
 // ============================================================
 
 function renderizarPanelDatosCombate() {
+    // Título del filtro (también cuando aún no hay datos de combate)
+    const tituloEl = document.getElementById('panelDatosTituloFiltro');
+    const titulos = {
+        damage: 'Daño infligido',
+        received: 'Daño recibido',
+        heal: 'Curaciones'
+    };
+    if (tituloEl) tituloEl.textContent = titulos[panelDatosCombateFiltro] || '';
+
     let data = null;
 
     // Prioridad: stats en vivo durante el combate
@@ -251,15 +299,6 @@ function renderizarPanelDatosCombate() {
             avatarEnemigoEl.textContent = '👤';
         }
     }
-
-    // ===== Título del filtro =====
-    const tituloEl = document.getElementById('panelDatosTituloFiltro');
-    const titulos = {
-        damage: 'Daño infligido',
-        received: 'Daño recibido',
-        heal: 'Curaciones'
-    };
-    if (tituloEl) tituloEl.textContent = titulos[panelDatosCombateFiltro] || '';
 
     // ===== Listas =====
     let statsJugadores = (data.statsJugadores || []).slice();
@@ -405,6 +444,7 @@ function conectarFiltrosPanelDatos() {
 
             panelDatosCombateFiltro = filtro;
             renderizarPanelDatosCombate();
+            actualizarDockDatos();
         });
     });
 }
@@ -421,6 +461,15 @@ function initPanelDatosCombate() {
         }
 
         conectarFiltrosPanelDatos();
+
+        // 🆕 Botón 🛡️ del dock derecho: daño recibido
+        const btnRecibido = document.getElementById('btnDatosRecibido');
+        if (btnRecibido) {
+            btnRecibido.addEventListener('click', function (e) {
+                e.preventDefault();
+                abrirPanelDatosConFiltro('received');
+            });
+        }
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && panelDatosCombateAbierto) {
@@ -442,6 +491,8 @@ try {
     window.abrirPanelDatosCombate = abrirPanelDatosCombate;
     window.cerrarPanelDatosCombate = cerrarPanelDatosCombate;
     window.togglePanelDatosCombate = togglePanelDatosCombate;
+    window.abrirPanelDatosConFiltro = abrirPanelDatosConFiltro;
+    window.actualizarDockDatos = actualizarDockDatos;
     window.renderizarPanelDatosCombate = renderizarPanelDatosCombate;
     window.iniciarAutoRefreshPanelDatos = iniciarAutoRefreshPanelDatos;
     window.detenerAutoRefreshPanelDatos = detenerAutoRefreshPanelDatos;

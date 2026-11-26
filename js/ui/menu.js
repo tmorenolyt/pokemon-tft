@@ -360,6 +360,12 @@ function abrirSeleccion(modo) {
 }
 
 function volverAlMenu() {
+    // El panel de sinergias y el baúl viven siempre abiertos dentro de la
+    // partida; al salir al menú se ocultan.
+    if (typeof window.cerrarPanelSinergias === 'function') window.cerrarPanelSinergias();
+    if (typeof window.cerrarBaulPanel === 'function') window.cerrarBaulPanel();
+    window._pantallaFinalAbierta = false;
+
     const menuEl = document.getElementById('menuPrincipal');
     if (menuEl) menuEl.classList.remove('online-lobby');
     const vPerfil = document.getElementById('vistaPerfil');

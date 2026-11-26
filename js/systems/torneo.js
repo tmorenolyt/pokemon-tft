@@ -2321,6 +2321,12 @@ function mostrarPantallaResultadosFinales() {
         lista.appendChild(fila);
     });
 
+    // La pantalla de resultados finales no debe llevar el panel de
+    // sinergias ni el baúl del juego por detrás.
+    try {
+        if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+    } catch (e) { }
+
     overlay.style.display = 'flex';
 
     const btnVolver = document.getElementById('btnResultadosVolverMenu');

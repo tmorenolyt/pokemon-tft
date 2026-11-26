@@ -978,6 +978,10 @@
             const tiempoEl = document.getElementById('resultadosTiempo');
             if (!overlay || !lista) return;
 
+            try {
+                if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+            } catch (e) { }
+
             if (titulo) {
                 const ganeTorneo = !!(posiciones && posiciones[0] && posiciones[0].id === pid);
                 titulo.textContent = ganeTorneo ? '🏆 ¡VICTORIA TOTAL!' : '🏆 TORNEO FINALIZADO';
@@ -1137,6 +1141,10 @@
             const titulo = document.getElementById('resultadosTitulo');
             const tiempoEl = document.getElementById('resultadosTiempo');
             if (!overlay || !lista) { mostrarFinPartida(opts.gane === true, hpArr, opts); return; }
+
+            try {
+                if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+            } catch (e) { }
 
             try { if (typeof tiendaAbierta !== 'undefined' && tiendaAbierta && typeof cerrarTienda === 'function') cerrarTienda(); } catch (e) { }
             try { const ap = document.getElementById('amistosoPanel'); if (ap) ap.style.display = 'none'; } catch (e) { }

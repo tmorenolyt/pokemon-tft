@@ -294,6 +294,7 @@ function volverAlMenuDesdeAjustes() {
     }
 
     cerrarAjustes();
+    window._pantallaFinalAbierta = false;
 
     const menu = document.getElementById('menuPrincipal');
     const juego = document.getElementById('juegoContainer');

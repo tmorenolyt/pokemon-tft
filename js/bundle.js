@@ -285,7 +285,7 @@ const CONFIG = {
     NIVEL_MAXIMO: 8,
     TOTAL_CASILLAS: 20,
     BANQUILLO_MAXIMO: 8,
-    MAX_BAUL: 8,
+    MAX_BAUL: 9,
     COSTES_NIVEL: [4, 8, 20, 24, 36, 48, 60],
     VIDA_MAX_JUGADOR: 50,   // 🆕 vida máxima para la barra de HP
 
@@ -1377,14 +1377,42 @@ function mostrarSinergiasConChips(elementId) {
         return a.nombre.localeCompare(b.nombre);
     });
 
+    // 🆕 El panel de sinergias necesita la lista ya calculada (sin duplicar
+    // el conteo de familias, chips y niveles).
+    window.sinergiasActuales = window.sinergiasActuales || {};
+    window.sinergiasActuales[lado] = sinergiasLista;
+
     if (sinergiasLista.length === 0) {
         container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#4a6a8a;font-size:0.6rem;padding:6px 0;">⚔️ Sin sinergias</div>';
+        if (window.panelSinergiasAbierto && typeof window.actualizarPanelSinergias === 'function') {
+            window.actualizarPanelSinergias();
+        }
         return;
     }
 
     for (let s of sinergiasLista) {
         const item = crearItemSinergiaGrid(s, lado);
         container.appendChild(item);
+    }
+
+    // 🆕 Si el panel de sinergias está abierto, refrescarlo con los datos nuevos
+    if (window.panelSinergiasAbierto && typeof window.actualizarPanelSinergias === 'function') {
+        window.actualizarPanelSinergias();
+    }
+
+    // 🆕 Clic en cualquier parte del panel de sinergias (no solo en un icono)
+    // abre el panel grande. Así es mucho más fácil de descubrir/usar.
+    const wrap = container.closest ? container.closest('.traits-vertical') : null;
+    if (wrap && !wrap.dataset.splAbrir) {
+        wrap.dataset.splAbrir = '1';
+        wrap.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('.trait-item')) return;
+            if (typeof window.abrirPanelSinergias !== 'function') return;
+            const lista = (window.sinergiasActuales && window.sinergiasActuales[lado]) || [];
+            if (!lista.length) return;
+            // Abrir la lista sin seleccionar ninguna sinergia
+            window.abrirPanelSinergias(null, false, lado);
+        });
     }
 }
 
@@ -1406,23 +1434,30 @@ function crearItemSinergiaGrid(s, lado = 'player') {
     const estado = esActiva ? '✅ Activa' : '⛔ Inactiva';
     item.title = `${s.nombre} (${s.nivelActual}/${s.nivelMaximo}) - ${estado}${s.desc ? ' — ' + s.desc : ''}`;
 
-    if (esActiva) {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (typeof abrirCartaSinergia === 'function') {
-                if (window.cartaSinergiaAbierta && window.cartaSinergiaData &&
-                    window.cartaSinergiaData.nombre === nombreSinergia &&
-                    window.cartaSinergiaData.esClase === esClase &&
-                    window.cartaSinergiaData.lado === lado) {
-                    if (typeof cerrarCartaSinergia === 'function') {
-                        cerrarCartaSinergia();
-                    }
-                    return;
+    item.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        // 🆕 Nuevo panel lista + detalle (también para sinergias inactivas)
+        if (typeof window.abrirPanelSinergias === 'function') {
+            window.abrirPanelSinergias(nombreSinergia, esClase, lado);
+            return;
+        }
+
+        // Fallback: comportamiento antiguo (solo activas, carta modal)
+        if (!esActiva) return;
+        if (typeof abrirCartaSinergia === 'function') {
+            if (window.cartaSinergiaAbierta && window.cartaSinergiaData &&
+                window.cartaSinergiaData.nombre === nombreSinergia &&
+                window.cartaSinergiaData.esClase === esClase &&
+                window.cartaSinergiaData.lado === lado) {
+                if (typeof cerrarCartaSinergia === 'function') {
+                    cerrarCartaSinergia();
                 }
-                abrirCartaSinergia(nombreSinergia, esClase, lado);
+                return;
             }
-        });
-    }
+            abrirCartaSinergia(nombreSinergia, esClase, lado);
+        }
+    });
 
     const contador = document.createElement('span');
     contador.className = 'trait-count';
@@ -9330,9 +9365,6 @@ function construirPanelAuraMiedoHTML(lado = 'player') {
 // 🆕 v14: FIX — función refrescarPanelAuraMiedo (se perdió)
 // ============================================================
 function refrescarPanelAuraMiedo(lado = 'player') {
-    const contenedor = document.getElementById('auraMiedoContainer');
-    if (!contenedor) return;
-
     if (lado === 'enemy') {
         if (typeof window.enemyFearAuraStacks !== 'number') {
             window.enemyFearAuraStacks = 0;
@@ -9353,7 +9385,15 @@ function refrescarPanelAuraMiedo(lado = 'player') {
         } catch (e) {}
     }
 
-    contenedor.innerHTML = construirPanelAuraMiedoHTML(lado);
+    // Panel antiguo (carta clásica) si existiera
+    const contenedor = document.getElementById('auraMiedoContainer');
+    if (contenedor) contenedor.innerHTML = construirPanelAuraMiedoHTML(lado);
+
+    // Panel auxiliar del panel de sinergias (Siniestro)
+    const contSpl = document.getElementById('splAuraMiedo');
+    if (contSpl && contSpl.style.display !== 'none' && contSpl.dataset.lado) {
+        contSpl.innerHTML = construirPanelAuraMiedoHTML(contSpl.dataset.lado);
+    }
 }
 
 window.construirPanelAuraMiedoHTML = construirPanelAuraMiedoHTML;
@@ -22962,15 +23002,17 @@ function construirPanelNuevaVerdeHTML(lado = 'player') {
 
 function refrescarPanelNuevaVerde(lado = 'player') {
     const contenedor = document.getElementById('nuevaVerdeContainer');
-    if (!contenedor) {
-        return;
+    if (contenedor) {
+        // 🆕 Leer el lado del contenedor o del data-attribute
+        const ladoFinal = contenedor.dataset.lado || lado;
+        contenedor.innerHTML = construirPanelNuevaVerdeHTML(ladoFinal);
     }
-    // 🆕 Leer el lado del contenedor o del data-attribute
-    const ladoFinal = contenedor.dataset.lado || lado;
-    const semillasActuales = (ladoFinal === 'enemy')
-        ? (window.semillasEnemigoNuevaVerde || 0)
-        : (window.semillasNuevaVerde || 0);
-    contenedor.innerHTML = construirPanelNuevaVerdeHTML(ladoFinal);
+
+    // Panel auxiliar del panel de sinergias (Planta)
+    const contSpl = document.getElementById('splNuevaVerde');
+    if (contSpl && contSpl.style.display !== 'none' && contSpl.dataset.lado) {
+        contSpl.innerHTML = construirPanelNuevaVerdeHTML(contSpl.dataset.lado);
+    }
 }
 
 // ============================================================
@@ -31521,9 +31563,11 @@ function comprarObjetoDesdeTienda(nombreObjeto) {
         renderizar();
 
         // 📱 En móvil, abrir solo la tira del baúl para que se vea el objeto
-        //    recién comprado sin tener que pulsar 📦 (en escritorio no
-        //    existe el botón y la función no hace nada).
-        if (typeof window.abrirBaulMovil === 'function') {
+        //    recién comprado sin tener que pulsar 📦.
+        //    En escritorio se abre directamente el panel del baúl.
+        if (window.innerWidth >= 761 && typeof window.abrirBaulPanel === 'function') {
+            setTimeout(() => window.abrirBaulPanel(true), 150);
+        } else if (typeof window.abrirBaulMovil === 'function') {
             setTimeout(() => window.abrirBaulMovil(), 150);
         }
     }, 400);
@@ -32863,6 +32907,1007 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
         initCartaSinergia();
     });
 }
+;
+
+/* ==================== js/ui/sinergiasPanel.js ==================== */
+// ============================================================
+// PANEL DE SINERGIAS — LISTA + DETALLE (estilo TFT)
+// Archivo: js/ui/sinergiasPanel.js
+// ------------------------------------------------------------
+// Se abre al hacer clic en cualquier sinergia (tipo o clase) y
+// muestra, a la izquierda, la lista completa con sus contadores y,
+// a la derecha, el detalle de la sinergia seleccionada:
+//   - bonus actual y escalado por niveles (2★ → 6★)
+//   - campeones que tienen esa sinergia, resaltando los tuyos
+//
+// Reutiliza obtenerDatosSinergia() de sinergiaCarta.js, así que no
+// duplica el cálculo de familias, chips ni niveles.
+// ============================================================
+(function () {
+    'use strict';
+
+    const ESTADO = {
+        abierto: false,
+        lado: 'player',
+        seleccion: null,        // { nombre, esClase }
+        el: null,
+        listaEl: null,
+        detalleEl: null,
+        subtituloEl: null,
+        pieEl: null,
+        debounce: null,
+        firma: ''
+    };
+
+    // ------------------------------------------------------------
+    // HELPERS
+    // ------------------------------------------------------------
+    function esc(texto) {
+        return String(texto == null ? '' : texto)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // s.icono / data.icono es un string con <img src="..."> o un emoji
+    function iconoHTML(icono) {
+        if (!icono) return '';
+        const m = String(icono).match(/src="([^"]+)"/);
+        if (m) return '<img src="' + m[1] + '" alt="" loading="lazy">';
+        return '<span class="spl-emoji">' + esc(icono) + '</span>';
+    }
+
+    function sinergiasDelLado() {
+        const todas = window.sinergiasActuales || {};
+        const lista = todas[ESTADO.lado] || [];
+        return Array.isArray(lista) ? lista : [];
+    }
+
+    // En escritorio el panel vive siempre visible (como el ranking): el
+    // botón 📦 lo cambia por el baúl y ⚔️ lo vuelve a poner. En pantallas
+    // pequeñas se mantiene el comportamiento de abrir/cerrar a mano.
+    function autoPanel() {
+        return window.innerWidth >= 761 && window.innerHeight >= 620;
+    }
+
+    function enPartida() {
+        const j = document.getElementById('juegoContainer');
+        if (!j) return false;
+        const cs = window.getComputedStyle(j);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        return j.getBoundingClientRect().width > 0;
+    }
+
+    // El contenedor puede estar visible un instante antes de tener medidas
+    // (transición de entrada): la clase de layout se aplica igual para no
+    // enseñar ni un frame de la interfaz antigua.
+    function juegoVisible() {
+        const j = document.getElementById('juegoContainer');
+        if (!j) return false;
+        const cs = window.getComputedStyle(j);
+        return cs.display !== 'none' && cs.visibility !== 'hidden';
+    }
+
+    function actualizarClaseLayout() {
+        // En escritorio el layout nuevo se aplica SIEMPRE (también con el
+        // juego oculto en el menú, donde no afecta a nada porque todas las
+        // reglas van dentro de #juegoContainer). Así, al darle a Jugar el
+        // juego ya nace con la interfaz nueva: ni un frame de la antigua.
+        const on = autoPanel();
+        document.body.classList.toggle('tft-layout', on);
+        return on;
+    }
+
+    // El panel va pegado a la izquierda, arrancando justo debajo del
+    // panel del entrenador y terminando antes del banquillo: así no tapa
+    // información ni impide arrastrar desde el banco.
+    function aplicarGeometria() {
+        const body = document.body;
+        const quitar = function () {
+            body.style.removeProperty('--spl-top');
+            body.style.removeProperty('--spl-h');
+        };
+
+        // Clase estable de layout: no depende de si el panel de sinergias
+        // o el baúl están abiertos, así al abrir datos de combate (o
+        // cualquier otro panel) la interfaz NO vuelve a la antigua.
+        if (!actualizarClaseLayout()) {
+            quitar();
+            return;
+        }
+
+        // Si aún no hay medidas (primer frame de la entrada), esperamos al
+        // siguiente tick para calcular la geometría, pero la clase ya está.
+        if (!enPartida()) { quitar(); return; }
+
+        const col = document.querySelector('#juegoContainer .side-column-player');
+        const traits = col ? col.querySelector('.traits-vertical') : null;
+        if (!traits) { quitar(); return; }
+
+        // El panel arranca bajo el panel del entrenador y llega hasta el
+        // final de la columna, así queda alto y estrecho.
+        const info = col.querySelector('.player-info-panel');
+        const cr = col.getBoundingClientRect();
+        const ir = info ? info.getBoundingClientRect() : traits.getBoundingClientRect();
+        const top = Math.round(ir.bottom + 8);
+        // Nunca más allá del borde visible de la ventana (la columna puede
+        // ser más alta que la pantalla y el panel quedaría cortado).
+        const fondo = Math.min(cr.bottom, window.innerHeight) - 8;
+        const alto = Math.max(220, Math.round(fondo - top));
+
+        body.style.setProperty('--spl-top', top + 'px');
+        body.style.setProperty('--spl-h', alto + 'px');
+    }
+
+    // Mantiene el panel abierto mientras se juega en escritorio.
+    function mantenerPanel() {
+        // En la pantalla de resultados finales (victoria/derrota total) el
+        // panel no debe aparecer.
+        if (window._pantallaFinalAbierta) {
+            if (ESTADO.abierto) cerrar();
+            return;
+        }
+        if (!enPartida()) {
+            // Si el contenedor está visible pero aún no tiene medidas
+            // (primer frame de la entrada) NO cerramos: evitaría el
+            // parpadeo abrir/cerrar. Solo se cierra fuera del juego.
+            if (!juegoVisible()) {
+                if (ESTADO.abierto) cerrar();
+            }
+            actualizarClaseLayout();
+            return;
+        }
+        // En pantallas pequeñas se mantiene el abrir/cerrar manual.
+        if (!autoPanel()) return;
+        if (baulAbierto()) return;   // el baúl ocupa el mismo hueco
+        aplicarGeometria();
+        if (ESTADO.abierto) return;
+        if (window.panelDatosCombateAbierto) return;
+        abrir(null, false, 'player');
+    }
+
+    // Firma de la lista: evita re-renderizar (y perder el scroll/alineación)
+    // cuando getSinergiasActivas() se llama muchas veces por segundo.
+    function firmaLista() {
+        return sinergiasDelLado().map(function (s) {
+            return s.nombre + ':' + s.nivelActual + ':' + s.nivelMaximo + ':' + (s.activa ? 1 : 0);
+        }).join('|');
+    }
+
+    function esClaseDe(s) {
+        return s && s.tipo === 'clase';
+    }
+
+    // ------------------------------------------------------------
+    // CREAR DOM (una sola vez)
+    // ------------------------------------------------------------
+    function crearPanel() {
+        if (ESTADO.el) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'panelSinergiasOverlay';
+        overlay.className = 'spl-overlay';
+        overlay.innerHTML = `
+            <div class="spl-shell" role="dialog" aria-modal="true" aria-label="Sinergias">
+                <div class="spl-list">
+                    <div class="spl-head">
+                        <div class="spl-head-ico">⚔️</div>
+                        <div class="spl-title">
+                            <b>SINERGIAS</b>
+                            <span class="spl-sub">0 sinergias</span>
+                        </div>
+                        <button type="button" class="spl-close" aria-label="Cerrar sinergias">✕</button>
+                    </div>
+                    <div class="spl-rows"></div>
+                    <div class="spl-foot"><span>Pulsa una sinergia</span><span class="spl-foot-count"><b>0</b> sinergias</span></div>
+                </div>
+                <div class="spl-detail"></div>
+                <div class="spl-nv" id="splNuevaVerde"></div>
+                <div class="spl-nv" id="splAuraMiedo"></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        ESTADO.el = overlay;
+        ESTADO.listaEl = overlay.querySelector('.spl-rows');
+        ESTADO.detalleEl = overlay.querySelector('.spl-detail');
+        ESTADO.subtituloEl = overlay.querySelector('.spl-sub');
+        ESTADO.pieEl = overlay.querySelector('.spl-foot-count');
+
+        overlay.addEventListener('click', function (e) {
+            // En escritorio el panel vive siempre abierto (como el ranking),
+            // así que un clic fuera no lo cierra.
+            if (e.target === overlay && !autoPanel()) cerrar();
+        });
+        overlay.querySelector('.spl-close').addEventListener('click', cerrar);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && ESTADO.abierto && !autoPanel()) cerrar();
+        });
+    }
+
+    // ------------------------------------------------------------
+    // LISTA
+    // ------------------------------------------------------------
+    function renderLista() {
+        if (!ESTADO.el) return;
+
+        const lista = sinergiasDelLado();
+        const activas = lista.filter(s => s.activa).length;
+        const inactivas = lista.length - activas;
+
+        ESTADO.el.querySelector('.spl-title b').textContent =
+            ESTADO.lado === 'enemy' ? 'SINERGIAS RIVAL' : 'SINERGIAS';
+        ESTADO.subtituloEl.textContent = lista.length + ' sinergias · ' + activas + ' activas';
+        if (ESTADO.pieEl) ESTADO.pieEl.innerHTML = '<b>' + lista.length + '</b> sinergias';
+
+        if (!lista.length) {
+            ESTADO.listaEl.innerHTML = '<div class="spl-empty">⚔️ Sin sinergias todavía</div>';
+            ESTADO.firma = '';
+            renderDetalle();
+            return;
+        }
+
+        let html = '';
+        let separadorPuesto = false;
+
+        lista.forEach(function (s) {
+            if (!s.activa && !separadorPuesto && activas > 0) {
+                html += '<div class="spl-sep">INACTIVAS · ' + inactivas + '</div>';
+                separadorPuesto = true;
+            }
+
+            const sel = ESTADO.seleccion &&
+                ESTADO.seleccion.nombre === s.nombre &&
+                ESTADO.seleccion.esClase === esClaseDe(s);
+
+            const max = Math.min(Math.max(s.nivelMaximo || 0, 1), 6);
+            const n = Math.min(Math.max(s.nivelActual || 0, 0), max);
+            let dots = '';
+            for (let i = 0; i < max; i++) {
+                dots += '<s class="' + (i < n ? 'f' : '') + '"></s>';
+            }
+
+            html += `
+                <button type="button" class="spl-row ${s.activa ? 'on' : 'off'}${sel ? ' sel' : ''}" style="--c:${esc(s.color || '#fbbf24')}">
+                    <span class="spl-row-ico">${iconoHTML(s.icono)}</span>
+                    <span class="spl-row-txt">
+                        <span class="spl-row-name">${esc(s.nombre)}</span>
+                        <span class="spl-row-meta">
+                            <span class="spl-row-dots">${dots}</span>
+                            <span class="spl-row-count">${s.nivelActual || 0}<i>/${s.nivelMaximo || 0}</i></span>
+                        </span>
+                    </span>
+                </button>`;
+        });
+
+        ESTADO.listaEl.innerHTML = html;
+
+        // Asignar clicks recorriendo de nuevo la lista en orden
+        let idx = 0;
+        Array.prototype.forEach.call(ESTADO.listaEl.querySelectorAll('.spl-row'), function (btn) {
+            const s = lista[idx++];
+            if (!s) return;
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                seleccionar(s.nombre, esClaseDe(s));
+            });
+        });
+
+        // Dejar visible la fila seleccionada (la lista puede tener scroll)
+        const filaSel = ESTADO.listaEl.querySelector('.spl-row.sel');
+        if (filaSel) {
+            const cajaLista = ESTADO.listaEl.getBoundingClientRect();
+            const cajaFila = filaSel.getBoundingClientRect();
+            const top = (cajaFila.top - cajaLista.top) + ESTADO.listaEl.scrollTop;
+            const bottom = top + filaSel.offsetHeight;
+            const visibleTop = ESTADO.listaEl.scrollTop;
+            const visibleBottom = visibleTop + ESTADO.listaEl.clientHeight;
+            if (top < visibleTop) {
+                ESTADO.listaEl.scrollTop = Math.max(0, top - 4);
+            } else if (bottom > visibleBottom) {
+                ESTADO.listaEl.scrollTop = bottom - ESTADO.listaEl.clientHeight + 4;
+            }
+        }
+
+        ESTADO.firma = firmaLista();
+        renderDetalle();
+    }
+
+    // ------------------------------------------------------------
+    // DETALLE
+    // ------------------------------------------------------------
+    function renderDetalle() {
+        if (!ESTADO.detalleEl) return;
+
+        if (!ESTADO.seleccion) {
+            // Abierto desde el botón ⚔️: solo la lista, sin detalle
+            ESTADO.detalleEl.style.display = 'none';
+            ESTADO.detalleEl.innerHTML = '';
+            ESTADO.detalleEl.style.marginTop = '0px';
+            actualizarPanelesExtra();
+            return;
+        }
+
+        const datos = (typeof obtenerDatosSinergia === 'function')
+            ? obtenerDatosSinergia(ESTADO.seleccion.nombre, ESTADO.seleccion.esClase, ESTADO.lado)
+            : null;
+
+        if (!datos) {
+            ESTADO.detalleEl.style.display = 'none';
+            ESTADO.detalleEl.innerHTML = '';
+            actualizarPanelesExtra();
+            return;
+        }
+
+        ESTADO.detalleEl.style.display = '';
+
+        const fila = sinergiasDelLado().find(function (s) {
+            return s.nombre === datos.nombre && esClaseDe(s) === !!datos.esClase;
+        });
+        const activa = !!(fila && fila.activa);
+        const nivelActivo = datos.nivelActivo || 0;
+
+        const tiers = (datos.niveles || []).map(function (t) {
+            const on = t.nivel === nivelActivo;
+            return `<div class="spl-tier${on ? ' on' : ''}">
+                <span class="spl-tier-n">${t.nivel} <s>★</s></span>
+                <span class="spl-tier-d">${esc(t.desc)}</span>
+                ${on ? '<span class="spl-tier-p">AHORA</span>' : ''}
+            </div>`;
+        }).join('');
+
+        const champs = (datos.pokemons || []).map(function (p) {
+            const spriteId = p.spriteId || p.id;
+            const nivel = p.nivelPokemon > 1 ? `<span class="spl-champ-lvl">${p.nivelPokemon}★</span>` : '';
+            const donde = p.activo
+                ? (p.ubicacion === 'banquillo' ? ' · banquillo' : ' · tablero')
+                : '';
+            return `<div class="spl-champ ${p.activo ? 'own' : 'no'}" title="${esc(p.nombre + donde)}">
+                <img src="assets/sprites/pokemon/${spriteId}.png" alt="${esc(p.nombre)}" loading="lazy"
+                     onerror="this.style.display='none'">
+                ${nivel}
+            </div>`;
+        }).join('');
+
+        const next = (datos.niveles || []).find(function (t) { return !t.alcanzado; });
+        let descPrincipal;
+        if (nivelActivo > 0 && datos.bonusActivo) {
+            descPrincipal = '<b>' + esc(datos.bonusActivo) + '</b>';
+        } else if (next) {
+            const faltan = Math.max(1, next.nivel - datos.nivelActual);
+            descPrincipal = '<b>Sin bonus activo</b> · ' + (faltan === 1 ? 'falta 1' : 'faltan ' + faltan) + ' para nivel ' + next.nivel;
+        } else {
+            descPrincipal = '<b>Sin bonus activo</b>';
+        }
+
+        const propios = (datos.pokemons || []).filter(function (p) { return p.activo; }).length;
+        const color = datos.color || '#fbbf24';
+
+        ESTADO.detalleEl.innerHTML = `
+            <div class="spl-d-head">
+                <div class="spl-d-ico" style="--c:${esc(color)}">${iconoHTML(datos.icono)}</div>
+                <div class="spl-d-title">
+                    <b>${esc(datos.nombre)}</b>
+                    <div class="spl-d-tags">
+                        <span class="spl-tag lvl">Nivel ${datos.nivelActual} / ${datos.nivelMaximo}</span>
+                        <span class="spl-tag ${activa ? 'on' : 'off'}">${activa ? 'Activa' : 'Inactiva'}</span>
+                    </div>
+                </div>
+                <div class="spl-d-now">Ahora<b>${nivelActivo ? nivelActivo + '★' : '—'}</b></div>
+            </div>
+
+            <div class="spl-d-desc" style="--c:${esc(color)}">${descPrincipal}</div>
+
+            <div class="spl-d-label">Escalado</div>
+            <div class="spl-tiers">${tiers}</div>
+
+            <div class="spl-d-label">Campeones con ${esc(datos.nombre)}</div>
+            <div class="spl-champs">${champs || '<span class="spl-muted">Sin campeones disponibles.</span>'}</div>
+
+            <div class="spl-d-foot">
+                <span><b>${propios}</b> de <b>${(datos.pokemons || []).length}</b> campeones en tu equipo</span>
+            </div>
+        `;
+
+        alinearDetalle();
+        actualizarPanelesExtra();
+    }
+
+    // Paneles auxiliares del detalle (a su derecha, separación mínima):
+    //  · Planta    → Semillas Revivir
+    //  · Siniestro → Aura del Miedo
+    function actualizarPanelesExtra() {
+        const sel = ESTADO.seleccion;
+        const abierto = !!ESTADO.abierto;
+        const mt = (ESTADO.detalleEl && ESTADO.detalleEl.style.marginTop) || '0px';
+
+        const nv = document.getElementById('splNuevaVerde');
+        if (nv) {
+            const esPlanta = !!(abierto && sel && !sel.esClase && sel.nombre === 'Planta' &&
+                typeof window.construirPanelNuevaVerdeHTML === 'function');
+            if (esPlanta) {
+                nv.dataset.lado = ESTADO.lado;
+                nv.innerHTML = window.construirPanelNuevaVerdeHTML(ESTADO.lado);
+                nv.style.display = 'block';
+                nv.style.marginTop = mt;
+            } else {
+                nv.style.display = 'none';
+                nv.innerHTML = '';
+            }
+        }
+
+        const am = document.getElementById('splAuraMiedo');
+        if (am) {
+            const esSiniestro = !!(abierto && sel && !sel.esClase && sel.nombre === 'Siniestro' &&
+                typeof window.construirPanelAuraMiedoHTML === 'function');
+            if (esSiniestro) {
+                am.dataset.lado = ESTADO.lado;
+                am.innerHTML = window.construirPanelAuraMiedoHTML(ESTADO.lado);
+                am.style.display = 'block';
+                am.style.marginTop = mt;
+            } else {
+                am.style.display = 'none';
+                am.innerHTML = '';
+            }
+        }
+    }
+
+    // Coloca la tarjeta de detalle a la altura de la fila seleccionada
+    function alinearDetalle() {
+        const det = ESTADO.detalleEl;
+        if (!det) return;
+        det.style.marginTop = '0px';
+
+        if (window.matchMedia('(max-width: 760px)').matches) return;
+
+        // Alineación SÍNCRONA (forzando reflow). Con rAF/setTimeout la
+        // tarjeta podía quedarse arriba si la pestaña estaba en segundo
+        // plano o el navegador estrangulaba los timers.
+        if (!ESTADO.el || !ESTADO.abierto) return;
+        const fila = ESTADO.el.querySelector('.spl-row.sel');
+        const shell = ESTADO.el.querySelector('.spl-shell');
+        if (!fila || !shell) return;
+
+        const top = fila.getBoundingClientRect().top - shell.getBoundingClientRect().top;
+        const altoDet = det.offsetHeight; // fuerza layout
+        const max = Math.max(0, shell.clientHeight - altoDet - 6);
+        det.style.marginTop = Math.max(0, Math.min(top, max)) + 'px';
+
+        // Si la tarjeta queda recortada por abajo, mover la flecha para
+        // que siga apuntando a la fila seleccionada.
+        const centroFila = fila.getBoundingClientRect().top + fila.offsetHeight / 2;
+        const centroTarjeta = det.getBoundingClientRect().top;
+        const alto = det.offsetHeight;
+        const flecha = Math.max(16, Math.min(alto - 26, centroFila - centroTarjeta));
+        det.style.setProperty('--arrow-top', flecha + 'px');
+
+        // El panel de semillas acompaña al detalle a su misma altura.
+        const nv = document.getElementById('splNuevaVerde');
+        if (nv && nv.style.display !== 'none') nv.style.marginTop = det.style.marginTop;
+    }
+
+    // ------------------------------------------------------------
+    // SELECCIÓN / APERTURA / CIERRE
+    // ------------------------------------------------------------
+    function seleccionar(nombre, esClase) {
+        // Si ya estaba seleccionada, el segundo clic cierra el detalle
+        // (pero deja el panel de la lista abierto).
+        if (ESTADO.seleccion &&
+            ESTADO.seleccion.nombre === nombre &&
+            ESTADO.seleccion.esClase === !!esClase) {
+            ESTADO.seleccion = null;
+            Array.prototype.forEach.call(ESTADO.el.querySelectorAll('.spl-row'), function (btn) {
+                btn.classList.remove('sel');
+            });
+            renderDetalle();
+            return;
+        }
+
+        ESTADO.seleccion = { nombre: nombre, esClase: !!esClase };
+        // Actualizar la marca de la fila sin rehacer toda la lista
+        Array.prototype.forEach.call(ESTADO.el.querySelectorAll('.spl-row'), function (btn) {
+            btn.classList.remove('sel');
+        });
+        const lista = sinergiasDelLado();
+        const idx = lista.findIndex(function (s) {
+            return s.nombre === nombre && esClaseDe(s) === !!esClase;
+        });
+        if (idx >= 0) {
+            const filas = ESTADO.el.querySelectorAll('.spl-row');
+            if (filas[idx]) filas[idx].classList.add('sel');
+        }
+        renderDetalle();
+    }
+
+    function abrir(nombre, esClase, lado) {
+        lado = (lado === 'enemy') ? 'enemy' : 'player';
+
+        // Cerrar carta de Pokémon / panel de datos como hacía la carta antigua
+        if (typeof cartaAbierta !== 'undefined' && cartaAbierta && typeof cerrarCarta === 'function') {
+            cerrarCarta();
+        }
+        if (typeof panelDatosCombateAbierto !== 'undefined' && panelDatosCombateAbierto &&
+            typeof cerrarPanelDatosCombate === 'function') {
+            cerrarPanelDatosCombate();
+        }
+
+        // 🆕 Exclusividad: cerrar el baúl y el ranking al abrir sinergias
+        cerrarBaul();
+        document.body.classList.remove('mob-ranking-open', 'mob-traits-open');
+        const rbtn = document.getElementById('mobRankingBtn');
+        if (rbtn) rbtn.classList.remove('activo');
+
+        // Si ya está abierto con la misma sinergia, se cierra (toggle).
+        // En escritorio el panel no se cierra: sólo se oculta el detalle.
+        if (ESTADO.abierto && ESTADO.lado === lado && ESTADO.seleccion &&
+            ESTADO.seleccion.nombre === nombre && ESTADO.seleccion.esClase === !!esClase) {
+            if (autoPanel()) {
+                ESTADO.seleccion = null;
+                if (ESTADO.el) {
+                    Array.prototype.forEach.call(ESTADO.el.querySelectorAll('.spl-row'), function (btn) {
+                        btn.classList.remove('sel');
+                    });
+                }
+                renderDetalle();
+            } else {
+                cerrar();
+            }
+            return;
+        }
+
+        crearPanel();
+        ESTADO.abierto = true;
+        ESTADO.lado = lado;
+        window.panelSinergiasAbierto = true;
+
+        const lista = sinergiasDelLado();
+        let seleccion = null;
+        if (nombre) {
+            const encontrada = lista.find(function (s) {
+                return s.nombre === nombre && esClaseDe(s) === !!esClase;
+            });
+            if (encontrada) seleccion = { nombre: encontrada.nombre, esClase: esClaseDe(encontrada) };
+        }
+        // Si se abre desde el botón ⚔️ (nombre = null), NO se selecciona
+        // ninguna sinergia: el detalle queda oculto hasta que el usuario
+        // pulse un icono/fila concreto.
+        ESTADO.seleccion = seleccion;
+
+        aplicarGeometria();
+        ESTADO.el.classList.add('open');
+        document.body.classList.add('spl-abierto');
+        const dockBtn = document.getElementById('btnDockSinergias');
+        if (dockBtn) dockBtn.classList.add('activo');
+        renderLista();
+    }
+
+    function cerrar() {
+        if (!ESTADO.el) return;
+        ESTADO.abierto = false;
+        window.panelSinergiasAbierto = false;
+        ESTADO.el.classList.remove('open');
+        document.body.classList.remove('spl-abierto');
+        const btn = document.getElementById('mobTraitsBtn');
+        if (btn) btn.classList.remove('activo');
+        const dock = document.getElementById('btnDockSinergias');
+        if (dock) dock.classList.remove('activo');
+    }
+
+    // ------------------------------------------------------------
+    // ACTUALIZACIÓN EN VIVO
+    // (mostrarSinergiasConChips() la llama al recalcular sinergias)
+    // ------------------------------------------------------------
+    function actualizar() {
+        if (!ESTADO.abierto) return;
+        // Throttle (no reset del timer): si nos llaman cada frame, el
+        // timeout debe poder ejecutarse igualmente.
+        if (ESTADO.debounce) return;
+        ESTADO.debounce = setTimeout(function () {
+            ESTADO.debounce = null;
+            if (!ESTADO.abierto) return;
+
+            const lista = sinergiasDelLado();
+            if (!lista.length) {
+                if (!ESTADO.firma) return;
+                ESTADO.seleccion = null;
+                renderLista();
+                return;
+            }
+
+            // Mantener la selección vacía si se abrió desde el botón ⚔️;
+            // si la sinergia seleccionada desaparece, ocultar el detalle.
+            if (ESTADO.seleccion && !lista.some(function (s) {
+                return s.nombre === ESTADO.seleccion.nombre && esClaseDe(s) === ESTADO.seleccion.esClase;
+            })) {
+                ESTADO.seleccion = null;
+            }
+
+            // Nada cambió: no re-renderizar (evita parpadeo y saltos)
+            if (firmaLista() === ESTADO.firma) return;
+
+            renderLista();
+        }, 120);
+    }
+
+    // ------------------------------------------------------------
+    // API GLOBAL
+    // ------------------------------------------------------------
+    window.abrirPanelSinergias = abrir;
+    window.cerrarPanelSinergias = cerrar;
+
+    // Oculta sinergias y baúl al mostrar la pantalla de fin de partida.
+    window.ocultarPanelesFinPartida = function () {
+        window._pantallaFinalAbierta = true;
+        if (ESTADO.abierto) cerrar();
+        cerrarBaul();
+    };
+    window.actualizarPanelSinergias = actualizar;
+    window.panelSinergiasAbierto = false;
+
+    // ------------------------------------------------------------
+    // DOCK ⚔️ / 📦 (arriba a la izquierda)
+    // Solo un panel abierto a la vez, como en TFT.
+    // ------------------------------------------------------------
+    function abrirDesdeBoton() {
+        // Abre la lista completa SIN seleccionar ninguna sinergia.
+        // Si estaba abierto el baúl, ⚔️ lo cambia otra vez por sinergias.
+        if (baulAbierto()) cerrarBaul();
+        abrir(null, false, 'player');
+    }
+
+    // ---------------- BAÚL ----------------
+    function layoutBaulMovil() {
+        return window.matchMedia('(max-height: 700px) and (max-width: 1100px)').matches;
+    }
+
+    function baulAbierto() {
+        return document.body.classList.contains('mob-baul-open') ||
+            document.body.classList.contains('baul-flotante-open');
+    }
+
+    function cerrarBaul() {
+        document.body.classList.remove('mob-baul-open', 'baul-flotante-open');
+        const b = document.getElementById('btnDockBaul');
+        if (b) b.classList.remove('activo');
+        const mb = document.getElementById('mobBaulBtn');
+        if (mb) mb.classList.remove('activo');
+    }
+
+    function abrirBaul(mostrar) {
+        // Exclusividad: sinergias, datos de combate y ranking se cierran
+        if (ESTADO.abierto) cerrar();
+        if (window.panelDatosCombateAbierto && typeof window.cerrarPanelDatosCombate === 'function') {
+            window.cerrarPanelDatosCombate();
+        }
+        document.body.classList.remove('mob-ranking-open', 'mob-traits-open');
+        const rb = document.getElementById('mobRankingBtn');
+        if (rb) rb.classList.remove('activo');
+
+        document.body.classList.remove('mob-baul-open', 'baul-flotante-open');
+        if (mostrar) {
+            aplicarGeometria();
+            document.body.classList.add(layoutBaulMovil() ? 'mob-baul-open' : 'baul-flotante-open');
+        } else if (autoPanel() && enPartida()) {
+            // Al cerrar el baúl vuelve la lista de sinergias (siempre visible).
+            abrir(null, false, 'player');
+        }
+
+        const b = document.getElementById('btnDockBaul');
+        if (b) b.classList.toggle('activo', !!mostrar);
+        const mb = document.getElementById('mobBaulBtn');
+        if (mb) mb.classList.toggle('activo', !!mostrar);
+    }
+
+    window.abrirBaulPanel = abrirBaul;
+    window.cerrarBaulPanel = cerrarBaul;
+
+    // Contador de objetos en el badge del 📦
+    function actualizarBadgeBaul() {
+        const grid = document.getElementById('objetosVerticalGrid');
+        const badge = document.getElementById('btnDockBaulBadge');
+        if (!grid || !badge) return;
+        const n = grid.querySelectorAll('.objeto-slot-vertical[data-objeto-nombre]').length;
+        badge.textContent = n;
+        badge.style.display = n > 0 ? 'flex' : 'none';
+    }
+
+    function observarBaul() {
+        const grid = document.getElementById('objetosVerticalGrid');
+        if (!grid) return;
+        if (!grid.dataset.badgeObs) {
+            grid.dataset.badgeObs = '1';
+            const mo = new MutationObserver(actualizarBadgeBaul);
+            mo.observe(grid, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['data-objeto-nombre', 'style', 'class']
+            });
+        }
+        actualizarBadgeBaul();
+    }
+
+    function bindDock() {
+        const bs = document.getElementById('btnDockSinergias');
+        if (bs && !bs.dataset.splBound) {
+            bs.dataset.splBound = '1';
+            bs.addEventListener('click', function (e) {
+                e.preventDefault();
+                // ⚔️ muestra siempre sinergias (en escritorio no se cierran).
+                if (window.panelSinergiasAbierto && !baulAbierto() && !autoPanel()) cerrar();
+                else abrirDesdeBoton();
+            });
+        }
+
+        const bb = document.getElementById('btnDockBaul');
+        if (bb && !bb.dataset.splBound) {
+            bb.dataset.splBound = '1';
+            bb.addEventListener('click', function (e) {
+                e.preventDefault();
+                abrirBaul(!baulAbierto());
+            });
+        }
+
+        // 🏆 Ranking: muestra u oculta el panel del torneo
+        const br = document.getElementById('btnDockRanking');
+        if (br && !br.dataset.splBound) {
+            br.dataset.splBound = '1';
+            br.classList.add('activo');
+            br.addEventListener('click', function (e) {
+                e.preventDefault();
+                const oculto = document.body.classList.toggle('ranking-oculto');
+                br.classList.toggle('activo', !oculto);
+            });
+        }
+
+        observarBaul();
+        actualizarBadgeBaul();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindDock);
+    } else {
+        bindDock();
+    }
+    setTimeout(bindDock, 300);
+    setTimeout(observarBaul, 1200);
+
+    // Layout nuevo desde el primer momento (en escritorio); el juego
+    // nace ya con la interfaz nueva al pulsar Jugar.
+    actualizarClaseLayout();
+
+    // Panel siempre visible como el ranking (sólo mientras se juega).
+    setInterval(mantenerPanel, 700);
+    setTimeout(mantenerPanel, 800);
+    window.addEventListener('resize', function () { setTimeout(aplicarGeometria, 60); });
+
+    // Evita el parpadeo de la interfaz antigua al entrar en partida:
+    // en cuanto se muestra #juegoContainer aplicamos el layout nuevo
+    // (clase tft-layout + panel) sin esperar al primer tick.
+    (function observarEntradaPartida() {
+        const juego = document.getElementById('juegoContainer');
+        if (!juego || typeof MutationObserver === 'undefined') return;
+        let pendiente = false;
+        const aplicar = function () {
+            if (pendiente) return;
+            pendiente = true;
+            Promise.resolve().then(function () {
+                pendiente = false;
+                // 1º la clase (aunque aún no haya medidas) para que no se
+                // vea ni un frame de la interfaz antigua.
+                if (!actualizarClaseLayout()) return;
+                // Pantalla de fin de partida: no reabrir el panel.
+                if (window._pantallaFinalAbierta) return;
+                // En el menú (juego oculto) no se toca ningún panel.
+                if (!juegoVisible()) return;
+                aplicarGeometria();
+                // 2º abrir el panel ya, sin esperar al tick de 700 ms.
+                if (!ESTADO.abierto && !window.panelDatosCombateAbierto && !baulAbierto()) {
+                    abrir(null, false, 'player');
+                }
+            });
+        };
+        const obs = new MutationObserver(aplicar);
+        obs.observe(juego, { attributes: true, attributeFilter: ['style', 'class'] });
+        obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    })();
+})();
+
+;
+
+/* ==================== js/ui/panelMonedas.js ==================== */
+// ============================================================
+// PANELES DE MONEDAS (AHORRO) — 5 casillas verticales
+// Archivo: js/ui/panelMonedas.js
+// ------------------------------------------------------------
+// - Jugador: columna de 5 casillas junto a su banco.
+// - Rival: mismo panel; para que quepa, el banco del rival se corre
+//   a la derecha (ancho del panel + 8 px de hueco) y el panel ocupa
+//   el sitio que deja libre. En ventanas estrechas el panel se hace
+//   algo más fino (CSS) para caber entre el tablero y el ranking.
+// Cada casilla muestra una moneda y se ilumina por cada 10 de oro
+// ahorrado (máx. 5). La cabecera muestra el oro actual.
+// Es solo informativo: no intercepta clics ni arrastres.
+// ============================================================
+(function () {
+    'use strict';
+
+    const SLOTS = 5;
+    const ORO_POR_MONEDA = 10;
+    const firmas = { jugador: '', rival: '' };
+
+    function enJuego() {
+        const j = document.getElementById('juegoContainer');
+        if (!j) return false;
+        const cs = window.getComputedStyle(j);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        return j.getBoundingClientRect().width > 0;
+    }
+
+    function crearSlots(gridId, clave) {
+        const grid = document.getElementById(gridId);
+        if (!grid || grid.dataset.listo === '1') return;
+        let html = '';
+        for (let i = 0; i < SLOTS; i++) {
+            html += '<div class="coin-slot" data-i="' + i + '">' +
+                '<img src="assets/icons/moneda.png" alt="" draggable="false">' +
+                '</div>';
+        }
+        grid.innerHTML = html;
+        grid.dataset.listo = '1';
+        firmas[clave] = '';
+    }
+
+    // Lee el oro del panel correspondiente. Devuelve null si no es un
+    // número (p. ej. "∞" en las rondas PvE).
+    function oroDe(id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const txt = String(el.textContent).replace(/[^\d]/g, '');
+        if (!txt) return null;
+        const n = parseInt(txt, 10);
+        return Number.isFinite(n) ? Math.max(0, n) : null;
+    }
+
+    // Oro del rival: número, o "∞" en las rondas PvE (salvaje sin economía).
+    function totalRival() {
+        const el = document.getElementById('enemyGoldInfo');
+        if (!el) return null;
+        const txt = String(el.textContent).trim();
+        if (!txt) return null;
+        if (/\u221e|inf/i.test(txt)) return '\u221e';
+        const n = parseInt(txt.replace(/[^\d]/g, ''), 10);
+        return Number.isFinite(n) ? Math.max(0, n) : null;
+    }
+
+    function ocultar(panelId) {
+        const p = document.getElementById(panelId);
+        if (p) p.style.display = 'none';
+    }
+
+    function pintar(panelId, totalId, clave, total, x, y) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+
+        panel.style.display = 'flex';
+        panel.style.left = Math.round(x) + 'px';
+        panel.style.top = Math.round(y) + 'px';
+
+        const totalEl = document.getElementById(totalId);
+        if (totalEl) totalEl.textContent = total;
+
+        const numerico = typeof total === 'number' && Number.isFinite(total);
+        const encendidas = numerico
+            ? Math.max(0, Math.min(SLOTS, Math.floor(total / ORO_POR_MONEDA)))
+            : 0;
+        const firma = encendidas + ':' + total;
+        if (firma === firmas[clave]) return;
+        firmas[clave] = firma;
+
+        const slots = panel.querySelectorAll('.coin-slot');
+        Array.prototype.forEach.call(slots, function (slot, i) {
+            slot.classList.toggle('on', i < encendidas);
+            slot.title = (i + 1) * ORO_POR_MONEDA + ' de oro ahorrado';
+        });
+    }
+
+    // ---------------- JUGADOR ----------------
+    function actualizarJugador() {
+        const panelId = 'panelMonedas';
+        if (!document.getElementById(panelId)) return;
+
+        if (!document.body.classList.contains('tft-layout') || !enJuego()) {
+            ocultar(panelId);
+            return;
+        }
+
+        const bank = document.querySelector('#juegoContainer .side-column-player .bank-container-player');
+        const board = document.querySelector('#juegoContainer .board-wrapper-player');
+        if (!bank) { ocultar(panelId); return; }
+
+        const rb = bank.getBoundingClientRect();
+        const rboard = board ? board.getBoundingClientRect() : null;
+        const izquierda = Math.round(rb.right) + 8;
+
+        if (rb.right <= 0 || (rboard && izquierda + 85 > rboard.left - 4)) {
+            ocultar(panelId);
+            return;
+        }
+
+        const total = oroDe('playerGoldInfo');
+        if (total === null) { ocultar(panelId); return; }
+
+        pintar(panelId, 'coinPanelTotal', 'jugador', total, izquierda, rb.top);
+    }
+
+    // ---------------- RIVAL ----------------
+    function actualizarRival() {
+        const panelId = 'panelMonedasRival';
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+
+        const body = document.body;
+        const apagar = function () {
+            ocultar(panelId);
+            body.classList.remove('enemy-coin-on');
+        };
+
+        if (!body.classList.contains('tft-layout') || !enJuego()) { apagar(); return; }
+
+        const col = document.querySelector('#juegoContainer .side-column-enemy');
+        const bank = document.querySelector('#juegoContainer .side-column-enemy .bank-container-enemy');
+        const board = document.querySelector('#juegoContainer .board-wrapper-enemy');
+        const rank = document.getElementById('rankingTorneo');
+        if (!col || !bank || !board || !rank) { apagar(); return; }
+
+        const rc = col.getBoundingClientRect();
+        const rb = bank.getBoundingClientRect();
+        const rboard = board.getBoundingClientRect();
+        const rr = rank.getBoundingClientRect();
+        const rankVisible = rr.width > 0 && window.getComputedStyle(rank).display !== 'none';
+        // Si el ranking está oculto (botón 🏆), hay vía libre hasta el borde.
+        const limiteDerecho = rankVisible ? rr.left : (window.innerWidth - 8);
+
+        // El banco parte de left:0 dentro de su columna; al activar la
+        // clase se desplaza el ancho del panel + 4 px y el panel ocupa
+        // su hueco.
+        const panelW = Math.round(parseFloat(window.getComputedStyle(panel).width)) || 85;
+        const shiftRival = panelW + 4;
+        const originalLeft = Math.round(rc.left);
+        const huecoPanel = originalLeft >= Math.round(rboard.right) + 4;
+        const huecoBanco = (limiteDerecho - (originalLeft + 85 + shiftRival)) >= 2;
+
+        const total = totalRival();
+        if (total === null || !huecoPanel || !huecoBanco) { apagar(); return; }
+
+        body.classList.add('enemy-coin-on');
+        body.style.setProperty('--enemy-bank-shift', shiftRival + 'px');
+        pintar(panelId, 'coinPanelTotalRival', 'rival', total, originalLeft, rb.top);
+    }
+
+    function actualizar() {
+        crearSlots('coinPanelGrid', 'jugador');
+        crearSlots('coinPanelGridRival', 'rival');
+        actualizarJugador();
+        actualizarRival();
+    }
+
+    function iniciar() {
+        actualizar();
+        setInterval(actualizar, 350);
+        window.addEventListener('resize', function () { setTimeout(actualizar, 80); });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciar);
+    } else {
+        iniciar();
+    }
+    setTimeout(iniciar, 1200);
+})();
+
 ;
 
 /* ==================== js/ui/animaciones.js ==================== */
@@ -36197,6 +37242,12 @@ function abrirSeleccion(modo) {
 }
 
 function volverAlMenu() {
+    // El panel de sinergias y el baúl viven siempre abiertos dentro de la
+    // partida; al salir al menú se ocultan.
+    if (typeof window.cerrarPanelSinergias === 'function') window.cerrarPanelSinergias();
+    if (typeof window.cerrarBaulPanel === 'function') window.cerrarBaulPanel();
+    window._pantallaFinalAbierta = false;
+
     const menuEl = document.getElementById('menuPrincipal');
     if (menuEl) menuEl.classList.remove('online-lobby');
     const vPerfil = document.getElementById('vistaPerfil');
@@ -39565,7 +40616,7 @@ function actualizarObjetosVerticales(lado = 'jugador') {
     const grid = document.getElementById(gridId);
     if (!grid) return;
     grid.innerHTML = '';
-    const maxSlots = 8;
+    const maxSlots = 9;
     for (let i = 0; i < maxSlots; i++) {
         const slot = document.createElement('div');
         slot.className = 'objeto-slot-vertical';
@@ -40155,8 +41206,13 @@ function abrirPanelDatosCombate() {
     panel.style.animation = 'none';
     void panel.offsetWidth;
 
+    // El panel de sinergias (y el baúl) se quedan abiertos: la ventana de
+    // datos de combate es un modal centrado y no debe cerrar el panel
+    // lateral, que debe seguir visible mientras se consultan los datos.
+
     renderizarPanelDatosCombate();
     iniciarAutoRefreshPanelDatos();
+    actualizarDockDatos();
 
     if (typeof playButtonSound === 'function') playButtonSound();
 }
@@ -40171,6 +41227,7 @@ function cerrarPanelDatosCombate() {
     panel.onclick = null;
 
     detenerAutoRefreshPanelDatos();
+    actualizarDockDatos();
 }
 
 function togglePanelDatosCombate() {
@@ -40179,6 +41236,39 @@ function togglePanelDatosCombate() {
     } else {
         abrirPanelDatosCombate();
     }
+}
+
+// 🆕 Abrir el panel con un filtro concreto (daño / recibido / curación)
+function abrirPanelDatosConFiltro(filtro) {
+    const nuevoFiltro = filtro || 'damage';
+
+    // Si ya está abierto con ese mismo filtro, el botón actúa como toggle
+    if (panelDatosCombateAbierto && panelDatosCombateFiltro === nuevoFiltro) {
+        cerrarPanelDatosCombate();
+        return;
+    }
+
+    panelDatosCombateFiltro = nuevoFiltro;
+    document.querySelectorAll('.panel-datos-filtro').forEach(function (b) {
+        b.classList.toggle('activo', b.dataset.filtro === panelDatosCombateFiltro);
+    });
+
+    if (!panelDatosCombateAbierto) {
+        abrirPanelDatosCombate();
+    } else {
+        renderizarPanelDatosCombate();
+        actualizarDockDatos();
+    }
+}
+
+// 🆕 Estado activo de los dos botones del dock derecho
+function actualizarDockDatos() {
+    const activo = panelDatosCombateAbierto;
+    const f = panelDatosCombateFiltro;
+    const bd = document.getElementById('btnPostCombate');
+    const br = document.getElementById('btnDatosRecibido');
+    if (bd) bd.classList.toggle('activo', activo && f === 'damage');
+    if (br) br.classList.toggle('activo', activo && f === 'received');
 }
 
 // ============================================================
@@ -40209,6 +41299,15 @@ function detenerAutoRefreshPanelDatos() {
 // ============================================================
 
 function renderizarPanelDatosCombate() {
+    // Título del filtro (también cuando aún no hay datos de combate)
+    const tituloEl = document.getElementById('panelDatosTituloFiltro');
+    const titulos = {
+        damage: 'Daño infligido',
+        received: 'Daño recibido',
+        heal: 'Curaciones'
+    };
+    if (tituloEl) tituloEl.textContent = titulos[panelDatosCombateFiltro] || '';
+
     let data = null;
 
     // Prioridad: stats en vivo durante el combate
@@ -40348,15 +41447,6 @@ function renderizarPanelDatosCombate() {
             avatarEnemigoEl.textContent = '👤';
         }
     }
-
-    // ===== Título del filtro =====
-    const tituloEl = document.getElementById('panelDatosTituloFiltro');
-    const titulos = {
-        damage: 'Daño infligido',
-        received: 'Daño recibido',
-        heal: 'Curaciones'
-    };
-    if (tituloEl) tituloEl.textContent = titulos[panelDatosCombateFiltro] || '';
 
     // ===== Listas =====
     let statsJugadores = (data.statsJugadores || []).slice();
@@ -40502,6 +41592,7 @@ function conectarFiltrosPanelDatos() {
 
             panelDatosCombateFiltro = filtro;
             renderizarPanelDatosCombate();
+            actualizarDockDatos();
         });
     });
 }
@@ -40518,6 +41609,15 @@ function initPanelDatosCombate() {
         }
 
         conectarFiltrosPanelDatos();
+
+        // 🆕 Botón 🛡️ del dock derecho: daño recibido
+        const btnRecibido = document.getElementById('btnDatosRecibido');
+        if (btnRecibido) {
+            btnRecibido.addEventListener('click', function (e) {
+                e.preventDefault();
+                abrirPanelDatosConFiltro('received');
+            });
+        }
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && panelDatosCombateAbierto) {
@@ -40539,6 +41639,8 @@ try {
     window.abrirPanelDatosCombate = abrirPanelDatosCombate;
     window.cerrarPanelDatosCombate = cerrarPanelDatosCombate;
     window.togglePanelDatosCombate = togglePanelDatosCombate;
+    window.abrirPanelDatosConFiltro = abrirPanelDatosConFiltro;
+    window.actualizarDockDatos = actualizarDockDatos;
     window.renderizarPanelDatosCombate = renderizarPanelDatosCombate;
     window.iniciarAutoRefreshPanelDatos = iniciarAutoRefreshPanelDatos;
     window.detenerAutoRefreshPanelDatos = detenerAutoRefreshPanelDatos;
@@ -42416,6 +43518,7 @@ function volverAlMenuDesdeAjustes() {
     }
 
     cerrarAjustes();
+    window._pantallaFinalAbierta = false;
 
     const menu = document.getElementById('menuPrincipal');
     const juego = document.getElementById('juegoContainer');
@@ -45820,6 +46923,9 @@ function equiparObjetoDesdeBaul(indexBaul, tipoUnidad, idxUnidad) {
         aplicarSinergias();
         renderizar();
         actualizarBadgeBaul();
+
+        // Al equipar, cerrar el baúl y volver al panel de sinergias.
+        if (typeof window.abrirBaulPanel === 'function') window.abrirBaulPanel(false);
     }
 }
 
@@ -46368,7 +47474,11 @@ document.addEventListener('click', function(e) {
         if (typeof cerrarTienda === 'function') cerrarTienda();
     }
 
-    if (typeof window.togglePanelDatosCombate === 'function') {
+    // El botón 🎯 abre siempre en "Daño infligido" (no cierra al pulsar
+    // otra vez: para cerrar están ✕, Esc o clic fuera).
+    if (typeof window.abrirPanelDatosConFiltro === 'function') {
+        window.abrirPanelDatosConFiltro('damage');
+    } else if (typeof window.togglePanelDatosCombate === 'function') {
         window.togglePanelDatosCombate();
     } else {
         console.error('❌ [delegación] togglePanelDatosCombate no está definido');
@@ -50094,6 +51204,12 @@ function mostrarPantallaResultadosFinales() {
         lista.appendChild(fila);
     });
 
+    // La pantalla de resultados finales no debe llevar el panel de
+    // sinergias ni el baúl del juego por detrás.
+    try {
+        if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+    } catch (e) { }
+
     overlay.style.display = 'flex';
 
     const btnVolver = document.getElementById('btnResultadosVolverMenu');
@@ -51096,6 +52212,10 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             const tiempoEl = document.getElementById('resultadosTiempo');
             if (!overlay || !lista) return;
 
+            try {
+                if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+            } catch (e) { }
+
             if (titulo) {
                 const ganeTorneo = !!(posiciones && posiciones[0] && posiciones[0].id === pid);
                 titulo.textContent = ganeTorneo ? '🏆 ¡VICTORIA TOTAL!' : '🏆 TORNEO FINALIZADO';
@@ -51255,6 +52375,10 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             const titulo = document.getElementById('resultadosTitulo');
             const tiempoEl = document.getElementById('resultadosTiempo');
             if (!overlay || !lista) { mostrarFinPartida(opts.gane === true, hpArr, opts); return; }
+
+            try {
+                if (typeof window.ocultarPanelesFinPartida === 'function') window.ocultarPanelesFinPartida();
+            } catch (e) { }
 
             try { if (typeof tiendaAbierta !== 'undefined' && tiendaAbierta && typeof cerrarTienda === 'function') cerrarTienda(); } catch (e) { }
             try { const ap = document.getElementById('amistosoPanel'); if (ap) ap.style.display = 'none'; } catch (e) { }
@@ -51733,6 +52857,9 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         b.textContent = '🏆';
         b.addEventListener('click', (e) => {
             e.preventDefault();
+            // Exclusividad: cerrar sinergias y baúl al abrir el ranking
+            if (typeof window.cerrarPanelSinergias === 'function') window.cerrarPanelSinergias();
+            if (typeof window.cerrarBaulPanel === 'function') window.cerrarBaulPanel();
             document.body.classList.toggle('mob-ranking-open');
             b.classList.toggle('activo', document.body.classList.contains('mob-ranking-open'));
         });
@@ -51744,6 +52871,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     // (antes eran dos tiras laterales que robaban ancho al tablero)
     // ------------------------------------------------------------
     function crearBotonBaul() {
+        // Ya hay un 📦 estático en el dock (btnDockBaul)
+        if (document.getElementById('btnDockBaul')) return;
         if (document.getElementById('mobBaulBtn')) return;
         const right = document.querySelector('#juegoContainer .header-right');
         if (!right) return;
@@ -51765,12 +52894,20 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     // al comprar un objeto en la tienda). En escritorio no hace nada: el
     // botón 📦 solo existe en móvil.
     function abrirBaul() {
-        const btn = document.getElementById('mobBaulBtn');
-        if (!btn) return false;
         // No abrir encima de la tienda ni en mitad de un combate.
         const tienda = document.getElementById('tiendaOverlay');
         if (tienda && getComputedStyle(tienda).display !== 'none') return false;
         if (typeof combatiendo !== 'undefined' && combatiendo) return false;
+
+        // 🆕 Usar el panel del dock (solo móvil, como antes)
+        if (typeof window.abrirBaulPanel === 'function') {
+            if (!window.matchMedia('(max-height: 700px) and (max-width: 1100px)').matches) return false;
+            window.abrirBaulPanel(true);
+            return true;
+        }
+
+        const btn = document.getElementById('mobBaulBtn');
+        if (!btn) return false;
         document.body.classList.add('mob-baul-open');
         btn.classList.add('activo');
         return true;
@@ -51787,6 +52924,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
                 document.body.classList.remove('mob-baul-open');
                 const btn = document.getElementById('mobBaulBtn');
                 if (btn) btn.classList.remove('activo');
+                const dock = document.getElementById('btnDockBaul');
+                if (dock) dock.classList.remove('activo');
             }, 0);
         }
     }, true);
@@ -51795,6 +52934,8 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
     // Botón ⚔️ para abrir/cerrar las sinergias en móvil
     // ------------------------------------------------------------
     function crearBotonSinergias() {
+        // Ya hay un ⚔️ estático en el dock (btnDockSinergias)
+        if (document.getElementById('btnDockSinergias')) return;
         if (document.getElementById('mobTraitsBtn')) return;
         const right = document.querySelector('#juegoContainer .header-right');
         if (!right) return;
@@ -51806,6 +52947,20 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
         b.textContent = '⚔️';
         b.addEventListener('click', (e) => {
             e.preventDefault();
+
+            // 🆕 El botón ⚔️ abre el panel de sinergias (lista + detalle)
+            if (typeof window.abrirPanelSinergias === 'function') {
+                const lista = (window.sinergiasActuales && window.sinergiasActuales.player) || [];
+                const primera = lista.find(s => s.activa) || lista[0];
+                window.abrirPanelSinergias(
+                    primera ? primera.nombre : null,
+                    primera ? primera.tipo === 'clase' : false,
+                    'player'
+                );
+                b.classList.toggle('activo', !!window.panelSinergiasAbierto);
+                return;
+            }
+
             document.body.classList.toggle('mob-traits-open');
             b.classList.toggle('activo', document.body.classList.contains('mob-traits-open'));
         });
@@ -51834,10 +52989,12 @@ window.mostrarPantallaResultadosFinales = mostrarPantallaResultadosFinales;
             const b1 = document.getElementById('objetosVerticalContainer');
             const b2 = document.getElementById('objetosVerticalContainerEnemigo');
             const btn = document.getElementById('mobBaulBtn');
-            const dentro = (b1 && b1.contains(e.target)) || (b2 && b2.contains(e.target)) || (btn && btn.contains(e.target));
+            const dock = document.getElementById('btnDockBaul');
+            const dentro = (b1 && b1.contains(e.target)) || (b2 && b2.contains(e.target)) || (btn && btn.contains(e.target)) || (dock && dock.contains(e.target));
             if (!dentro) {
                 document.body.classList.remove('mob-baul-open');
                 if (btn) btn.classList.remove('activo');
+                if (dock) dock.classList.remove('activo');
             }
         }
     }, true);

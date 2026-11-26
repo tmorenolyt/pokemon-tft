@@ -26,7 +26,7 @@
 
     <!-- CSS empaquetado en un solo archivo (mismo orden que antes).
          Generado por tools/build-bundle.js — no editar bundle.css a mano. -->
-    <link rel="stylesheet" href="css/bundle.css?v=cae95a6352" />
+    <link rel="stylesheet" href="css/bundle.css?v=59b4d7504c" />
     <link rel="icon" href="assets/icons/favicon.ico" />
 
     <style>
@@ -593,6 +593,24 @@
 
     <div id="juegoContainer" style="display:none;">
 
+        <!-- 🪙 Panel de monedas (ahorro): 5 casillas verticales junto al banco -->
+        <div id="panelMonedas" class="coin-panel" aria-hidden="true" title="Cada 10 de oro ahorrado = 1 moneda (máx. 5)">
+            <div class="coin-panel-head">
+                <img class="coin-panel-ico" src="assets/icons/moneda.png" alt="oro" draggable="false">
+                <span class="coin-panel-total" id="coinPanelTotal">10</span>
+            </div>
+            <div class="coin-panel-grid" id="coinPanelGrid"></div>
+        </div>
+
+        <!-- 🪙 Panel de monedas del rival (mismo formato, aparece cuando hay hueco) -->
+        <div id="panelMonedasRival" class="coin-panel" aria-hidden="true" style="display:none;" title="Cada 10 de oro ahorrado = 1 moneda (máx. 5)">
+            <div class="coin-panel-head">
+                <img class="coin-panel-ico" src="assets/icons/moneda.png" alt="oro" draggable="false">
+                <span class="coin-panel-total" id="coinPanelTotalRival">10</span>
+            </div>
+            <div class="coin-panel-grid" id="coinPanelGridRival"></div>
+        </div>
+
         <div id="combatOverlay" class="combat-overlay" style="display:none;">
             <div class="result-container">
                 <div class="result-icon" id="resultIcon">🎉</div>
@@ -610,6 +628,11 @@
             <!-- HEADER -->
             <div class="header">
                 <div class="header-left">
+                    <!-- 🆕 Par de botones (sinergias / baúl): solo uno abierto a la vez -->
+                    <div class="dock-paneles" id="dockPaneles">
+                        <button type="button" id="btnDockSinergias" class="dock-btn" title="Sinergias" aria-label="Sinergias">⚔️</button>
+                        <button type="button" id="btnDockBaul" class="dock-btn" title="Baúl de objetos" aria-label="Baúl de objetos">📦<span class="dock-badge" id="btnDockBaulBadge">0</span></button>
+                    </div>
                     <h1>⚔️ TFT Arena</h1>
                     <span class="round-badge round-badge-tienda" id="faseStats">Ronda <span id="faseStatsNum">1</span></span>
                     <span class="stat-item" title="Tiempo total de partida">
@@ -632,9 +655,12 @@
                         <span class="gold-value-enemy" id="enemyGoldValue">9</span>
                         <span class="gold-label">oro</span>
                     </span>
-                    <!-- 📊 Datos de combate (arriba a la derecha, junto a Ajustes) -->
-                    <button id="btnPostCombate" class="btn-volver-menu btn-datos" title="Datos de combate (D)" aria-label="Datos de combate">📊</button>
+                    <!-- ⚙️ Ajustes primero, luego datos de combate y ranking -->
                     <button class="btn-volver-menu" id="btnAjustes" title="Ajustes">⚙️</button>
+                    <div class="dock-paneles dock-derecha" id="dockDatos">
+                        <button id="btnPostCombate" class="dock-btn" title="Datos de combate (D)" aria-label="Datos de combate">📊</button>
+                        <button id="btnDockRanking" class="dock-btn" title="Ranking" aria-label="Ranking">🏆</button>
+                    </div>
                 </div>
             </div>
 
@@ -1189,6 +1215,6 @@
          Generado por tools/build-bundle.js — edita los archivos de js/
          y ejecuta `node tools/build-bundle.js` para regenerarlo.
          js/audioGestor.js sigue desactivado. -->
-    <script defer src="js/bundle.js?v=cae95a6352"></script>
+    <script defer src="js/bundle.js?v=59b4d7504c"></script>
 </body>
 </html>
